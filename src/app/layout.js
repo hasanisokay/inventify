@@ -1,5 +1,8 @@
 import "./globals.css";
+import MainNav from "@/components/nav/MainNav";
 import { websiteName } from "@/constants/constantsName.mjs";
+import Providers from "@/providers/Providers";
+import { Toaster } from "react-hot-toast";
 
 export const metadata = {
   title: `Home - ${websiteName}`,
@@ -9,8 +12,14 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`antialiased`}>
-        <main>{children}</main>
+      <body className={`antialiased transition-all`}>
+        <Providers>
+          <header>
+            <MainNav />
+          </header>
+          <main>{children}</main>
+        </Providers>
+        <Toaster />
       </body>
     </html>
   );
