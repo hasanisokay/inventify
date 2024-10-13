@@ -2,6 +2,7 @@ import "./globals.css";
 import MainNav from "@/components/nav/MainNav";
 import { websiteName } from "@/constants/constantsName.mjs";
 import Providers from "@/providers/Providers";
+import getThemeCookie from "@/utils/getThemeCookie.mjs";
 import { Toaster } from "react-hot-toast";
 
 export const metadata = {
@@ -9,11 +10,12 @@ export const metadata = {
   description: "Created By Hasan",
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  let storedTheme = await getThemeCookie();
   return (
-    <html lang="en">
+    <html lang="en" data-theme={storedTheme}>
       <body className={`antialiased transition-all`}>
-        <Providers>
+        <Providers initialTheme={storedTheme}>
           <header>
             <MainNav />
           </header>

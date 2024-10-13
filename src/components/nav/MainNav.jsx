@@ -31,7 +31,7 @@ const MainNav = () => {
 
 
     const menu = (
-        <ul className="md:flex-row flex-col flex items-center md:space-y-0 space-y-4">
+        <ul className="md:flex-row text-white flex-col flex items-center md:space-y-0 space-y-4">
             <li className="duration-300 lg:hover:scale-110 active:scale-110 lg:active:scale-100">
                 <NavLink activeClasses={"text-[#0000FF] dark:text-[#00e76f]"} href="/" aria-label="Home Page">
                     {"Home"}

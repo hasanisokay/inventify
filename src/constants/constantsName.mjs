@@ -1,3 +1,3 @@
 export const websiteName = "Inventify"
-export const COOKIE_NAME = 'user-token'
+export const COOKIE_NAME = 'token'
  

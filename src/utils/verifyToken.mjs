@@ -11,6 +11,9 @@ export const verifyToken = async (token = null) => {
   try {
     const { payload } = await jwtVerify(token, secret);
     const { email, password, name, role } = payload;
+    const data = payload;
+    console.log({data});
+    
     if (email && password) return { email, name, role };
     else return false;
   } catch (error) {
