@@ -1,4 +1,3 @@
-'use server'
 import {
   dbErrorResponse,
   invalidCredentialsResponse,
@@ -37,19 +36,28 @@ export const POST = async (req) => {
       }
     );
     if (!user) return NextResponse.json(invalidCredentialsResponse);
-    if (user?.role === "suspended")
+    if (user?.role === "suspended") {
       return NextResponse.json(suspendedAccountResponse);
+    }
 
     const passwordMatch = await bcrypt.compare(body.password, user.password);
     if (!passwordMatch) {
       return NextResponse.json(invalidCredentialsResponse);
     }
+
     try {
+      await userCollection.updateOne(
+        { username: body?.username },
+        { $set: { lastLogin: new Date() } }
+      );
       const secret = new TextEncoder().encode(process.env.JWT_ENCRYPTION_KEY);
       const token = await new SignJWT({
         sub: user._id,
         username: user.username,
         role: user.role,
+        status: user.status,
+        profilePictureUrl: user.profilePictureUrl,
+        fullName: user.fullName,
       })
         .setProtectedHeader({ alg: "HS256" })
         .setIssuedAt()
@@ -57,14 +65,14 @@ export const POST = async (req) => {
         .sign(secret);
 
       // setting cookies
-        cookies().set({
-          name: COOKIE_NAME,
-          value: `Bearer ${token}`,
-          httpOnly: true,
-          sameSite: "strict",
-          secure: process.env.NODE_ENV === "production",
-          maxAge: 24 * 60 * 60 * 3,
-        });
+      cookies().set({
+        name: COOKIE_NAME,
+        value: `Bearer ${token}`,
+        httpOnly: true,
+        sameSite: "strict",
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 24 * 60 * 60 * 3,
+      });
 
       delete user.password;
       return NextResponse.json({

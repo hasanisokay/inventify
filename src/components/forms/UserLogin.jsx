@@ -1,10 +1,11 @@
 'use client'
-import userLogin from '@/form-actions/userLogin.mjs';
+import AuthContext from '@/contexts/AuthContext.mjs';
 import { useRouter, useSearchParams } from 'next/navigation';
-import React from 'react';
+import React, { useContext } from 'react';
 import toast from 'react-hot-toast';
 
 const UserLogin = () => {
+    const {setCurrentUser} = useContext(AuthContext);
     const searchParams = useSearchParams();
     const router = useRouter()
     const redirectTo = searchParams.get('redirectTo');
@@ -12,12 +13,28 @@ const UserLogin = () => {
         <div className="mt-10 mx-auto w-full max-w-md space-y-4 rounded-lg border bg-white p-7 shadow-lg sm:p-10 dark:border-zinc-700 dark:bg-zinc-900">
             <h1 className="text-3xl font-semibold tracking-tight">Sign In</h1>
 
-            <form action={async (FormData) => {
-                const result = await userLogin(FormData);
-                if (!result) toast.error("Try again.");
-                else if (result.error) toast.error(result.message);
+            <form action={async (formData) => {
+                  const username = formData.get("username");
+                  const password = formData.get("password");
+                  if (!username?.trim() || !password?.trim()) {
+                    return null;
+                  }
+                  const res = await fetch(`/api/login`,{
+                    method:"POST",
+                    credentials: 'include',
+                    headers: {
+                     'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({username,password})
+                   });
+                   const data = await res.json();
+
+                // const result = await userLogin(FormData);
+                if (!data) toast.error("Try again.");
+                else if (data.error) toast.error(result.message);
                 else {
-                    toast.success(result.message);
+                    setCurrentUser(data.user)
+                    toast.success(data.message);
                     router.push(redirectTo || "/")
                 }
             }} className="space-y-6">

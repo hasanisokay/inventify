@@ -3,11 +3,8 @@ import AuthContext from "@/contexts/AuthContext.mjs";
 import { verifyToken } from "@/utils/verifyToken.mjs";
 import { useEffect, useState } from "react";
 
-
 const AuthProvider = ({ children }) => {
-
     const [currentUser, setCurrentUser] = useState(null);
-
     useEffect(() => {
         const getUser = async () => {
             const userData = await verifyToken();

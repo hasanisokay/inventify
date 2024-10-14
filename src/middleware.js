@@ -37,7 +37,7 @@ export async function middleware(request) {
 export const config = {
   matcher: [
     // "/admin",
-    // "/admin/:path*",
+    "/admin/:path*",
     // "/dashboard/:path*",
     // "/:path*",
     '/((?!api|_next/static|_next/image|favicon.ico).*)',
