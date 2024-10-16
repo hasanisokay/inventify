@@ -4,12 +4,8 @@ import logOut from "./utils/logOut.mjs";
 import { COOKIE_NAME } from "./constants/constantsName.mjs";
 
 export async function middleware(request) {
-  let token = request.cookies.get(COOKIE_NAME)?.value.split("Bearer")[1];
+  let token = request.cookies.get(COOKIE_NAME)?.value?.split("Bearer")[1]?.trim();
   const pathName = request.nextUrl.pathname;
-
-  // if (pathName.startsWith("/_next") || pathName.startsWith("/static")) {
-  //   return NextResponse.next();
-  // }
 
   if (pathName === "/login" && token) {
     return NextResponse.redirect(new URL("/", request.url));
@@ -20,27 +16,22 @@ export async function middleware(request) {
     return NextResponse.redirect(loginUrl);
   }
 
-  //   if (pathName.startsWith("/admin") && pathName !== "/admin/login") {
-  //     if (!token) {
-  //       return NextResponse.redirect(new URL("/admin/login", request.url));
-  //     }
-  //     const isAdmin = await verifyToken(token);
+  if(pathName.includes("/api") && token){
+    const payload = await verifyToken(token);
+    if (!payload || payload?.status !=="active") {
+      await logOut()
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("redirectTo", pathName);
+      return NextResponse.redirect(loginUrl);    
+    }
+  }
 
-  //     if (!isAdmin) {
-  //       await logOut();
-  //       return NextResponse.redirect(new URL("/admin/login", request.url));
-  //     }
-  //   }
   return NextResponse.next();
 }
 
 export const config = {
   matcher: [
-    // "/admin",
-    "/admin/:path*",
-    // "/dashboard/:path*",
-    // "/:path*",
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+   '/((?!_next/static|_next/image|favicon.ico|api/login|api/logout).*)'
     /*
      * Match all request paths except for the ones starting with:
      * - api (API routes)

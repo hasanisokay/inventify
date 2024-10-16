@@ -32,7 +32,6 @@ const NewItem = () => {
         description,
         tax,
       };
-      console.log(formData);
     };
     return (
         <div className="container mx-auto p-8">

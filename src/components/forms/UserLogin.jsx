@@ -33,7 +33,7 @@ const UserLogin = () => {
                 if (!data) toast.error("Try again.");
                 else if (data.error) toast.error(result.message);
                 else {
-                    setCurrentUser(data.user)
+                    setCurrentUser(data?.user)
                     toast.success(data.message);
                     router.push(redirectTo || "/")
                 }

@@ -25,3 +25,14 @@ export const suspendedAccountResponse = {
   error: "Account Suspended",
   message: "Your account has been suspended. Please contact support for further assistance.",
 };
+
+export const noDataFoundResponse = {
+  status: 404,
+  message: "No matching data found.",
+};
+
+export const dataFoundResponse = (data) => ({
+  status: 200,
+  message: "Data found successfully.",
+  data,
+});

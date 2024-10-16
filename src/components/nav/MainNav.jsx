@@ -2,11 +2,12 @@
 import useTheme from "@/hooks/useTheme.mjs";
 import ThemeToggle from "../toggles/ThemeToggle";
 import NavLink from "./NavLink";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import AuthContext from "@/contexts/AuthContext.mjs";
+import OrganizationDropdown from "../drop-down/OrganizationDropdown";
 
 
 const MainNav = () => {
-
     const [visible, setVisible] = useState(true);
     const { theme } = useTheme();
     const [lastScrollY, setLastScrollY] = useState(0);
@@ -20,7 +21,7 @@ const MainNav = () => {
         }
         setLastScrollY(window.scrollY);
     };
-    
+
     useEffect(() => {
         window.addEventListener('scroll', handleScroll);
         return () => {
@@ -37,21 +38,7 @@ const MainNav = () => {
                     {"Home"}
                 </NavLink>
             </li>
-            <li className="duration-300 lg:hover:scale-110 active:scale-110 lg:active:scale-100">
-                <NavLink activeClasses={"text-[#0000FF] dark:text-[#00e76f]"} href="/blogs" aria-label="Blogs Page">
-                    {"Blogs"}
-                </NavLink>
-            </li>
-            {/* {currentUser && <li className="duration-300 lg:hover:scale-110 active:scale-110 lg:active:scale-100">
-                <NavLink activeClasses={"text-[#0000FF] dark:text-[#00e76f]"} href="/admin" aria-label="Admin Page">
-                    {"Admin"}
-                </NavLink>
-            </li>} */}
-            <li className="duration-300 lg:hover:scale-110 active:scale-110 lg:active:scale-100">
-                <NavLink activeClasses={"text-[#0000FF] dark:text-[#00e76f]"} href="/others" aria-label="Others Page">
-                    {"Others"}
-                </NavLink>
-            </li>
+
             <li className="duration-300 lg:hover:scale-110 active:scale-110 lg:active:scale-100">
                 <NavLink activeClasses={"text-[#0000FF] dark:text-[#00e76f]"} href='/opinions' aria-label="Opinions Page">
                     {"Opinions"}

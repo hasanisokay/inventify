@@ -16,11 +16,6 @@ export const POST = async (req) => {
     const db = await dbConnect();
     if (!db) return NextResponse.json(dbErrorResponse);
     const userCollection = await db.collection("users");
-
-    //     const saltRounds = 10;
-    //     const salt = await bcrypt.genSalt(saltRounds);
-    //     const newHashedPassword = await bcrypt.hash('1234', salt);
-    // console.log(newHashedPassword)
     const user = await userCollection.findOne(
       { username: body?.username },
       {
