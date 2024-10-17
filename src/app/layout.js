@@ -1,5 +1,5 @@
+import OrgNav from "@/components/nav/OrgNav";
 import "./globals.css";
-import MainNav from "@/components/nav/MainNav";
 import { websiteName } from "@/constants/constantsName.mjs";
 import Providers from "@/providers/Providers";
 import getThemeCookie from "@/utils/getThemeCookie.mjs";
@@ -17,7 +17,7 @@ export default async function RootLayout({ children }) {
       <body className={`antialiased transition-all`}>
         <Providers initialTheme={storedTheme}>
           <header>
-            <MainNav />
+         <OrgNav />
           </header>
           <main>{children}</main>
         </Providers>

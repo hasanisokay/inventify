@@ -2,7 +2,7 @@
 const page = () => {
     return (
         <div>
-      invoice page      
+new invoice            
         </div>
     );
 };

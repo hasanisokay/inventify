@@ -30,6 +30,67 @@ body {
   @apply bg-[#dce4e7] text-black;
 }
 
+.btn-submit {
+  padding: 5px;
+  background-color: #0093e9;
+  background-image: linear-gradient(160deg, #0093e9 0%, #80d0c7 100%);
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 600;
+  color: white;
+}
+.btn-red {
+  padding: 6px 12px;
+  background-image: linear-gradient(160deg, #ff0f10 0%, #e5adad 100%);
+  border-radius: 5px;
+  font-size: 12px;
+  color: white;
+  font-weight: 600;
+}
+.rounded-btn {
+  border-top-right-radius: 10px;
+  border-bottom-left-radius: 10px;
+  padding: 4px 12px;
+}
+.btn-nav{
+  @apply cursor-pointer  rounded-full  px-6 py-2 text-white bg-slate-700 hover:bg-sky-600 min-w-fit
+}
+.secondary-nav{
+ @apply flex items-center  md:mt-4 mt-2 md:ml-4 gap-4
+}
+
+.loader {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: block;
+  margin: 15px auto;
+  position: relative;
+  [data-theme="dark"] & {
+    color: white;
+  }
+  [data-theme="light"] & {
+    color: black;
+  }
+  box-sizing: border-box;
+  animation: animloader 1s linear infinite alternate;
+}
+
+@keyframes animloader {
+  0% {
+    box-shadow: -38px -12px, -14px 0, 14px 0, 38px 0;
+  }
+  33% {
+    box-shadow: -38px 0px, -14px -12px, 14px 0, 38px 0;
+  }
+  66% {
+    box-shadow: -38px 0px, -14px 0, 14px -12px, 38px 0;
+  }
+  100% {
+    box-shadow: -38px 0, -14px 0, 14px 0, 38px -12px;
+  }
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

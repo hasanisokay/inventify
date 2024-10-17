@@ -20,13 +20,13 @@ const AuthProvider = ({ children }) => {
                 const res = await fetch(`/api/gets/organizations?username=${userData?.username}`, { credentials: 'include' });
                 const data = await res.json();
                 setOrganizations(data?.data || [])
-                const actOrgFromCookies = await getActiveOrg()
+                const activeOrgFromCookies = await getActiveOrg()
 
-                if (!actOrgFromCookies && data?.data?.length > 0) {
+                if (!activeOrgFromCookies && data?.data?.length > 0) {
                     setActiveOrganization(data?.data[0]);
                 }
                 else {
-                    setActiveOrganization(data?.data?.find(o => o?.orgId === actOrgFromCookies))
+                    setActiveOrganization(data?.data?.find(o => o?.orgId === activeOrgFromCookies))
                 }
             };
         }
