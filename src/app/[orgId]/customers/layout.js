@@ -1,10 +1,12 @@
-import CustomersNav from "@/components/nav/CustomersNav";
+import CustomNav from "@/components/nav/CustomNav";
 
-const layout = ({children}) => {
-    return <>
-    <CustomersNav />
-    {children}
+const layout = ({ children }) => {
+  return (
+    <>
+      <CustomNav customer={true} />
+      {children}
     </>
+  );
 };
 
 export default layout;

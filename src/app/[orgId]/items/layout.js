@@ -1,10 +1,12 @@
-import ItemsNav from "@/components/nav/ItemsNav";
+import CustomNav from "@/components/nav/CustomNav";
 
 const ItemsLayout = ({ children }) => {
-  return <>
-  <ItemsNav />
-  {children}
-  </>
+  return (
+    <>
+      <CustomNav items={true} />
+      {children}
+    </>
+  );
 };
 
 export default ItemsLayout;

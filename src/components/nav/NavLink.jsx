@@ -8,7 +8,7 @@ const NavLink = ({ href, children, activeClasses, inactiveClasses, ...props }) =
         <Link href={href}
             aria-current={(path === href) ? 'page' : undefined}
             {...props}
-            className={` px-3 py-1 text-sm font-medium duration-300 lg:hover:scale-110 active:scale-110 lg:active:scale-100 
+            className={`px-3 py-1 text-sm font-medium duration-300 
                  ${path === href ? activeClasses : inactiveClasses} `}
         >
             {children}

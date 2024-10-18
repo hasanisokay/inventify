@@ -1,8 +1,8 @@
-import InvoiceNav from "@/components/nav/InvoiceNav";
+import CustomNav from "@/components/nav/CustomNav";
 
 const HomepageLayout = ({ children }) => {
   return <>
-  <InvoiceNav />
+<CustomNav invoice={true}/>
   {children}
   </>;
 };
