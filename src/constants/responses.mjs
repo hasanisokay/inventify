@@ -30,6 +30,14 @@ export const noDataFoundResponse = {
   status: 404,
   message: "No matching data found.",
 };
+export const dataAddedResponse = {
+  status: 201,
+  message: "Data added successfully.",
+};
+export const dataUpdateResponse = {
+  status: 200,
+  message: "Data has been successfully updated.",
+};
 
 export const dataFoundResponse = (data) => ({
   status: 200,

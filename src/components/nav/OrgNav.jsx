@@ -7,7 +7,8 @@ import getActiveOrg from "@/utils/getActiveOrg.mjs";
 import AuthContext from "@/contexts/AuthContext.mjs";
 import NavLink from "./NavLink";
 import useTheme from "@/hooks/useTheme.mjs";
-
+import Image from "next/image";
+import logo from "@/../../public/logo1.png"
 const OrgNav = () => {
     const [activeOrgId, setActiveOrgId] = useState(null);
     const { activeOrganization } = useContext(AuthContext);
@@ -31,6 +32,7 @@ const OrgNav = () => {
         return () => {
             window.removeEventListener('scroll', handleScroll);
         };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastScrollY]);
 
     useEffect(() => {
@@ -44,6 +46,7 @@ const OrgNav = () => {
         if (activeOrgId) {
             setActiveOrgId(activeOrganization?.orgId);
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeOrganization]);
 
     const menu = (
@@ -89,18 +92,18 @@ const OrgNav = () => {
 
     return (
         <nav
-        className={`fixed top-0 left-0 w-full bg-transparent z-50 transition-transform
-            bg-opacity-90 backdrop-blur-sm shadow-md
+        className={`fixed top-0 left-0 w-full bg-black z-50 transition-transform
+            bg-opacity-50 backdrop-blur-sm shadow-md
             duration-300 ${visible ? 'transform-none' : '-translate-y-full'
             }`}
             aria-label="Main Navigation"
             role="navigation"
         >
-            <div className="relative text-black dark:text-white">
+            <div className="relative text-white dark:text-white">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <ul className="h-16 flex items-center justify-between">
                         <li>
-                            {/* Add content or logo here */}
+                        <Link href={"/"}>  <Image width={200} height={200}  alt="logo" src={logo}/></Link>
                         </li>
                         <li className="hidden md:block">{menu}</li>
                         <li className="block md:hidden">

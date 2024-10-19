@@ -28,12 +28,12 @@ const CustomNav = ({ items = null, customer = null, invoice = null }) => {
 
     return (
         <nav>
-            <ul className='secondary-nav'>
-                <li className="btn-nav">
-                    <NavLink activeClasses={`bg-blue-600 hover:bg-blue-400 rounded`} inactiveClasses={"rounded hover:bg-slate-500 bg-slate-700"} href={`/${activeOrgId}/${url}/new`}> Add New <span className='font-bold'>+</span> </NavLink>
+            <ul className='secondary-nav text-white'>
+                <li>
+                    <NavLink activeClasses={`bg-blue-600 hover:bg-blue-400 rounded-lg`} inactiveClasses={"rounded-lg hover:bg-slate-500 bg-slate-700"} href={`/${activeOrgId}/${url}/new`}> Add New <span className='font-bold'>+</span> </NavLink>
                 </li>
-                {!path.includes("/invoices") && <li className="btn-nav">
-                    <NavLink activeClasses={`bg-blue-600 hover:bg-blue-400 flex gap-2  rounded`} inactiveClasses={"rounded hover:bg-slate-500 bg-slate-700 flex gap-2"} href={`/${activeOrgId}/${url}/import`}>Import <span className='font-semibold'>&darr;</span> </NavLink>
+                {!path.includes("/invoices") && <li >
+                    <NavLink activeClasses={`bg-blue-600 hover:bg-blue-400 flex gap-2 rounded-lg  `} inactiveClasses={"rounded-lg hover:bg-slate-500 bg-slate-700 flex gap-2"} href={`/${activeOrgId}/${url}/import`}>Import <span className='font-semibold'>&darr;</span> </NavLink>
                 </li>}
             </ul>
         </nav>
