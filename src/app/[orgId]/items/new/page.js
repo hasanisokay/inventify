@@ -6,10 +6,11 @@ import dynamic from 'next/dynamic';
 const NewItem = dynamic(() => import('@/components/forms/NewItem'), {
     loading: () => <Spinner />, ssr: false
   })
-const page = () => {
+const page = ({searchParams}) => {
+    const id = searchParams?.id || null;
     return (
         <div>
-            <NewItem />
+            <NewItem id={id}/>
         </div>
     );
 };

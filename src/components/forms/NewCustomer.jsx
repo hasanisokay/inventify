@@ -365,7 +365,7 @@ const NewCustomer = ({ id = null }) => {
             value={note}
             placeholder="Any note for this customer. Ex: এই লোক ডেলিভারি নেয়না"
             onChange={(e) => setNote(e.target.value)}
-            className="resize w-[300px] p-2 border border-gray-300 rounded"
+            className="form-textarea"
           />
         </div>
 

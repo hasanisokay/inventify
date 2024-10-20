@@ -1,8 +1,11 @@
 'use client'
-import { useState } from 'react';
+import getItem from '@/utils/getItem.mjs';
+import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import Select from 'react-select';
 
-const NewItem = () => {
+const NewItem = ({ id }) => {
+  const [loading, setLoading] = useState(false);
   const [type, setType] = useState('goods');
   const [name, setName] = useState('');
   const [unit, setUnit] = useState('');
@@ -28,13 +31,45 @@ const NewItem = () => {
   ];
 
   const fetchCategories = async () => {
-    // Simulate API call
-    const availableCategories = ['Electronics', 'Furniture', 'Clothing', 'Food'];
-    setCategories(availableCategories);
+    const res = await fetch("/api/gets/categories");
+    const data = await res.json()
+    if (data.status === 200) {
+      setCategories(data.data);
+    } else {
+      setCategories([])
+    }
   };
+  useEffect(() => {
+    (async () => {
+      if (id) {
+        setLoading(true)
+        const item = await getItem(id);
+        setLoading(false)
 
-  const handleSubmit = (e) => {
+        if (item?.type?.length > 0) {
+          setType(item.type);
+          setName(item.name);
+          setUnit(item.unit);
+          setCategory(item.category);
+          setSellingPrice(item.sellingPrice.split(' ')[1]);
+          setCurrency(item.sellingPrice.split(' ')[0]);
+          setDescription(item.description);
+          setSelectedTaxes(item.taxes.map((tax) => ({
+            value: tax.type,
+            label: tax.type.charAt(0).toUpperCase() + tax.type.slice(1)
+          })));
+          setTaxValues({
+            percentage: item.taxes.find(t => t.type === 'percentage')?.value || '',
+            amount: item.taxes.find(t => t.type === 'amount')?.value || ''
+          });
+        }
+      }
+    })();
+  }, [id]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     const formData = {
       type,
       name,
@@ -46,16 +81,33 @@ const NewItem = () => {
         type: tax.value,
         value: taxValues[tax.value] || '',
       })),
-      // lastSyncTime: new Date(),
       status: "Active",
     };
-    console.log('Item Data:', formData);
-    // Handle the form submission logic (e.g., send to API)
+    let apiUrl = "/api/adds/new-item"
+    if (id) {
+      formData.id = id
+      apiUrl = "/api/updates/item"
+    }
+    const res = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(formData),
+      credentials: "include"
+    })
+    const data = await res.json();
+    setLoading(false);
+    if (data.status === 201 || data.status ===200) {
+      toast.success(data?.message)
+    } else {
+      toast.error(data?.message)
+    }
+
   };
 
   const handleTaxChange = (selectedOptions) => {
     setSelectedTaxes(selectedOptions);
-    // Reset tax values for unselected options
     const updatedValues = { ...taxValues };
     selectedOptions.forEach((tax) => {
       if (!updatedValues[tax.value]) {
@@ -65,143 +117,153 @@ const NewItem = () => {
     setTaxValues(updatedValues);
   };
 
-  return (   <div className="container mx-auto p-8">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="font-semibold">Type:</label>
-          <div className="flex space-x-4">
-            <label className="flex items-center space-x-2">
-              <input
-                type="radio"
-                name="type"
-                value="goods"
-                checked={type === 'goods'}
-                onChange={() => setType('goods')}
-                className="form-radio"
-              />
-              <span>Goods</span>
-            </label>
-            <label className="flex items-center space-x-2">
-              <input
-                type="radio"
-                name="type"
-                value="service"
-                checked={type === 'service'}
-                onChange={() => setType('service')}
-                className="form-radio"
-              />
-              <span>Service</span>
-            </label>
-          </div>
-        </div>
-
-        <div>
-          <label className="block font-semibold">Name:</label>
-          <input
-            type="text"
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded"
-          />
-        </div>
-
-        <div>
-      <label className="block font-semibold">Unit:</label>
-      <Select
-
-        options={units}
-        value={units.find((u) => u.value === unit)}
-        onChange={(selectedOption) => setUnit(selectedOption.value)}
-      />
-    </div>
-
-        <div>
-          <label className="block font-semibold">Category:</label>
-          <button
-            type="button"
-            onClick={fetchCategories}
-            className="p-2 bg-blue-500 text-white rounded mb-2"
-          >
-            Load Categories
-          </button>
-          {categories.length > 0 && (
-            <Select
-              options={categories.map((cat) => ({ value: cat, label: cat }))}
-              onChange={(selectedOption) => setCategory(selectedOption.value)}
-            />
-          )}
-          <input
-            type="text"
-            placeholder="Or enter new category"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded mt-2"
-          />
-        </div>
-
-        <div>
-          <label className="block font-semibold">Selling Price:</label>
-          <div className="flex space-x-2">
-            <select
-              value={currency}
-              onChange={(e) => setCurrency(e.target.value)}
-              className="p-2 border border-gray-300 rounded"
-            >
-              <option value="BDT">BDT</option>
-              <option value="USD">USD</option>
-              <option value="EUR">EUR</option>
-            </select>
+  return (<div className="container mx-auto p-8">
+    <form onSubmit={handleSubmit} className={`${loading ? "form-disabled" : ""} space-y-4`}>
+      <div className='flex gap-2 items-center'>
+        <label className="font-semibold w-[100px]">Type:</label>
+        <div className="flex space-x-4">
+          <label className="flex items-center space-x-2">
             <input
-              type="number"
-              value={sellingPrice}
-              onChange={(e) => setSellingPrice(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded"
+              type="radio"
+              name="type"
+              value="goods"
+              checked={type === 'goods'}
+              onChange={() => setType('goods')}
+              className="form-radio"
             />
+            <span>Goods</span>
+          </label>
+          <label className="flex items-center space-x-2">
+            <input
+              type="radio"
+              name="type"
+              value="service"
+              checked={type === 'service'}
+              onChange={() => setType('service')}
+              className="form-radio"
+            />
+            <span>Service</span>
+          </label>
+        </div>
+      </div>
+      <div className='flex flex-wrap md:gap-10'>
+        <div className='space-y-2'>
+          <div className="input-container">
+            <label className="form-label">Name:</label>
+            <input
+              type="text"
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="text-input"
+            />
+          </div>
+
+          <div className="input-container">
+            <label className="form-label">Unit:</label>
+            <Select
+              className='w-[200px]'
+              options={units}
+              value={units.find((u) => u.value === unit)}
+              onChange={(selectedOption) => setUnit(selectedOption.value)}
+            />
+          </div>
+
+
+
+          <div className='flex flex-wrap items-center gap-2'>
+            <label className="w-[100px] block font-semibold">Selling Price:</label>
+            <div className="flex space-x-2">
+              <select
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+                className=" px-2 rounded"
+              >
+                <option value="BDT">BDT</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+              </select>
+              <input
+                type="number"
+                value={sellingPrice}
+                onChange={(e) => setSellingPrice(e.target.value)}
+                className="text-input"
+              />
+            </div>
           </div>
         </div>
 
         <div>
-          <label className="block font-semibold">Description:</label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded"
-          />
+          <label className="form-label">Category:</label>
+          <div className='min-h-[10px]'>
+            {!categories?.length > 0 && <button
+              type="button"
+              onClick={fetchCategories}
+              className="my-2 btn-submit "
+            >
+              Load Categories
+            </button>}
+          </div>
+          <div className='input-container'>
+            {categories?.length > 0 && (
+              <Select
+                className='w-[200px]'
+                options={categories.map((cat) => ({ value: cat, label: cat }))}
+                onChange={(selectedOption) => setCategory(selectedOption.value)}
+              />
+            )}
+            <input
+              type="text"
+              placeholder="Or enter new category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="text-input"
+            />
+          </div>
         </div>
-
-        <div>
-          <label className="block font-semibold">Tax:</label>
+      </div>
+      <div >
+        <div className='input-container'>
+          <label className="form-label">Tax:</label>
           <Select
             isMulti
             options={taxOptions}
             onChange={handleTaxChange}
-            className="mb-2"
+            className="min-w-[200px] w-fit mb-2"
           />
-          {selectedTaxes.map((tax) => (
-            <div key={tax.value}>
-              <label className="block font-semibold">
-                {tax.label}:
-              </label>
-              <input
-                type="number"
-                value={taxValues[tax.value] || ''}
-                onChange={(e) => setTaxValues({ ...taxValues, [tax.value]: e.target.value })}
-                className="w-full p-2 border border-gray-300 rounded mb-2"
-                placeholder={`Enter ${tax.label} value`}
-              />
-            </div>
-          ))}
         </div>
-
-        <button
-          type="submit"
-          className="w-full p-2 bg-green-500 text-white rounded"
-        >
-          Save
-        </button>
-      </form>
-    </div>
+        {selectedTaxes.map((tax) => (
+          <div key={tax.value} className='input-container space-y-2'>
+            <label className="form-label">
+              {tax.label}:
+            </label>
+            <input
+              type="number"
+              value={taxValues[tax.value] || ''}
+              onChange={(e) => setTaxValues({ ...taxValues, [tax.value]: e.target.value })}
+              className="text-input"
+              placeholder={`Enter ${tax.label} value`}
+            />
+          </div>
+        ))}
+      </div>
+      <div className='input-container'>
+        <label className="form-label">Description:</label>
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          className="form-textarea"
+        />
+      </div>
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-[100px] font-semibold px-2 py-1 bg-green-500 rounded"
+      >
+        Save
+      </button>
+    </form>
+  </div>
   );
 };
 
