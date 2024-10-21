@@ -12,9 +12,9 @@ const SortAndLimitBar = ({ sort, limit }) => {
         { value: 'oldest', label: 'Oldest' },
     ];
     const limitOptions = [
-        { value: 10, label: '10 items per page' },
-        { value: 20, label: '20 items per page' },
-        { value: 50, label: '50 items per page' },
+        { value: 100, label: '100 items per page' },
+        { value: 200, label: '200 items per page' },
+        { value: 500, label: '500 items per page' },
     ];
     useEffect(() => {
         const query = new URLSearchParams(window.location.search);

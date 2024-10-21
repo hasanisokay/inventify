@@ -11,6 +11,7 @@ const Page = () => {
   const [file, setFile] = useState(null);
   const [customers, setCustomers] = useState([]); // State to hold imported items
   const { currentUser, activeOrganization } = useContext(AuthContext);
+
   const handleFileUpload = (e) => {
     const uploadedFile = e.target.files[0];
     setFile(uploadedFile);
@@ -34,78 +35,24 @@ const Page = () => {
         if (err) {
           console.error("Error parsing CSV:", err);
         } else {
-          console.log("Parsed CSV data:", output);
-          // Map the parsed data to match your item structure
-          const formattedItems = output.map((row) => ({
-            type: row["Product Type"] || "goods",
-            name: row["Item Name"],
-            unit: row["Usage unit"],
-            category: row["CF.Category"] || row["Category"],
-            sellingPrice: row["Rate"],
-            description: row["Description"],
-            status: row["Status"] || "Active",
-            source: "CSV",
-          }));
+          const formattedItems = output.map((row) => mapRowToItem(row, "CSV"));
           setCustomers(formattedItems);
         }
       });
     };
     reader.readAsText(file);
   };
+  
   const handleExcel = (file) => {
     const reader = new FileReader();
     reader.onload = (event) => {
       const arrayBuffer = event.target.result;
       try {
         const workbook = XLSX.read(arrayBuffer, { type: "array" });
-
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
         const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
-
-        const formattedItems = jsonData.map((row) => {
-          let firstName = row["First Name"] || "";
-          let lastName = row["Last Name"] || "";
-          const name = row["Customer Name"] || "";
-          if (!firstName || !lastName) {
-            const decodedName = decodeName(name);
-            firstName = decodedName.firstName || firstName;
-            lastName = decodedName.lastName || lastName;
-          }
-
-          return {
-            customerType: row["Customer Type"] || "Individual",
-            name: name,
-            firstName,
-            lastName,
-            salutation: row["Salutation"] || row["salutation"] || "",
-            phone: row["Phone"] || row["phone"] || "",
-            email: row["Email"] || row["email"] || "",
-            note: row["Note"] || row["note"] || "",
-            companyName: row["Company Name"] || row["Company"] || "",
-            status: row["Status"] || "Active",
-            source: "excel",
-            createdTime: excelSerialToDate(row["Created Time"]) || new Date(),
-            lastModifiedTime:
-              excelSerialToDate(row["Last Modified Time"]) || new Date(),
-            billingAddress: row["Billing Address"] || "",
-            billingStreet: row["Billing Street"] || "",
-            billingCity: row["Billing City"] || "",
-            billingState: row["Billing State"] || "",
-            billingCountry: row["Billing Country"] || "",
-            billingCode: row["Billing Code"] || "",
-            shippingAddress: row["Shipping Address"] || "",
-            shippingStreet: row["Shipping Street"] || "",
-            shippingCity: row["Shipping City"] || "",
-            shippingState: row["Shipping State"] || "",
-            shippingCountry: row["Shipping Country"] || "",
-            shippingCode: row["Shipping Code"] || "",
-            facebookId: row["Facebook"] || "",
-            orgId: activeOrganization?.orgId,
-            ownerUsername: currentUser?.username,
-          };
-        });
-        if (!activeOrganization.orgId && !currentUser.username) return;
+        const formattedItems = jsonData.map((row) => mapRowToItem(row, "excel"));
         setCustomers(formattedItems);
       } catch (error) {
         console.error("Error reading Excel file:", error);
@@ -113,24 +60,13 @@ const Page = () => {
     };
     reader.readAsArrayBuffer(file);
   };
-
+  
   const handleJSON = (file) => {
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
         const jsonData = JSON.parse(event.target.result);
-        console.log("Parsed JSON data:", jsonData);
-        // Map the parsed data to match your item structure
-        const formattedItems = jsonData.map((row) => ({
-          type: row["Product Type"] || "goods",
-          name: row["Item Name"],
-          unit: row["Usage unit"],
-          category: row["CF.Category"] || row["Category"],
-          sellingPrice: row["Rate"],
-          description: row["Description"],
-          status: row["Status"] || "Active",
-          source: "JSON",
-        }));
+        const formattedItems = jsonData.map((row) => mapRowToItem(row, "JSON"));
         setCustomers(formattedItems);
       } catch (error) {
         console.error("Error parsing JSON:", error);
@@ -138,7 +74,54 @@ const Page = () => {
     };
     reader.readAsText(file);
   };
+  
+  // Helper function to map row data to the item/customer structure
+  const mapRowToItem = (row, source) => {
+    let firstName = row["First Name"] || "";
+    let lastName = row["Last Name"] || "";
+    const name = row["Customer Name"] || "";
+  
+    if (!firstName || !lastName) {
+      const decodedName = decodeName(name);
+      firstName = decodedName.firstName || firstName;
+      lastName = decodedName.lastName || lastName;
+    }
+  
+    return {
+      customerType: row["Customer Type"] || "Individual",
+      name: name,
+      firstName,
+      lastName,
+      salutation: row["Salutation"] || row["salutation"] || "",
+      phone: row["Phone"] || row["phone"] || "",
+      email: row["Email"] || row["email"] || "",
+      note: row["Note"] || row["note"] || "",
+      companyName: row["Company Name"] || row["Company"] || "",
+      status: row["Status"] || "Active",
+      source: source,
+      createdTime: excelSerialToDate(row["Created Time"]) || new Date(),
+      lastModifiedTime: excelSerialToDate(row["Last Modified Time"]) || new Date(),
+      billingAddress: row["Billing Address"] || "",
+      billingStreet: row["Billing Street"] || "",
+      billingCity: row["Billing City"] || "",
+      billingState: row["Billing State"] || "",
+      billingCountry: row["Billing Country"] || "",
+      billingCode: row["Billing Code"] || "",
+      shippingAddress: row["Shipping Address"] || "",
+      shippingStreet: row["Shipping Street"] || "",
+      shippingCity: row["Shipping City"] || "",
+      shippingState: row["Shipping State"] || "",
+      shippingCountry: row["Shipping Country"] || "",
+      shippingCode: row["Shipping Code"] || "",
+      facebookId: row["Facebook"] || "",
+      orgId: activeOrganization?.orgId,
+      ownerUsername: currentUser?.username,
+    };
+  };
+
   const handleSave = async () => {
+    if(!activeOrganization.orgId) return toast.error("active org not found")
+    if(!currentUser.username) return toast.error("No user")
     const res = await fetch("/api/adds/customers", {
       method: "POST",
       headers: {

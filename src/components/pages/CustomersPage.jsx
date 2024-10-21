@@ -10,7 +10,7 @@ const CustomersPage = ({ customers }) => {
         setSelectedCustomer(customer);
         setOpenModal(true);
     };
-    console.log(customers)
+
     return (
         <div className="w-full">
             <table className="min-w-full border-collapse border border-gray-300">

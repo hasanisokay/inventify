@@ -9,8 +9,9 @@ import NavLink from "./NavLink";
 import useTheme from "@/hooks/useTheme.mjs";
 import Image from "next/image";
 import logo from "@/../../public/logo1.png"
-const OrgNav = () => {
-    const [activeOrgId, setActiveOrgId] = useState(null);
+const OrgNav = ({ activeOrg }) => {
+
+    const [activeOrgId, setActiveOrgId] = useState(activeOrg);
     const { activeOrganization } = useContext(AuthContext);
 
     const [visible, setVisible] = useState(true);
@@ -32,21 +33,13 @@ const OrgNav = () => {
         return () => {
             window.removeEventListener('scroll', handleScroll);
         };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastScrollY]);
 
     useEffect(() => {
-        (async () => {
-            const a = await getActiveOrg();
-            setActiveOrgId(a);
-        })();
-    }, []);
-    
-    useEffect(() => {
-        if (activeOrgId) {
+        if (activeOrganization) {
             setActiveOrgId(activeOrganization?.orgId);
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeOrganization]);
 
     const menu = (
@@ -56,31 +49,31 @@ const OrgNav = () => {
                     Home
                 </NavLink>
             </li>
-            <li>
+            {activeOrgId && <li>
                 <NavLink activeClasses={"text-[#00e76f]"} href={`/${activeOrgId}/customers`} aria-label="Customers Page">
                     Customers
                 </NavLink>
-            </li>
-            <li>
+            </li>}
+            {activeOrgId && <li>
                 <NavLink activeClasses={"text-[#00e76f]"} href={`/${activeOrgId}/items`} aria-label="Items Page">
                     Items
                 </NavLink>
-            </li>
-            <li>
+            </li>}
+            {activeOrgId && <li>
                 <NavLink activeClasses={"text-[#00e76f]"} href={`/${activeOrgId}/invoices`} aria-label="Invoices Page">
                     Invoices
                 </NavLink>
-            </li>
-            <li>
+            </li>}
+            {activeOrgId && <li>
                 <NavLink activeClasses={"text-[#00e76f]"} href={`/${activeOrgId}/payments-received`} aria-label="Payment Received Page">
                     Payments Received
                 </NavLink>
-            </li>
-            <li>
+            </li>}
+            {activeOrgId && <li>
                 <NavLink activeClasses={"text-[#00e76f]"} href={`/${activeOrgId}/expenses`} aria-label="Expenses Page">
                     Expenses
                 </NavLink>
-            </li>
+            </li>}
             <li>
                 <button className="px-3 py-1 text-sm font-medium duration-300" onClick={async () => {
                     await logOut();
@@ -92,10 +85,10 @@ const OrgNav = () => {
 
     return (
         <nav
-        className={`fixed top-0 left-0 w-full bg-black z-50 transition-transform
+            className={`fixed top-0 left-0 w-full bg-black z-50 transition-transform
             bg-opacity-50 backdrop-blur-sm shadow-md
             duration-300 ${visible ? 'transform-none' : '-translate-y-full'
-            }`}
+                }`}
             aria-label="Main Navigation"
             role="navigation"
         >
@@ -103,7 +96,7 @@ const OrgNav = () => {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <ul className="h-16 flex items-center justify-between">
                         <li>
-                        <Link href={"/"}>  <Image width={200} height={200}  alt="logo" src={logo}/></Link>
+                            <Link href={"/"}>  <Image width={200} height={200} alt="logo" src={logo} /></Link>
                         </li>
                         <li className="hidden md:block">{menu}</li>
                         <li className="block md:hidden">

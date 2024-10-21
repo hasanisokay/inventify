@@ -7,9 +7,9 @@ import NewCustomerModal from "../modal/NewCustomerModal";
 import NewItemModal from "../modal/NewItemModal";
 import getCustomers from "@/utils/getCustomers.mjs";
 import getCustomerDetails from "@/utils/getCustomerDetails.mjs";
-import getActiveOrg from "@/utils/getActiveOrg.mjs";
 
-const NewInvoice = () => {
+
+const NewInvoice = ({ activeOrg }) => {
   const [customerOptions, setCustomerOptions] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [openCustomerModal, setOpenCustomerModal] = useState(false);
@@ -32,7 +32,7 @@ const NewInvoice = () => {
   useEffect(() => {
     // const getCustomers = async (page, limit, sort, keyword = "", titleOnly="")
     (async () => {
-      const c = await getCustomers(1, 10000, "newest", "", true)
+      const c = await getCustomers(1, 10000, "newest", "", true, activeOrg)
       setSavedCustomers(c);
     })()
   }, [])
@@ -47,7 +47,7 @@ const NewInvoice = () => {
     })()
 
   }, [selectedCustomer]);
-console.log(customerOptions)
+  console.log(customerOptions)
   // Handle customer selection, including the "Add customer" option
   const handleCustomerChange = (option) => {
     if (option.value === "add-new-customer") {

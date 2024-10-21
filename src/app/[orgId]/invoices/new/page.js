@@ -1,13 +1,15 @@
+import getActiveOrg from "@/utils/getActiveOrg.mjs";
 import dynamic from "next/dynamic";
 
 // import NewInvoice from "@/components/forms/NewInvoice";
 const NewInvoice = dynamic(() => import("@/components/forms/NewInvoice"), {
   ssr: false,
 });
-const page = () => {
+const page = async() => {
+  const orgId = await getActiveOrg()
   return (
     <div>
-      <NewInvoice />
+      <NewInvoice activeOrg={orgId}/>
     </div>
   );
 };

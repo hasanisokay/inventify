@@ -4,6 +4,7 @@ import { websiteName } from "@/constants/constantsName.mjs";
 import Providers from "@/providers/Providers";
 import getThemeCookie from "@/utils/getThemeCookie.mjs";
 import { Toaster } from "react-hot-toast";
+import getActiveOrg from "@/utils/getActiveOrg.mjs";
 
 export const metadata = {
   title: `Home - ${websiteName}`,
@@ -12,6 +13,7 @@ export const metadata = {
 
 export default async function RootLayout({ children }) {
   let storedTheme = await getThemeCookie();
+  let activeOrg = await getActiveOrg()
   return (
     <html lang="en" data-theme={storedTheme}>
        <head>
@@ -24,7 +26,7 @@ export default async function RootLayout({ children }) {
       <body className={`antialiased transition-all`}>
         <Providers initialTheme={storedTheme}>
           <header>
-         <OrgNav />
+         <OrgNav  activeOrg={activeOrg}/>
           </header>
           <main className="mt-[70px]">{children}</main>
         </Providers>

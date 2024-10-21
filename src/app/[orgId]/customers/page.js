@@ -11,17 +11,17 @@ const SortAndLimitBar = dynamic(
 );
 const page = async ({ searchParams }) => {
   const page = parseInt(searchParams?.page) || 1;
-  const limit = parseInt(searchParams?.limit) || 10;
+  const limit = parseInt(searchParams?.limit) || 100;
   const sort = searchParams?.sort || "newest";
   const keyword = searchParams?.keyword || "";
   const orgId = await getActiveOrg();
-
   let customers;
   try {
-    customers = await getCustomers(page, limit, sort, keyword, orgId);
+    customers = await getCustomers(page, limit, sort, keyword,"", orgId);
   } catch (error) {
     customers = null;
   }
+
   if (
     customers?.status === 500 ||
     customers?.status === 400 ||
