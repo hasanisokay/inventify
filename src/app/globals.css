@@ -71,6 +71,22 @@ body {
   align-items: center;
   gap: 6px;
 }
+.item-table table, 
+.item-table th, 
+.item-table td {
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+
+.item-table th, 
+.item-table td {
+  padding: 5px;
+}
+
+.item-table th {
+  text-align: left;
+}
+
 .form-textarea{
  @apply resize min-w-[300px] p-2 focus:outline-none rounded
 }

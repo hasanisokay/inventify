@@ -7,7 +7,8 @@ import NewCustomerModal from "../modal/NewCustomerModal";
 import NewItemModal from "../modal/NewItemModal";
 import getCustomers from "@/utils/getCustomers.mjs";
 import getCustomerDetails from "@/utils/getCustomerDetails.mjs";
-
+import getItems from "@/utils/getItems.mjs";
+import Drag from "../svg/Drag";
 
 const NewInvoice = ({ activeOrg }) => {
   const [customerOptions, setCustomerOptions] = useState([]);
@@ -22,18 +23,42 @@ const NewInvoice = ({ activeOrg }) => {
   const [note, setNote] = useState("");
   const [savedCustomers, setSavedCustomers] = useState([]);
   const [savedItems, setSavedItems] = useState([]);
+  const [sameAddress, setSameAddress] = useState(true);
+  const [draggingIndex, setDraggingIndex] = useState(null);
 
+  // Handle drag start
+  const handleDragStart = (index) => {
+    setDraggingIndex(index);
+  };
 
-  // Generate a random invoice number
+  // Handle drag over
+  const handleDragOver = (index) => {
+    if (index !== draggingIndex) {
+      const reorderedItems = [...items];
+      const draggedItem = reorderedItems[draggingIndex];
+      reorderedItems.splice(draggingIndex, 1);
+      reorderedItems.splice(index, 0, draggedItem);
+      setItems(reorderedItems);
+      setDraggingIndex(index);
+    }
+  };
+
+  // Handle drag end
+  const handleDragEnd = () => {
+    setDraggingIndex(null);
+  };
+
   function generateInvoiceNumber() {
-    return `INV-${Math.floor(Math.random() * 1000000)}`;
+    const timestamp = Date.now();
+    return `INV-${timestamp}`;
   }
 
   useEffect(() => {
-    // const getCustomers = async (page, limit, sort, keyword = "", titleOnly="")
     (async () => {
       const c = await getCustomers(1, 10000, "newest", "", true, activeOrg)
       setSavedCustomers(c);
+      const i = await getItems(1, 10000, "newest", "", true, activeOrg)
+      setSavedItems(i);
     })()
   }, [])
 
@@ -45,9 +70,8 @@ const NewInvoice = ({ activeOrg }) => {
         setCustomerOptions(c);
       }
     })()
-
   }, [selectedCustomer]);
-  console.log(customerOptions)
+
   // Handle customer selection, including the "Add customer" option
   const handleCustomerChange = (option) => {
     if (option.value === "add-new-customer") {
@@ -69,34 +93,14 @@ const NewInvoice = ({ activeOrg }) => {
       ]);
     }
   };
-  useEffect(() => { })
 
-  // Update subtotal whenever items or discount change
   useEffect(() => {
-    const total = items.reduce((sum, item) => sum + item.quantity * item.rate, 0);
-    setSubtotal(total);
+    const total = items.reduce((sum, item) => sum + item.quantity * (parseFloat(item.sellingPrice.split(" ")[1]).toFixed(2)), 0);
+    setSubtotal(total || 0);
   }, [items]);
-
+  console.log(items)
   return (
     <div className="invoice-form">
-      {/* Customer Select */}
-      <div className="mb-4">
-        <label htmlFor="customer">Customer</label>
-        <Select
-          className="w-[300px] pl-1 ml-2"
-          id="customer"
-          options={[
-            ...savedCustomers?.map((c) => ({
-              label: `${c.firstName} ${c.lastName}`,
-              value: c._id,
-            })),
-            { label: "Add New Customer", value: "add-new-customer" },
-          ]}
-          placeholder="Select or Add Customer"
-          onChange={handleCustomerChange}
-        />
-      </div>
-
       <div className="input-container mb-4">
         <label htmlFor="invoiceNumber" className="form-label">Invoice: </label>
         <input
@@ -119,18 +123,37 @@ const NewInvoice = ({ activeOrg }) => {
         />
       </div>
 
-      {/* Item Selection */}
-      <div className="mb-4">
-        <label htmlFor="item">Item</label>
+      <div className="mb-4 input-container">
+        <label htmlFor="customer" className="form-label">Customer</label>
         <Select
-          className="w-[300px] pl-1 ml-2"
+          className="min-w-[250px]"
+          id="customer"
+          options={[
+            { label: "Add New Customer", value: "add-new-customer" },
+            ...savedCustomers?.map((c) => ({
+              label: `${c.firstName} ${c.lastName}`,
+              value: c._id,
+            })),
+
+          ]}
+          placeholder="Select or Add Customer"
+          onChange={handleCustomerChange}
+        />
+      </div>
+
+      {/* Item Selection */}
+      <div className="mb-4 input-container">
+        <label htmlFor="item" className="form-label">Item</label>
+        <Select
+          className="min-w-[250px]"
           id="item"
           options={[
+            { label: "Add New Item", value: "add-new-item" },
             ...savedItems?.map((item) => ({
               label: item.name,
               value: item._id,
             })),
-            { label: "Add New Item", value: "add-new-item" },
+
           ]}
           placeholder="Select or Add Item"
           onChange={handleItemChange}
@@ -139,9 +162,9 @@ const NewInvoice = ({ activeOrg }) => {
 
       {/* Item Table */}
       <div className="item-table mb-4">
-        <table className="min-w-full table-auto border-collapse">
+        <table className="min-w-full table-auto">
           <thead>
-            <tr>
+            <tr className="">
               <th>Item Name</th>
               <th>Quantity</th>
               <th>Unit</th>
@@ -150,25 +173,55 @@ const NewInvoice = ({ activeOrg }) => {
             </tr>
           </thead>
           <tbody>
-            {items.map((item, index) => (
-              <tr key={index}>
-                <td>{item.name}</td>
+            {items?.map((item, index) => (
+              <tr key={index}
+                draggable
+                onDragStart={() => handleDragStart(index)}
+                onDragOver={() => handleDragOver(index)}
+                onDragEnd={handleDragEnd}
+                className={draggingIndex === index ? "bg-gray-400" : ""}
+              >
+                <td className="group ">
+                  <div className="flex items-center">
+                    <span
+                      className="cursor-move inline-block opacity-0 group-hover:opacity-100"
+                      draggable
+                      onDragStart={() => handleDragStart(index)}
+                    >
+                      <Drag />
+                    </span>
+                    <span>{item.name}</span>
+                    <button
+                      className="text-red-500 hover:underline group-hover:opacity-100 opacity-0 pl-2 font-semibold text-sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setItems((prev) => prev.filter((i) => i._id !== item?._id));
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+
+                </td>
                 <td>
                   <input
                     type="number"
+                    className="rounded bg-gray-100 focus:outline-none w-[70px] font-semibold pl-4"
                     value={item.quantity}
+                    min={1}
+                    minLength={0.1}
                     onChange={(e) =>
                       setItems((prevItems) =>
                         prevItems.map((it, i) =>
-                          i === index ? { ...it, quantity: parseInt(e.target.value) } : it
+                          i === index ? { ...it, quantity: parseFloat(e.target.value) } : it
                         )
                       )
                     }
                   />
                 </td>
                 <td>{item.unit}</td>
-                <td>{item.rate}</td>
-                <td>{(item.quantity * item.rate).toFixed(2)}</td>
+                <td>{parseFloat(item.sellingPrice.split(" ")[1]).toFixed(2)}</td>
+                <td>{(item.quantity * parseFloat(item.sellingPrice.split(" ")[1])).toFixed(2)}</td>
               </tr>
             ))}
           </tbody>
@@ -200,7 +253,26 @@ const NewInvoice = ({ activeOrg }) => {
           className="text-input resize"
         />
       </div>
-
+      {/* shipping details here */}
+      <div className="flex flex-wrap items-start gap-6 md:ml-4">
+        <div className="space-y-1 my-4">
+          <h2 className="text-lg font-semibold">Billing Address</h2>
+          <p className="text-sm"><span className="font-semibold">Name:</span> {customerOptions.firstName} {customerOptions.lastName}</p>
+          <p className="text-sm"><span className="font-semibold">Address:</span> {customerOptions.billingAddress || "Not Provided"}</p>
+          <p className="text-sm"><span className="font-semibold">Phone:</span> {customerOptions.phone}</p>
+          {
+            customerOptions.companyName && <p className="text-sm"><span className="font-semibold">Company:</span> {customerOptions.companyName}</p>
+          }
+        </div>
+        <div className="space-y-1 my-4">
+          <h2 className="text-lg font-semibold">Shipping Address</h2>
+          <p className="text-sm"><span className="font-semibold">Name:</span> {customerOptions.salutation} {customerOptions.firstName} {customerOptions.lastName}</p>
+          <p className="text-sm"><span className="font-semibold">Address:</span> {customerOptions.shippingAddress || "Not provided"}</p>
+          <p className="text-sm"><span className="font-semibold">Phone:</span> {customerOptions.phone}</p>
+          {
+            customerOptions.companyName && <p className="text-sm"><span className="font-semibold">Company:</span> {customerOptions.companyName}</p>
+          }
+        </div>      </div>
       {/* Save and Save & Print Buttons */}
       <div className="flex space-x-4">
         <button

@@ -9,7 +9,7 @@ import AuthContext from "@/contexts/AuthContext.mjs";
 
 const Page = () => {
   const [file, setFile] = useState(null);
-  const [customers, setCustomers] = useState([]); // State to hold imported items
+  const [customers, setCustomers] = useState([]);
   const { currentUser, activeOrganization } = useContext(AuthContext);
 
   const handleFileUpload = (e) => {
@@ -133,6 +133,8 @@ const Page = () => {
     const data = await res.json();
     if (data?.status === 200 || data?.status === 201) {
       toast.success(data?.message);
+      setFile(null);
+      setCustomers([])
     }
   };
   return (

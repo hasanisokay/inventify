@@ -2,6 +2,7 @@ import {
   dataFoundResponse,
   dbErrorResponse,
   serverErrorResponse,
+  unauthorizedResponse,
 } from "@/constants/responses.mjs";
 import dbConnect from "@/services/dbConnect.mjs";
 import { NextResponse } from "next/server";
@@ -13,6 +14,8 @@ export const GET = async (req) => {
     const searchParams = req.nextUrl.searchParams;
     const keyword = searchParams.get("keyword");
     const category = searchParams.get("category");
+    const orgId = searchParams.get("orgId");
+    const nameOnly = searchParams.get("titleOnly");
     const sort = searchParams.get("sort");
     const sortOrder = sort === "newest" ? -1 : 1;
     const page = parseInt(searchParams.get("page"));
@@ -20,8 +23,18 @@ export const GET = async (req) => {
     const skip = (page - 1) * limit;
     const db = await dbConnect();
     if (!db) return NextResponse.json(dbErrorResponse);
+    if (!orgId) return NextResponse.json(unauthorizedResponse);
     const itemCollection = await db.collection("items");
     const matchStage = {};
+    if (nameOnly) {
+      const res = await itemCollection
+        .find(matchStage, {
+          projection: { _id: 1, name: 1, sellingPrice: 1, unit: 1 },
+        })
+        .toArray();
+      return NextResponse.json(dataFoundResponse(res));
+    }
+
     if (category) {
       matchStage.category = category;
     }

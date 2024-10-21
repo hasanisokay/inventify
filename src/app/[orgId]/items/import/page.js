@@ -1,11 +1,14 @@
 "use client";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { parse } from "csv-parse/browser/esm";
 import * as XLSX from "xlsx";
+import AuthContext from "@/contexts/AuthContext.mjs";
+import toast from "react-hot-toast";
 
 const Page = () => {
   const [file, setFile] = useState(null);
-  const [items, setItems] = useState([]); // State to hold imported items
+  const [items, setItems] = useState([]);
+  const { currentUser, activeOrganization } = useContext(AuthContext);
 
   const handleFileUpload = (e) => {
     const uploadedFile = e.target.files[0];
@@ -34,76 +37,41 @@ const Page = () => {
         if (err) {
           console.error("Error parsing CSV:", err);
         } else {
-          console.log("Parsed CSV data:", output);
-          // Map the parsed data to match your item structure
-          const formattedItems = output.map((row) => ({
-            type: row["Product Type"] || "goods", 
-            name: row["Item Name"],
-            unit: row["Usage unit"],
-            category: row["CF.Category"] || row["Category"],
-            sellingPrice: row["Rate"],
-            description: row["Description"],
-            status: row["Status"] || "Active",
-            source: "CSV",
-            taxes: parseTaxes(row),
-          }));
-          setItems(formattedItems); 
+          const formattedItems = output.map((row) => mapRowToItem(row, "CSV"));
+          setItems(formattedItems);
         }
       });
     };
     reader.readAsText(file);
   };
+
   const handleExcel = (file) => {
     const reader = new FileReader();
     reader.onload = (event) => {
       const arrayBuffer = event.target.result;
       try {
-        const workbook = XLSX.read(arrayBuffer, { type: "array" }); 
-        
+        const workbook = XLSX.read(arrayBuffer, { type: "array" });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" }); 
-  
-        const formattedItems = jsonData.map((row) => ({
-          type: row["Product Type"] || "goods",
-          name: row["Item Name"],
-          unit: row["Usage unit"],
-          category: row["CF.Category"] || row["Category"],
-          sellingPrice: row["Rate"],
-          description: row["Description"],
-          status: row["Status"] || "Active",
-          source: "excel",
-          taxes: parseTaxes(row), // Reusing the parseTaxes function here
-        }));
-  
-        setItems(formattedItems); 
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+        const formattedItems = jsonData.map((row) =>
+          mapRowToItem(row, "excel")
+        );
+        setItems(formattedItems);
       } catch (error) {
         console.error("Error reading Excel file:", error);
       }
     };
-    reader.readAsArrayBuffer(file); 
+    reader.readAsArrayBuffer(file);
   };
 
-  
   const handleJSON = (file) => {
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
         const jsonData = JSON.parse(event.target.result);
-        console.log("Parsed JSON data:", jsonData);
-        // Map the parsed data to match your item structure
-        const formattedItems = jsonData.map((row) => ({
-          type: row["Product Type"] || "goods",
-          name: row["Item Name"],
-          unit: row["Usage unit"],
-          category: row["CF.Category"] || row["Category"],
-          sellingPrice: row["Rate"],
-          description: row["Description"],
-          status: row["Status"] || "Active",
-          source: "JSON",
-          taxes: parseTaxes(row),
-        }));
-        setItems(formattedItems); 
+        const formattedItems = jsonData.map((row) => mapRowToItem(row, "JSON"));
+        setItems(formattedItems);
       } catch (error) {
         console.error("Error parsing JSON:", error);
       }
@@ -111,10 +79,28 @@ const Page = () => {
     reader.readAsText(file);
   };
 
+  // Helper function to map row data to the item structure
+  const mapRowToItem = (row, source) => {
+    return {
+      type: row["Product Type"] || "goods",
+      name: row["Item Name"],
+      unit: row["Usage unit"],
+      category: row["CF.Category"] || row["Category"],
+      sellingPrice: row["Rate"],
+      description: row["Description"],
+      status: row["Status"] || "Active",
+      source: source,
+      taxes: parseTaxes(row),
+      orgId: activeOrganization?.orgId,
+      ownerUsername: currentUser?.username,
+    };
+  };
+
   // Utility function to parse taxes from a row of data
   const parseTaxes = (row) => {
     const taxes = [];
-    const taxPercentage = row["Tax1 Percentage"]?.trim() || row["Tax Percentage"]?.trim();
+    const taxPercentage =
+      row["Tax1 Percentage"]?.trim() || row["Tax Percentage"]?.trim();
     const taxAmount = row["Tax1 Amount"]?.trim() || row["Tax Amount"]?.trim();
     const tax = row["Tax"]?.trim();
 
@@ -142,6 +128,8 @@ const Page = () => {
     return taxes.length > 0 ? taxes : [];
   };
   const handleSave = async () => {
+    if (!activeOrganization.orgId) return toast.error("active org not found");
+    if (!currentUser.username) return toast.error("No user");
     const res = await fetch("/api/adds/items", {
       method: "POST",
       headers: {
@@ -151,11 +139,13 @@ const Page = () => {
       credentials: "include",
     });
     const data = await res.json();
-    if(data?.status===200||data?.status===201){
-      toast.success(data?.message)
+    if (data?.status === 200 || data?.status === 201) {
+      toast.success(data?.message);
+    setFile(null)
+    setItems([])
     }
   };
-console.log(items)
+  console.log(items);
   return (
     <div className="p-4">
       <h1 className="text-xl font-bold mb-4">Import Items</h1>
@@ -170,7 +160,11 @@ console.log(items)
         className="block mb-4"
       />
       {file && <p>File selected: {file.name}</p>}
-      {items?.length > 0 && <button onClick={handleSave} className="btn-submit">Save</button>}
+      {items?.length > 0 && (
+        <button onClick={handleSave} className="btn-submit">
+          Save
+        </button>
+      )}
       {file && (
         <div className="my-10">
           <h2 className="text-lg font-semibold mt-4">Imported Items</h2>
@@ -192,7 +186,11 @@ console.log(items)
         </div>
       )}
 
-      {!file && <p className="font-semibold my-2">For a better import make sure your file has these fields:</p>}
+      {!file && (
+        <p className="font-semibold my-2">
+          For a better import make sure your file has these fields:
+        </p>
+      )}
       {!file && (
         <ul className="list-disc list-inside">
           <li>
