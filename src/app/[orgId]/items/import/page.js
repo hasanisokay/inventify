@@ -141,8 +141,21 @@ const Page = () => {
 
     return taxes.length > 0 ? taxes : [];
   };
+  const handleSave = async () => {
+    const res = await fetch("/api/adds/items", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(items),
+      credentials: "include",
+    });
+    const data = await res.json();
+    if(data?.status===200||data?.status===201){
+      toast.success(data?.message)
+    }
+  };
 console.log(items)
-
   return (
     <div className="p-4">
       <h1 className="text-xl font-bold mb-4">Import Items</h1>
@@ -157,7 +170,7 @@ console.log(items)
         className="block mb-4"
       />
       {file && <p>File selected: {file.name}</p>}
-      {items.length > 0 && <button className="btn-submit">Save</button>}
+      {items?.length > 0 && <button onClick={handleSave} className="btn-submit">Save</button>}
       {file && (
         <div className="my-10">
           <h2 className="text-lg font-semibold mt-4">Imported Items</h2>

@@ -4,6 +4,7 @@ import logOut from "./utils/logOut.mjs";
 import { COOKIE_NAME } from "./constants/constantsName.mjs";
 
 export async function middleware(request) {
+  // return NextResponse.next();
   let token = request.cookies.get(COOKIE_NAME)?.value?.split("Bearer")[1]?.trim();
   const pathName = request.nextUrl.pathname;
 
@@ -31,7 +32,7 @@ export async function middleware(request) {
 
 export const config = {
   matcher: [
-   '/((?!_next/static|_next/image|favicon.ico|api/login|api/logout).*)'
+   '/((?!_next/static|_next/image|favicon.ico|api/login|api/logout|api/gets).*)'
     /*
      * Match all request paths except for the ones starting with:
      * - api (API routes)

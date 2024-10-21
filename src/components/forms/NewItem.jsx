@@ -6,6 +6,7 @@ import Select from 'react-select';
 
 const NewItem = ({ id }) => {
   const [loading, setLoading] = useState(false);
+  const [updateable, setUpdateable] = useState(false)
   const [type, setType] = useState('goods');
   const [name, setName] = useState('');
   const [unit, setUnit] = useState('');
@@ -47,6 +48,7 @@ const NewItem = ({ id }) => {
         setLoading(false)
 
         if (item?.type?.length > 0) {
+          setUpdateable(true);
           setType(item.type);
           setName(item.name);
           setUnit(item.unit);
@@ -74,6 +76,7 @@ const NewItem = ({ id }) => {
       type,
       name,
       unit,
+      createdTime: new Date(),
       category,
       sellingPrice: `${currency} ${sellingPrice}`,
       description,
@@ -84,12 +87,14 @@ const NewItem = ({ id }) => {
       status: "Active",
     };
     let apiUrl = "/api/adds/new-item"
-    if (id) {
+    let method = "POST";
+    if (updateable) {
       formData.id = id
       apiUrl = "/api/updates/item"
+    method ="PUT"
     }
     const res = await fetch(apiUrl, {
-      method: "POST",
+      method,
       headers: {
         "Content-Type": "application/json"
       },
@@ -98,7 +103,7 @@ const NewItem = ({ id }) => {
     })
     const data = await res.json();
     setLoading(false);
-    if (data.status === 201 || data.status ===200) {
+    if (data.status === 201 || data.status === 200) {
       toast.success(data?.message)
     } else {
       toast.error(data?.message)
@@ -260,7 +265,7 @@ const NewItem = ({ id }) => {
         disabled={loading}
         className="w-[100px] font-semibold px-2 py-1 bg-green-500 rounded"
       >
-        Save
+        {updateable ? "Update" : "Save"}
       </button>
     </form>
   </div>

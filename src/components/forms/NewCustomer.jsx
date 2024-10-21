@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import Select from "react-select";
 
 const NewCustomer = ({ id = null }) => {
-
+const [updateable, setUpdateable] = useState(false);
   const [salutation, setSalutation] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -52,6 +52,7 @@ const NewCustomer = ({ id = null }) => {
         setLoading(true);
         const data = await getCustomerDetails(id);
         if (data) {
+          setUpdateable(true)
           setSalutation(data.salutation || "");
           setFirstName(data.firstName || "");
           setLastName(data.lastName || "");
@@ -115,13 +116,15 @@ const NewCustomer = ({ id = null }) => {
       facebookId
     };
     let apiPath = `/api/adds/new-customer`
-    if (id) {
+    let method = "POST"
+    if (updateable) {
       customerData.id = id;
       apiPath = `/api/updates/customer`
+    method = "PUT"
     }
 
     const res = await fetch(apiPath, {
-      method: "POST",
+      method,
       headers: {
         "Content-Type": "application/json"
       },
@@ -370,7 +373,7 @@ const NewCustomer = ({ id = null }) => {
         </div>
 
         <button type="submit" className="w-[200px] p-2 bg-green-500 text-white rounded" disabled={loading}>
-          {id ? "Update" : "Save"}
+          {updateable ? "Update" : "Save"}
         </button>
       </form>
     </div>

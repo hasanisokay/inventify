@@ -20,7 +20,6 @@ export default async function RootLayout({ children }) {
         <link rel="icon" type="image/png" sizes="192x192" href="./../../public/android-chrome-192x192.png" />
         <link rel="icon" type="image/png" sizes="32x32" href="./../../public/favicon-32x32.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="./../../public/favicon-16x16.png" />
-        <link rel="manifest" href="./../../public/site.webmanifest" />
       </head>
       <body className={`antialiased transition-all`}>
         <Providers initialTheme={storedTheme}>

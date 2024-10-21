@@ -1,22 +1,21 @@
 "use client";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { parse } from "csv-parse/browser/esm";
 import * as XLSX from "xlsx";
 import decodeName from "@/utils/decodeName.mjs";
+import excelSerialToDate from "@/utils/excelSerialToDate.mjs";
+import toast from "react-hot-toast";
+import AuthContext from "@/contexts/AuthContext.mjs";
 
 const Page = () => {
   const [file, setFile] = useState(null);
   const [customers, setCustomers] = useState([]); // State to hold imported items
-
+  const { currentUser, activeOrganization } = useContext(AuthContext);
   const handleFileUpload = (e) => {
     const uploadedFile = e.target.files[0];
     setFile(uploadedFile);
-
     if (!uploadedFile) return;
-
     const fileType = uploadedFile.type;
-
-    // Determine the file type and handle accordingly
     if (fileType.includes("csv")) {
       handleCSV(uploadedFile);
     } else if (fileType.includes("spreadsheet") || fileType.includes("excel")) {
@@ -59,11 +58,11 @@ const Page = () => {
       const arrayBuffer = event.target.result;
       try {
         const workbook = XLSX.read(arrayBuffer, { type: "array" });
-  
+
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
         const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
-  
+
         const formattedItems = jsonData.map((row) => {
           let firstName = row["First Name"] || "";
           let lastName = row["Last Name"] || "";
@@ -73,7 +72,7 @@ const Page = () => {
             firstName = decodedName.firstName || firstName;
             lastName = decodedName.lastName || lastName;
           }
-  
+
           return {
             customerType: row["Customer Type"] || "Individual",
             name: name,
@@ -86,8 +85,9 @@ const Page = () => {
             companyName: row["Company Name"] || row["Company"] || "",
             status: row["Status"] || "Active",
             source: "excel",
-            createdTime: row["Created Time"] || new Date(),
-            lastModifiedTime: row["Last Modified Time"] || new Date(),
+            createdTime: excelSerialToDate(row["Created Time"]) || new Date(),
+            lastModifiedTime:
+              excelSerialToDate(row["Last Modified Time"]) || new Date(),
             billingAddress: row["Billing Address"] || "",
             billingStreet: row["Billing Street"] || "",
             billingCity: row["Billing City"] || "",
@@ -101,9 +101,11 @@ const Page = () => {
             shippingCountry: row["Shipping Country"] || "",
             shippingCode: row["Shipping Code"] || "",
             facebookId: row["Facebook"] || "",
+            orgId: activeOrganization?.orgId,
+            ownerUsername: currentUser?.username,
           };
         });
-  
+        if (!activeOrganization.orgId && !currentUser.username) return;
         setCustomers(formattedItems);
       } catch (error) {
         console.error("Error reading Excel file:", error);
@@ -111,7 +113,6 @@ const Page = () => {
     };
     reader.readAsArrayBuffer(file);
   };
-  
 
   const handleJSON = (file) => {
     const reader = new FileReader();
@@ -137,9 +138,20 @@ const Page = () => {
     };
     reader.readAsText(file);
   };
-
-  console.log(customers);
-
+  const handleSave = async () => {
+    const res = await fetch("/api/adds/customers", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(customers),
+      credentials: "include",
+    });
+    const data = await res.json();
+    if (data?.status === 200 || data?.status === 201) {
+      toast.success(data?.message);
+    }
+  };
   return (
     <div className="p-4">
       <h1 className="text-xl font-bold mb-4">Import Customers</h1>
@@ -154,50 +166,53 @@ const Page = () => {
         className="block mb-4"
       />
       {file && <p>File selected: {file.name}</p>}
-      {customers.length > 0 && <button className="btn-submit">Save</button>}
+      {customers?.length > 0 && (
+        <button onClick={handleSave} className="btn-submit">
+          Save
+        </button>
+      )}
       {file && (
         <div className="my-10">
           <h2 className="text-lg font-semibold mt-4">Imported Items</h2>
           {customers.length > 0 ? (
             <ul className="list-disc pl-5">
-             {customers?.map((item, index) => (
-  <li key={index}>
-    <span>
-      <strong>Name:</strong> {item?.salutation} {item?.name}
-    </span>{" "}
-    {item?.billingAddress && (
-      <span>
-        <strong>Billing:</strong> {item?.billingAddress}
-      </span>
-    )}{" "}
-    {item?.shippingAddress && (
-      <span>
-        <strong>Shipping:</strong> {item?.shippingAddress}
-      </span>
-    )}{" "}
-    {item?.phone && (
-      <span>
-        <strong>Phone:</strong> {item?.phone}
-      </span>
-    )}{" "}
-    {item?.email && (
-      <span>
-        <strong>Email:</strong> {item?.email}
-      </span>
-    )}{" "}
-    {item?.note && (
-      <span>
-        <strong>Note:</strong> {item?.note}
-      </span>
-    )}{" "}
-    {item?.facebookId && (
-      <span>
-        <strong>Fb:</strong> {item?.facebookId}
-      </span>
-    )}{" "}
-  </li>
-))}
-
+              {customers?.map((item, index) => (
+                <li key={index}>
+                  <span>
+                    <strong>Name:</strong> {item?.salutation} {item?.name}
+                  </span>{" "}
+                  {item?.billingAddress && (
+                    <span>
+                      <strong>Billing:</strong> {item?.billingAddress}
+                    </span>
+                  )}{" "}
+                  {item?.shippingAddress && (
+                    <span>
+                      <strong>Shipping:</strong> {item?.shippingAddress}
+                    </span>
+                  )}{" "}
+                  {item?.phone && (
+                    <span>
+                      <strong>Phone:</strong> {item?.phone}
+                    </span>
+                  )}{" "}
+                  {item?.email && (
+                    <span>
+                      <strong>Email:</strong> {item?.email}
+                    </span>
+                  )}{" "}
+                  {item?.note && (
+                    <span>
+                      <strong>Note:</strong> {item?.note}
+                    </span>
+                  )}{" "}
+                  {item?.facebookId && (
+                    <span>
+                      <strong>Fb:</strong> {item?.facebookId}
+                    </span>
+                  )}{" "}
+                </li>
+              ))}
             </ul>
           ) : (
             <p>No items imported yet.</p>

@@ -4,18 +4,19 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import NavLink from './NavLink';
 
-const CustomNav = ({ items = null, customer = null, invoice = null }) => {
-    const [activeOrgId, setActiveOrgId] = useState(null);
+const CustomNav = ({ items = null, customer = null, invoice = null, orgId }) => {
+    const [activeOrgId, setActiveOrgId] = useState(orgId || null);
     const [url, setUrl] = useState("");
     const path = usePathname();
 
     useEffect(() => {
         (async () => {
+            if (activeOrgId) return
             const a = await getActiveOrg();
             setActiveOrgId(a);
         })()
     }, [])
-
+    console.log(activeOrgId)
     useEffect(() => {
         if (items) {
             setUrl('items')

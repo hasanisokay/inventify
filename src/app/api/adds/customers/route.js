@@ -11,8 +11,7 @@ import {
       const db = await dbConnect();
       const customerCollection = await db.collection("customers");
       const result = await customerCollection.insertMany(body);
-      console.log(result);
-      if (result.insertedCount > 0) {
+      if (result?.insertedCount > 0) {
         return NextResponse.json(dataAddedResponse);
       } else {
         return NextResponse.json(serverErrorResponse);

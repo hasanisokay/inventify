@@ -1,4 +1,6 @@
-const layout = ({ children }) => {
+
+const layout = async ({ children }, params) => {
+ console.log(params)
   return children;
 };
 

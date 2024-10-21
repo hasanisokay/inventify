@@ -6,7 +6,7 @@ import dbConnect from "@/services/dbConnect.mjs";
 import { ObjectId } from "mongodb";
 import { NextResponse } from "next/server";
 
-export const POST = async (req) => {
+export const PUT = async (req) => {
   try {
     const body = await req.json();
     const id = body.id;

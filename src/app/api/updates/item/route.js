@@ -6,7 +6,7 @@ import {
   import { ObjectId } from "mongodb";
   import { NextResponse } from "next/server";
   
-  export const POST = async (req) => {
+  export const PUT = async (req) => {
     try {
       const body = await req.json();
       const id = body.id;
@@ -18,7 +18,7 @@ import {
         { _id: new ObjectId(id) },
         { $set: body }
       );
-  console.log(result)
+      
       if (result.modifiedCount > 0) {
         return NextResponse.json(dataUpdateResponse);
       } else {
