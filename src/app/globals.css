@@ -76,6 +76,18 @@ body {
 .item-table td {
   border: 1px solid black;
   border-collapse: collapse;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+.table-last-item {
+  font-weight: bold;
+}
+
+.item-table table, 
+.item-table th, 
+.item-table td {
+  border: 1px solid black;
+  border-collapse: collapse;
 }
 
 .item-table th, 
@@ -86,6 +98,7 @@ body {
 .item-table th {
   text-align: left;
 }
+
 
 .form-textarea{
  @apply resize min-w-[300px] p-2 focus:outline-none rounded

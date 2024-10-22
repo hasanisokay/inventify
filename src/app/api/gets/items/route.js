@@ -29,7 +29,7 @@ export const GET = async (req) => {
     if (nameOnly) {
       const res = await itemCollection
         .find(matchStage, {
-          projection: { _id: 1, name: 1, sellingPrice: 1, unit: 1 },
+          projection: { _id: 1, name: 1, sellingPrice: 1, unit: 1, taxes:1 },
         })
         .toArray();
       return NextResponse.json(dataFoundResponse(res));

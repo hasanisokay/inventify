@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Drag = () => {
+const DragSVG = () => {
     return (
         <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -96,4 +96,4 @@ const Drag = () => {
         </svg>)
 };
 
-export default Drag;
+export default DragSVG;
