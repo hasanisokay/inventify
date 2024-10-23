@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import Select from "react-select";
 
-const NewCustomer = ({ id = null }) => {
-const [updateable, setUpdateable] = useState(false);
+const NewCustomer = ({ id = null, setOpenModal = undefined, onSaveCustomer = undefined }) => {
+  const [updateable, setUpdateable] = useState(false);
   const [salutation, setSalutation] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -87,6 +87,32 @@ const [updateable, setUpdateable] = useState(false);
       }
     })();
   }, [id]);
+  const resetStates = () => {
+    setUpdateable(false);
+    setSalutation("");
+    setFirstName("");
+    setLastName("");
+    setCustomerType("Individual");
+    setCompanyName("");
+    setPhone("");
+    setEmail("");
+    setBillingAddress("");
+    setBillingStreet("");
+    setBillingCity("");
+    setBillingState("");
+    setBillingCountry("");
+    setBillingCode("");
+    setShippingAddress("");
+    setShippingStreet("");
+    setShippingCity("");
+    setShippingState("");
+    setShippingCountry("");
+    setShippingCode("");
+    setSameAddress(true);
+    setNote("");
+    setFacebookId("");
+    setLoading(false);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -117,12 +143,16 @@ const [updateable, setUpdateable] = useState(false);
     };
     let apiPath = `/api/adds/new-customer`
     let method = "POST"
+    let returnId = false;
     if (updateable) {
       customerData.id = id;
       apiPath = `/api/updates/customer`
-    method = "PUT"
+      method = "PUT"
     }
+    if (onSaveCustomer && setOpenModal) {
+      returnId = true;
 
+    }
     const res = await fetch(apiPath, {
       method,
       headers: {
@@ -134,9 +164,13 @@ const [updateable, setUpdateable] = useState(false);
     const data = await res.json();
     if (data.status === 201 || data.status === 200) {
       toast.success(data?.message)
-      if (id) {
-        router?.back()
+
+      if (onSaveCustomer && setOpenModal) {
+        customerData._id = data._id
+        onSaveCustomer(customerData)
+        setOpenModal(false)
       }
+      resetStates()
     } else { toast.error(data?.message) }
   };
 
@@ -144,82 +178,82 @@ const [updateable, setUpdateable] = useState(false);
     <div className="container mx-auto p-8">
       <form onSubmit={handleSubmit} className={`${loading ? "form-disabled" : ""}`}>
         <div className="flex flex-wrap gap-4">
-          <div className="flex items-center mb-4">
+          <div className="input-container">
             <label className="font-semibold mr-2 w-32">Salutation:</label>
             <Select
               options={salutations}
               value={salutations.find((s) => s.value === salutation)}
               onChange={(selected) => setSalutation(selected.value)}
-              className="w-[200px]"
+              className="w-[200px] select-react"
             />
           </div>
-          <div className="flex items-center mb-4">
+          <div className="input-container">
             <label className="font-semibold mr-2 w-32">First Name:</label>
             <input
               type="text"
               required
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              className="w-[200px] p-2 border border-gray-300 rounded"
+              className="text-input"
             />
           </div>
-          <div className="flex items-center mb-4">
+          <div className="input-container">
             <label className="font-semibold mr-2 w-32">Last Name:</label>
             <input
               type="text"
               required
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
-              className="w-[200px] p-2 border border-gray-300 rounded"
+              className="text-input"
             />
           </div>
-          <div className="flex items-center mb-4">
+          <div className="input-container">
             <label className="font-semibold mr-2 w-32">Customer Type:</label>
             <Select
               options={customerTypes}
               value={customerTypes.find((c) => c.value === customerType)}
               onChange={(selected) => setCustomerType(selected.value)}
-              className="w-[200px]"
+              className="w-[200px] select-react"
             />
           </div>
-          <div className="flex items-center mb-4">
+          <div className="input-container">
             <label className="font-semibold mr-2 w-32">Company Name:</label>
             <input
               type="text"
               placeholder="Optional"
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
-              className="w-[200px] p-2 border border-gray-300 rounded"
+              className="text-input"
             />
           </div>
-          <div className="flex items-center mb-4">
+          <div className="input-container">
             <label className="font-semibold mr-2 w-32">Phone:</label>
             <input
               type="text"
               required
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="w-[200px] p-2 border border-gray-300 rounded"
+              className="text-input"
             />
           </div>
-          <div className="flex items-center mb-4">
+          <div className="input-container">
             <label className="font-semibold mr-2 w-32">Email:</label>
             <input
               type="email"
               placeholder="Optional"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-[200px] p-2 border border-gray-300 rounded"
+              className="text-input"
             />
           </div>
-          <div className="flex items-center mb-4">
+          <div className="input-container">
             <label className="font-semibold mr-2 w-32">Facebook Id:</label>
             <input
               type="text"
               placeholder="Opional"
               value={facebookId}
               onChange={(e) => setFacebookId(e.target.value)}
-              className="w-[200px] p-2 border border-gray-300 rounded"
+              className="text-input"
             />
           </div>
         </div>
@@ -233,7 +267,7 @@ const [updateable, setUpdateable] = useState(false);
               required
               value={billingAddress}
               onChange={(e) => setBillingAddress(e.target.value)}
-              className="w-[200px] p-2 border border-gray-300 rounded"
+              className="text-input"
             />
           </div>
           <div className="flex items-center">
@@ -242,7 +276,7 @@ const [updateable, setUpdateable] = useState(false);
               type="text"
               value={billingStreet}
               onChange={(e) => setBillingStreet(e.target.value)}
-              className="w-[200px] p-2 border border-gray-300 rounded"
+              className="text-input"
             />
           </div>
         </div>
@@ -254,7 +288,7 @@ const [updateable, setUpdateable] = useState(false);
               required
               value={billingCity}
               onChange={(e) => setBillingCity(e.target.value)}
-              className="w-[200px] p-2 border border-gray-300 rounded"
+              className="text-input"
             />
           </div>
           <div className="flex items-center">
@@ -264,7 +298,7 @@ const [updateable, setUpdateable] = useState(false);
               required
               value={billingState}
               onChange={(e) => setBillingState(e.target.value)}
-              className="w-[200px] p-2 border border-gray-300 rounded"
+              className="text-input"
             />
           </div>
         </div>
@@ -276,7 +310,7 @@ const [updateable, setUpdateable] = useState(false);
               required
               value={billingCountry}
               onChange={(e) => setBillingCountry(e.target.value)}
-              className="w-[200px] p-2 border border-gray-300 rounded"
+              className="text-input"
             />
           </div>
           <div className="flex items-center">
@@ -286,13 +320,13 @@ const [updateable, setUpdateable] = useState(false);
               required
               value={billingCode}
               onChange={(e) => setBillingCode(e.target.value)}
-              className="w-[200px] p-2 border border-gray-300 rounded"
+              className="text-input"
             />
           </div>
         </div>
 
         <h2 className="font-semibold mt-10 mb-2">Shipping Address</h2>
-        <div className="flex items-center mb-4">
+        <div className="input-container">
           <input
             type="checkbox"
             checked={sameAddress}
@@ -308,7 +342,7 @@ const [updateable, setUpdateable] = useState(false);
               type="text"
               value={sameAddress ? billingAddress : shippingAddress}
               onChange={(e) => setShippingAddress(e.target.value)}
-              className="w-[200px] p-2 border border-gray-300 rounded"
+              className="text-input"
             />
           </div>
           <div className="flex items-center">
@@ -317,7 +351,7 @@ const [updateable, setUpdateable] = useState(false);
               type="text"
               value={sameAddress ? billingStreet : shippingStreet}
               onChange={(e) => setShippingStreet(e.target.value)}
-              className="w-[200px] p-2 border border-gray-300 rounded"
+              className="text-input"
             />
           </div>
         </div>
@@ -328,7 +362,7 @@ const [updateable, setUpdateable] = useState(false);
               type="text"
               value={sameAddress ? billingCity : shippingCity}
               onChange={(e) => setShippingCity(e.target.value)}
-              className="w-[200px] p-2 border border-gray-300 rounded"
+              className="text-input"
             />
           </div>
           <div className="flex items-center">
@@ -337,7 +371,7 @@ const [updateable, setUpdateable] = useState(false);
               type="text"
               value={sameAddress ? billingState : shippingState}
               onChange={(e) => setShippingState(e.target.value)}
-              className="w-[200px] p-2 border border-gray-300 rounded"
+              className="text-input"
             />
           </div>
         </div>
@@ -348,7 +382,7 @@ const [updateable, setUpdateable] = useState(false);
               type="text"
               value={sameAddress ? billingCountry : shippingCountry}
               onChange={(e) => setShippingCountry(e.target.value)}
-              className="w-[200px] p-2 border border-gray-300 rounded"
+              className="text-input"
             />
           </div>
           <div className="flex items-center">
@@ -357,7 +391,7 @@ const [updateable, setUpdateable] = useState(false);
               type="text"
               value={sameAddress ? billingCode : shippingCode}
               onChange={(e) => setShippingCode(e.target.value)}
-              className="w-[200px] p-2 border border-gray-300 rounded"
+              className="text-input"
             />
           </div>
         </div>
@@ -368,7 +402,7 @@ const [updateable, setUpdateable] = useState(false);
             value={note}
             placeholder="Any note for this customer. Ex: এই লোক ডেলিভারি নেয়না"
             onChange={(e) => setNote(e.target.value)}
-            className="form-textarea"
+            className="form-textarea border"
           />
         </div>
 

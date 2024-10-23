@@ -13,6 +13,11 @@ import DragSVG from "../svg/DragSVG";
 import Image from "next/image";
 import generatePDF from 'react-to-pdf';
 import AuthContext from "@/contexts/AuthContext.mjs";
+import toast from "react-hot-toast";
+import PhoneSVG from "../svg/PhoneSVG";
+import AddressSVG from "../svg/AddressSVG";
+import GlobeSVG from "../svg/GlobeSVG";
+import MailSVG from "../svg/MailSVG";
 const NewInvoice = ({ activeOrg }) => {
   const [customerOptions, setCustomerOptions] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -35,7 +40,7 @@ const NewInvoice = ({ activeOrg }) => {
   const [paymentFromNumber, setPaymentFromNumber] = useState("");
   const invoiceRef = useRef();
   const [sameAddress, setSameAddress] = useState(true)
-  const { activeOrganization } = useContext(AuthContext);
+  const { activeOrganization, currentUser } = useContext(AuthContext);
   const handleDragStart = (index) => {
     setDraggingIndex(index);
   };
@@ -123,14 +128,19 @@ const NewInvoice = ({ activeOrg }) => {
       ]);
     }
   };
-
+  const handleAddItemFromModal = (item) => {
+    setItems((prevItems) => [
+      ...prevItems,
+      { ...item, quantity: 1 },
+    ]);
+  }
   useEffect(() => {
     const total = items.reduce((sum, item) => sum + item.quantity * (parseFloat(item.sellingPrice.split(" ")[1]).toFixed(2)), 0);
     const tax = items.reduce((sum, item) => sum + calculateTax(item), 0);
-    setSubtotal(total + totalTax - discount || 0);
+    setSubtotal(total + totalTax - (discount || 0) || 0);
     setTotalTax(tax)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [items, discount]);
+  }, [items, discount, totalTax]);
   useEffect(() => {
     if (paymentMethod === "not-paid" || paymentMethod === "cash-on-delivery") {
       setPaidAmount(0)
@@ -155,12 +165,9 @@ const NewInvoice = ({ activeOrg }) => {
     { label: "COD", value: "cash-on-delivery" },
     { label: "Bkash", value: "bkash" },
     { label: "Nagad", value: "nagad" },
-    { label: "Roket", value: "roket" },
+    { label: "Rocket", value: "rocket" },
     { label: "Bank Transfer", value: "bank-transfer" },
   ]
-
-
-
   const getFullAddress = (a) => {
     const parts = [
       a?.street,
@@ -190,6 +197,11 @@ const NewInvoice = ({ activeOrg }) => {
       a?.shippingCountry
     ].filter(Boolean);
     return parts.join(', ');
+  }
+  const getPaymentLabel = (value) => {
+    const o = paymentOptions.find(option => option.value === value);
+    const option = o ? o.label : "";
+    return option;
   }
   const getPaymentDetails = (value) => {
     const o = paymentOptions.find(option => option.value === value);
@@ -235,20 +247,82 @@ const NewInvoice = ({ activeOrg }) => {
       },
     },
   };
-
+  const resetStates = () => {
+    setSelectedCustomer(null);
+    setInvoiceNumber(generateInvoiceNumber());
+    setInvoiceDate(new Date());
+    setItems([]);
+    setSubtotal(0);
+    setDiscount(0);
+    setNote("");
+    setPaidAmount(0);
+    setDueAmount(0);
+    setPaymentMethod("");
+    setTrxId("");
+    setPaymentFromNumber("");
+    setSameAddress(true);
+  };
   const openPDF = () => {
     generatePDF(() => document.getElementById("invoice-wrapper"), pdfOptions);
   };
-  const handleSave = () => {
+  const handleSave = async (createPdf = false) => {
+    const invoiceData = {
+      invoiceNumber,
+      invoiceDate,
+      customerId: customerOptions._id,
+      items: items.map(item => ({
+        id: item?._id,
+        name: item?.name,
+        quantity: item?.quantity,
+        unit: item?.unit,
+        sellingPrice: parseFloat(item?.sellingPrice?.split(" ")[1]),
+        tax: item?.taxes?.length > 0 ? calculateTax(item)?.toFixed(2) : 0,
+      })),
+      subtotal,
+      discount,
+      totalTax,
+      dueAmount,
+      paidAmount,
+      paymentMethod,
+      trxId,
+      paymentFromNumber,
+      note,
+      ownerUsername: currentUser?.username,
+      orgId: activeOrg,
+    };
 
-  }
+    try {
+      const res = await fetch('/api/adds/new-invoice', {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(invoiceData)
+      })
+      const data = await res.json()
+      if (data.status === 200 || data.status === 201) {
+        toast.success(data.message);
+        if (createPdf) {
+          openPDF();
+        }
+        resetStates()
+        
+      } else {
+        toast.error(data.message);
+      }
+
+    } catch (error) {
+      console.error("Error saving invoice:", error);
+
+    }
+  };
   return (
     <div className="invoice-form p-2">
 
       <div className="mb-4 input-container">
         <label htmlFor="customer" className="form-label">Customer</label>
         <Select
-          className="min-w-[250px]"
+          className="min-w-[250px] select-react"
           id="customer"
           options={[
             { label: "Add New Customer", value: "add-new-customer" },
@@ -277,14 +351,16 @@ const NewInvoice = ({ activeOrg }) => {
           <div className="flex justify-between items-start">
             <div className="text-start w-[230px] h-auto mb-6 space-y-1">
               {activeOrganization?.logoUrl && <Image src={activeOrganization.logoUrl || ""} alt="Company Logo" width={100} height={100} />}
-              <h1 className="text-xl font-semibold">{activeOrganization?.name}</h1>
-              <p>{getFullAddress(activeOrganization?.address)}</p>
-              <p>{activeOrganization?.phone}</p>
-              <p>{activeOrganization?.website}</p>
-              <p>{activeOrganization?.email}</p>
+              <h1 className="text-2xl font-semibold">{activeOrganization?.name}</h1>
+              <div className="flex w-fit pt-2 items-center gap-2">
+                <div className="w-[40px]"><AddressSVG height={'20px'}width={'20px'}/></div> <p className="w-[200px] h-auto font-semibold">{getFullAddress(activeOrganization?.address)}</p>
+                </div>
+              <div className="flex items-center gap-2"><div className="w-[40px]"><PhoneSVG height={'20px'}width={'20px'}/></div> <p className="w-[100px h-auto] font-semibold">{activeOrganization?.phone}</p></div>
+              <div className="flex items-center gap-2"><div className="w-[40px]"><GlobeSVG height={'20px'}width={'20px'}/></div> <p className="w-[100px h-auto] font-semibold">{activeOrganization?.website}</p></div>
+              <div className="flex items-center gap-2"><div className="w-[40px]"><MailSVG height={'20px'}width={'20px'}/></div> <p className="w-[100px h-auto] font-semibold">{activeOrganization?.email}</p></div>
             </div>
           </div>
-          {customerOptions?.firstName && <div className="flex flex-col flex-wrap items-start">
+          <div className="flex flex-col flex-wrap items-start">
             <div className="flex flex-col gap-1 text-[14px]">
               <div className="flex font-semibold">
                 <p className="w-[60px]">Invoice:</p> <p>{invoiceNumber}</p>
@@ -298,9 +374,9 @@ const NewInvoice = ({ activeOrg }) => {
 
 
             <div className="space-y-1 my-4">
-              <p className="text-lg"><span className="font-bold"></span> {customerOptions.firstName} {customerOptions.lastName}</p>
-              <h2 className="text-base font-semibold">Billing Address</h2>
-              <p className="text-sm"><span className="font-semibold">Address:</span> {customerOptions.billingAddress || getFullBillingAddress(customerOptions) || "Not Provided"}</p>
+              <p className="text-xl font-bold">{customerOptions.firstName} {customerOptions.lastName}</p>
+              {customerOptions?.billingAddress && <h2 className="text-base font-semibold">Billing Address</h2>}
+              {customerOptions.firstName && <p className="text-sm"><span className="font-semibold">Address:</span> {customerOptions.billingAddress || getFullBillingAddress(customerOptions) || "Not Provided"}</p>}
               {
                 customerOptions?.phone?.length > 0 && <p className="text-sm"><span className="font-semibold">Phone:</span> {customerOptions.phone}</p>
               }
@@ -317,10 +393,10 @@ const NewInvoice = ({ activeOrg }) => {
                 customerOptions.companyName && <p className="text-sm"><span className="font-semibold">Company:</span> {customerOptions.companyName}</p>
               }
             </div>}
-          </div>}
+          </div>
         </div>
         {/* Item Table */}
-        <div id="invoice-table-part" className="item-table mb-4 min-h-[100px]">
+        <div id="invoice-table-part" className="item-table mb-4 mt-10 min-h-[100px]">
           {items?.length > 0 && <table className="min-w-full table-auto">
             <thead>
               <tr className="">
@@ -391,11 +467,15 @@ const NewInvoice = ({ activeOrg }) => {
                   <td>{(item.quantity * parseFloat(item.sellingPrice.split(" ")[1])).toFixed(2)}</td>
                 </tr>
               ))}
+
               {discount > 0 && <tr className="table-last-item">
                 <td colSpan={6} className="text-right font-semibold">Discount:</td>
                 <td>{discount.toFixed(2)}</td>
               </tr>}
-
+              <tr className="table-last-item">
+                <td colSpan={6} className="text-right font-semibold">Subtotal:</td>
+                <td>{subtotal.toFixed(2)}</td>
+              </tr>
               {dueAmount > 0 && <tr className="table-last-item">
                 <td colSpan={6} className="text-right font-semibold">Due:</td>
                 <td>{dueAmount}</td>
@@ -404,11 +484,6 @@ const NewInvoice = ({ activeOrg }) => {
                 <td colSpan={6} className="text-right font-semibold">Payment Status:</td>
                 <td className="w-[230px]">{getPaymentDetails(paymentMethod)}</td>
               </tr>}
-
-              <tr className="table-last-item">
-                <td colSpan={6} className="text-right font-semibold">Subtotal:</td>
-                <td>{subtotal.toFixed(2)}</td>
-              </tr>
             </tbody>
           </table>}
         </div>
@@ -416,123 +491,145 @@ const NewInvoice = ({ activeOrg }) => {
           {note?.trim()?.length > 0 && <p className="text-sm">*{note}</p>}
         </div>
       </div>
-      <div className="mb-4 input-container">
-        <label htmlFor="item" className="form-label">Item</label>
-        <Select
-          className="min-w-[250px]"
-          id="item"
-          options={[
-            { label: "Add New Item", value: "add-new-item" },
-            ...savedItems?.map((item) => ({
-              label: item.name,
-              value: item._id,
-            })),
+      <div className="flex justify-between flex-wrap">
+        <div>
+          <div className="mb-4 input-container">
+            <label htmlFor="item" className="form-label">Item</label>
+            <Select
+              className="min-w-[250px] select-react"
+              id="item"
+              options={[
+                { label: "Add New Item", value: "add-new-item" },
+                ...savedItems?.map((item) => ({
+                  label: item.name,
+                  value: item._id,
+                })),
 
-          ]}
-          placeholder="Select or Add Item"
-          onChange={handleItemChange}
-        />
-      </div>
-      {/* Subtotal and Discount */}
-      <div className="mb-4 input-container">
-        <label htmlFor="discount" className="form-label">Discount</label>
-        <input
-          type="number"
-          id="discount"
-          value={discount}
-          onChange={(e) => setDiscount(parseFloat(e.target.value))}
-          className="text-input"
-        />
-      </div>
-      <div className=" input-container ">
-        <label htmlFor="invoiceDate" className="font-semibold w-[100px]">Date: </label>
-        <DatePicker
-          id="invoiceDate"
-          selected={invoiceDate}
-          onChange={(date) => setInvoiceDate(date)}
-          dateFormat="do MMM yyyy"
-          className="bg-inherit focus:outline-none outline-none border-none p-2 font-medium"
-        />
-      </div>
-      <div className="mb-4 input-container">
-        <label htmlFor="paymentMethod" className="form-label">Payment Method</label>
-        <Select
-          id="paymentMethod"
-          options={paymentOptions}
-          placeholder="Select Payment Method"
-          onChange={(option) => setPaymentMethod(option.value)}
-          className="min-w-[250px]"
-        />
-      </div>
-      <div className="mb-4 input-container">
-        <label htmlFor="paidAmount" className="form-label">Paid Amount</label>
-        <input
-          type="number"
-          id="paidAmount"
-          value={paidAmount}
-          // min={0}
-          onChange={(e) => {
-            if (parseInt(e.target.value) > subtotal) return
-            const paid = parseFloat(e.target.value) || 0;
-            setPaidAmount(paid);
-            const newDue = subtotal - paid;
-            setDueAmount(newDue > 0 ? newDue : 0);
-          }}
-          className="text-input"
-        />
-      </div>
-      <div className="mb-4 input-container">
-        <label htmlFor="discount" className="form-label">Discount</label>
-        <input
-          type="number"
-          id="discount"
-          value={discount}
-          onChange={(e) => setTrxId(e.target.value)}
-          className="text-input"
-        />
-      </div>
-      <div className="input-container">
-        <label htmlFor="invoiceNumber" className="w-[100px] font-semibold">Invoice: </label>
-        <input
-          type="text"
-          id="invoiceNumber"
-          value={invoiceNumber}
-          onChange={(e) => setInvoiceNumber(e.target.value)}
-          className="bg-white font-medium p-2"
-        />
-      </div>
-      <div className="mb-4 input-container">
-        <label htmlFor="note" className="form-label">Note</label>
-        <textarea
-          id="note"
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          className="text-input resize"
-        />
-      </div>
-      {/* shipping details here */}
+              ]}
+              placeholder="Select or Add Item"
+              onChange={handleItemChange}
+            />
+          </div>
+          <div className="mb-4 input-container">
+            <label htmlFor="discount" className="form-label">Discount</label>
+            <input
+              type="number"
+              min={0}
+              id="discount"
+              value={discount}
+              onChange={(e) => {
+                if (e.target.value < 0) return
+                setDiscount(parseFloat(e.target.value))
+              }}
+              className="text-input"
+            />
+          </div>
 
+          <div className="mb-4 input-container">
+            <label htmlFor="paymentMethod" className="form-label">Payment Method</label>
+            <Select
+              id="paymentMethod"
+              options={paymentOptions}
+              placeholder="Select Payment Method"
+              onChange={(option) => setPaymentMethod(option.value)}
+              className="min-w-[250px] select-react"
+            />
+          </div>
+          <div className="mb-4 input-container">
+            <label htmlFor="paidAmount" className="form-label">Paid Amount</label>
+            <input
+              type="number"
+              id="paidAmount"
+              value={paidAmount}
+              // min={0}
+              onChange={(e) => {
+                if (parseInt(e.target.value) > subtotal) return
+                const paid = parseFloat(e.target.value) || 0;
+                setPaidAmount(paid);
+                const newDue = subtotal - paid;
+                setDueAmount(newDue > 0 ? newDue : 0);
+              }}
+              className="text-input"
+            />
+          </div>
+          {paymentMethod !== "not-paid" && paymentMethod !== "cash-on-delivery" && paymentMethod !== "cash" && paymentMethod && <div className="mb-4 input-container">
+            <label htmlFor="trxId" className="form-label">Trx Id</label>
+            <input
+              type="text"
+              id="trxId"
+              value={trxId}
+              onChange={(e) => setTrxId(e.target.value)}
+              className="text-input"
+            />
+          </div>}
+          {(paymentMethod === "bkash" || paymentMethod === "nagad" || paymentMethod === "rocket") && <div className="mb-4 input-container">
+            <label htmlFor="trxNumber" className="form-label">{getPaymentLabel(paymentMethod)} Number</label>
+            <input
+              type="text"
+              id="trxNumber"
+              value={paymentFromNumber}
+              onChange={(e) => setPaymentFromNumber(e.target.value)}
+              className="text-input"
+            />
+          </div>
+          }        </div>
+        <div>
 
+          <div className="input-container">
+            <label htmlFor="invoiceNumber" className="form-label">Invoice: </label>
+            <input
+              type="text"
+              id="invoiceNumber"
+              value={invoiceNumber}
+              onChange={(e) => setInvoiceNumber(e.target.value)}
+              className="text-input"
+            />
+          </div>
+          <p>Keep unchanged if you don&#39;t want to change the default invoice number.</p>
+          <div className="input-container pt-4">
+            <label htmlFor="invoiceDate" className="font-semibold form-label">Invoice Date: </label>
+            <DatePicker
+              id="invoiceDate"
+              selected={invoiceDate}
+              onChange={(date) => setInvoiceDate(date)}
+              dateFormat="do MMM yyyy"
+              className="text-input focus:outline-none outline-none border-none"
+            />
+          </div>
+          <p>Keep unchanged to use the current date.</p>
+          <div className="my-4 input-container">
+            <label htmlFor="note" className="form-label">Note</label>
+            <textarea
+              id="note"
+              placeholder="Any notes about this order will appear in the footer of the invoice."
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              className=" form-textarea"
+            />
+          </div>
+        </div>
+      </div>
 
-      {/* Save and Save & Print Buttons */}
-      <div className="flex space-x-4">
+      <div className="flex space-x-4 mb-10 justify-center items-center text-white">
         <button
           className="bg-blue-500 p-2 rounded"
-          onClick={handleSave}
+          onClick={() => handleSave(false)}
         >
-          Save & Print
+          Save
         </button>
+        <button className="bg-blue-500 p-2 rounded" onClick={() => handleSave(true)}>Save & Print PDF</button>
       </div>
 
       {/* Modals */}
       <NewCustomerModal
         openModal={openCustomerModal}
         setOpenModal={setOpenCustomerModal}
+        onSaveCustomer={setCustomerOptions}
       />
       <NewItemModal
         openModal={openItemModal}
         setOpenModal={setOpenItemModal}
-        onAddItem={(item) => handleAddItem(item)}
+        onAddItem={(item) => handleAddItemFromModal(item)}
       />
     </div>
   );

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import Select from 'react-select';
 
-const NewItem = ({ id }) => {
+const NewItem = ({ id, setOpenModal=undefined, onAddItem=undefined }) => {
   const [loading, setLoading] = useState(false);
   const [updateable, setUpdateable] = useState(false)
   const [type, setType] = useState('goods');
@@ -68,7 +68,18 @@ const NewItem = ({ id }) => {
       }
     })();
   }, [id]);
-
+  const resetStates = () => {
+    setLoading(false);
+    setUpdateable(false);
+    setType('goods');
+    setName('');
+    setUnit('');
+    setCategories([]);
+    setCategory('');
+    setSellingPrice('');
+    setCurrency('BDT');
+    setDescription('');
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -88,11 +99,16 @@ const NewItem = ({ id }) => {
     };
     let apiUrl = "/api/adds/new-item"
     let method = "POST";
+    let returnId = false;
     if (updateable) {
       formData.id = id
       apiUrl = "/api/updates/item"
-    method ="PUT"
+      method = "PUT"
     }
+    if (setOpenModal && onAddItem) {
+      returnId = true;
+    }
+    formData.returnId = returnId;
     const res = await fetch(apiUrl, {
       method,
       headers: {
@@ -103,8 +119,21 @@ const NewItem = ({ id }) => {
     })
     const data = await res.json();
     setLoading(false);
+    // _id: 1, name: 1, sellingPrice: 1, unit: 1, taxes:1
     if (data.status === 201 || data.status === 200) {
       toast.success(data?.message)
+      if (setOpenModal && onAddItem) {
+        const itemDetailForModal = {
+          _id: data._id,
+          name,
+          unit,
+          sellingPrice: formData.sellingPrice,
+          taxes: formData.taxes
+        }
+        onAddItem(itemDetailForModal)
+        resetStates()
+        setOpenModal(false)
+      }
     } else {
       toast.error(data?.message)
     }
@@ -122,7 +151,7 @@ const NewItem = ({ id }) => {
     setTaxValues(updatedValues);
   };
 
-  return (<div className="container mx-auto p-8">
+  return (<div className="container text-black dark:text-white mx-auto p-8">
     <form onSubmit={handleSubmit} className={`${loading ? "form-disabled" : ""} space-y-4`}>
       <div className='flex gap-2 items-center'>
         <label className="font-semibold w-[100px]">Type:</label>
@@ -167,7 +196,7 @@ const NewItem = ({ id }) => {
           <div className="input-container">
             <label className="form-label">Unit:</label>
             <Select
-              className='w-[200px]'
+              className='w-[200px] select-react'
               options={units}
               value={units.find((u) => u.value === unit)}
               onChange={(selectedOption) => setUnit(selectedOption.value)}
@@ -182,7 +211,7 @@ const NewItem = ({ id }) => {
               <select
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
-                className=" px-2 rounded"
+                className=" px-2 rounded select-react"
               >
                 <option value="BDT">BDT</option>
                 <option value="USD">USD</option>
@@ -212,7 +241,7 @@ const NewItem = ({ id }) => {
           <div className='input-container'>
             {categories?.length > 0 && (
               <Select
-                className='w-[200px]'
+                className='w-[200px] select-react'
                 options={categories.map((cat) => ({ value: cat, label: cat }))}
                 onChange={(selectedOption) => setCategory(selectedOption.value)}
               />
@@ -234,7 +263,7 @@ const NewItem = ({ id }) => {
             isMulti
             options={taxOptions}
             onChange={handleTaxChange}
-            className="min-w-[200px] w-fit mb-2"
+            className="min-w-[200px] w-fit mb-2 select-react"
           />
         </div>
         {selectedTaxes.map((tax) => (

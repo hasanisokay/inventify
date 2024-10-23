@@ -70,9 +70,10 @@ body {
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
+
 }
-.item-table table, 
-.item-table th, 
+.item-table table,
+.item-table th,
 .item-table td {
   border: 1px solid black;
   border-collapse: collapse;
@@ -83,14 +84,14 @@ body {
   font-weight: bold;
 }
 
-.item-table table, 
-.item-table th, 
+.item-table table,
+.item-table th,
 .item-table td {
   border: 1px solid black;
   border-collapse: collapse;
 }
 
-.item-table th, 
+.item-table th,
 .item-table td {
   padding: 5px;
 }
@@ -98,10 +99,11 @@ body {
 .item-table th {
   text-align: left;
 }
-
-
-.form-textarea{
- @apply resize min-w-[300px] p-2 focus:outline-none rounded
+.select-react {
+  color: black;
+}
+.form-textarea {
+  @apply resize min-w-[300px] p-2 focus:outline-none rounded text-black;
 }
 .text-input {
   width: 200px;
@@ -109,8 +111,10 @@ body {
   padding-bottom: 6px;
   padding-left: 4px;
   border-radius: 4px;
+  color: black;
+  border: 1px solid gray;
 }
-.text-input:focus{
+.text-input:focus {
   outline: none;
 }
 .form-disabled {
@@ -125,8 +129,7 @@ body {
   margin-left: 1rem;
   gap: 1rem;
 }
-.page-container{
-
+.page-container {
   margin: 1rem;
 }
 

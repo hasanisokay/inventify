@@ -30,11 +30,13 @@ const SortAndLimitBar = ({ sort, limit }) => {
                 defaultValue={selectedSort}
                 options={sortOptions}
                 onChange={(e) => setSelectedSort(e)}
+                className='select-react'
             />
             <Select
                 defaultValue={selectedLimit}
                 options={limitOptions}
                 onChange={setSelectedLimit}
+                className='select-react'
             />
         </div>
     );

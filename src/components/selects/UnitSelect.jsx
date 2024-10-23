@@ -18,6 +18,7 @@ const UnitSelect = ({ unit, setUnit }) => {
         options={units}
         value={units.find((u) => u.value === unit)}
         onChange={(selectedOption) => setUnit(selectedOption.value)}
+        className='select-react'
       />
     </div>
   );
