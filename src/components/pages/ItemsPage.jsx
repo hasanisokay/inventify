@@ -1,21 +1,22 @@
 'use client'
 import { useEffect, useState } from "react";
-import CustomerModal from "../modal/CustomerModal";
 import toast from "react-hot-toast";
+import ItemModal from "../modal/ItemModal";
 
-const CustomersPage = ({ c }) => {
+const ItemsPage = ({ i }) => {
     const [openModal, setOpenModal] = useState(false);
-    const [selectedCustomer, setSelectedCustomer] = useState(null);
-    const [customers, setCustomers] = useState(c)
-    const handleRowClick = (customer) => {
-        setSelectedCustomer(customer);
+    const [selectedItem, setSelectedItem] = useState(null);
+    const [items, setItems] = useState(i)
+
+    const handleRowClick = (item) => {
+        setSelectedItem(item);
         setOpenModal(true);
     };
     useEffect(() => {
-        setCustomers(c);
-    }, [c]);
+        setItems(i);
+    }, [i]);
     const handleDelete = async (id) => {
-        const res = await fetch("/api/deletes/delete-customer", {
+        const res = await fetch("/api/deletes/delete-item", {
             method: "DELETE",
             headers: {
                 "Content-Type": "application/json"
@@ -26,33 +27,37 @@ const CustomersPage = ({ c }) => {
         const data = await res.json();
         if (data.status === 200) {
             toast.success(data.message)
-            setCustomers((prev) => {
+            setItems((prev) => {
                 const filteredItems = prev.filter((i) => i._id !== id)
                 return filteredItems
             })
         } else {
             toast.error(data.message)
         }
+
     }
     useEffect(() => {
         if (!openModal) {
-            setSelectedCustomer(null)
+         
+            setSelectedItem(null)
         }
     }, [openModal])
+    console.log(items)
+    return<></>
     return (
         <div className="w-full">
             <table className="min-w-full border-collapse border border-gray-300">
                 <thead className="bg-gray-200">
                     <tr>
                         <th className="border border-gray-300 p-2 text-left">Name</th>
-                        <th className="border border-gray-300 p-2 text-left">Phone</th>
-                        <th className="border border-gray-300 p-2 text-left">Company</th>
-                        <th className="border border-gray-300 p-2 text-left">Due</th>
-                        <th className="border border-gray-300 p-2 text-left">Paid</th>
+                        <th className="border border-gray-300 p-2 text-left">Type</th>
+                        <th className="border border-gray-300 p-2 text-left">Unit</th>
+                        <th className="border border-gray-300 p-2 text-left">Price</th>
+                        <th className="border border-gray-300 p-2 text-left">Total Sell</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {customers?.map((c) => (
+                    {items?.map((c) => (
                         <tr
                             key={c._id}
                             className="hover:bg-gray-100 cursor-pointer group"
@@ -91,15 +96,15 @@ const CustomersPage = ({ c }) => {
                 </tbody>
             </table>
 
-            {selectedCustomer && (
-                <CustomerModal
+            {selectedItem && (
+                <ItemModal
                     setOpenModal={setOpenModal}
                     openModal={openModal}
-                    customer={selectedCustomer}
+                    item={selectedItem}
                 />
             )}
         </div>
     );
 };
 
-export default CustomersPage;
+export default ItemsPage;

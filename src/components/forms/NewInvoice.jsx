@@ -152,7 +152,9 @@ const NewInvoice = ({ activeOrg }) => {
       }
     }
   }, [subtotal, paymentMethod])
-
+  useEffect(() => {
+    setPaidAmount((prev) => prev - (discount || 0))
+  }, [discount])
   useEffect(() => {
     if (paidAmount === subtotal) {
       setDueAmount(0)
@@ -271,7 +273,7 @@ const NewInvoice = ({ activeOrg }) => {
       invoiceDate,
       customerId: customerOptions._id,
       items: items.map(item => ({
-        id: item?._id,
+        itemId: item?._id,
         name: item?.name,
         quantity: item?.quantity,
         unit: item?.unit,
@@ -306,7 +308,7 @@ const NewInvoice = ({ activeOrg }) => {
           openPDF();
         }
         resetStates()
-        
+
       } else {
         toast.error(data.message);
       }
@@ -349,18 +351,18 @@ const NewInvoice = ({ activeOrg }) => {
       <div ref={invoiceRef} id="invoice-wrapper" className="p-2">
         <div id="invoice-top" className="justify-between flex">
           <div className="flex justify-between items-start">
-            <div className="text-start w-[230px] h-auto mb-6 space-y-1">
+            <div className="text-start w-[350px] h-auto mb-6 space-y-1">
               {activeOrganization?.logoUrl && <Image src={activeOrganization.logoUrl || ""} alt="Company Logo" width={100} height={100} />}
               <h1 className="text-2xl font-semibold">{activeOrganization?.name}</h1>
               <div className="flex w-fit pt-2 items-center gap-2">
-                <div className="w-[40px]"><AddressSVG height={'20px'}width={'20px'}/></div> <p className="w-[200px] h-auto font-semibold">{getFullAddress(activeOrganization?.address)}</p>
-                </div>
-              <div className="flex items-center gap-2"><div className="w-[40px]"><PhoneSVG height={'20px'}width={'20px'}/></div> <p className="w-[100px h-auto] font-semibold">{activeOrganization?.phone}</p></div>
-              <div className="flex items-center gap-2"><div className="w-[40px]"><GlobeSVG height={'20px'}width={'20px'}/></div> <p className="w-[100px h-auto] font-semibold">{activeOrganization?.website}</p></div>
-              <div className="flex items-center gap-2"><div className="w-[40px]"><MailSVG height={'20px'}width={'20px'}/></div> <p className="w-[100px h-auto] font-semibold">{activeOrganization?.email}</p></div>
+                <div className="w-[40px]"><AddressSVG height={'20px'} width={'20px'} /></div> <p className="w-[200px] h-auto font-semibold">{getFullAddress(activeOrganization?.address)}</p>
+              </div>
+              <div className="flex items-center gap-2"><div className="w-[40px]"><PhoneSVG height={'20px'} width={'20px'} /></div> <p className="w-[100px h-auto] font-semibold">{activeOrganization?.phone}</p></div>
+              <div className="flex items-center gap-2"><div className="w-[40px]"><GlobeSVG height={'20px'} width={'20px'} /></div> <p className="w-[100px h-auto] font-semibold">{activeOrganization?.website}</p></div>
+              <div className="flex items-center gap-2"><div className="w-[40px]"><MailSVG height={'20px'} width={'20px'} /></div> <p className="w-[100px h-auto] font-semibold">{activeOrganization?.email}</p></div>
             </div>
           </div>
-          <div className="flex flex-col flex-wrap items-start">
+          <div className="flex flex-col w-[350px] h-auto flex-wrap items-start">
             <div className="flex flex-col gap-1 text-[14px]">
               <div className="flex font-semibold">
                 <p className="w-[60px]">Invoice:</p> <p>{invoiceNumber}</p>
@@ -430,7 +432,7 @@ const NewInvoice = ({ activeOrg }) => {
                       </span>
                     </div>
                   </td>
-                  <td className="group ">
+                  <td className="group w-[300px] ">
                     <div className="flex items-center">
                       <span>{item.name}</span>
                       <button
@@ -445,10 +447,10 @@ const NewInvoice = ({ activeOrg }) => {
                     </div>
 
                   </td>
-                  <td>
+                  <td className="w-[100px]">
                     <input
                       type="number"
-                      className="rounded bg-inherit focus:outline-none w-[70px] font-semibold pl-4"
+                      className="rounded bg-inherit focus:outline-none font-semibold w-[100px] px-1"
                       value={item.quantity}
                       min={1}
                       minLength={0.1}
@@ -462,7 +464,7 @@ const NewInvoice = ({ activeOrg }) => {
                     />
                   </td>
                   <td>{item.unit}</td>
-                  <td>{parseFloat(item.sellingPrice.split(" ")[1]).toFixed(2)}</td>
+                  <td>{parseFloat(item.sellingPrice.split(" ")[1]).toFixed(2)} {item.sellingPrice.split(" ")[0]}</td>
                   <td>{item?.taxes?.length > 0 ? parseFloat(calculateTax(item)).toFixed(2) : 0}</td>
                   <td>{(item.quantity * parseFloat(item.sellingPrice.split(" ")[1])).toFixed(2)}</td>
                 </tr>

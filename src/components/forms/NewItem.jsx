@@ -87,7 +87,6 @@ const NewItem = ({ id, setOpenModal=undefined, onAddItem=undefined }) => {
       type,
       name,
       unit,
-      createdTime: new Date(),
       category,
       sellingPrice: `${currency} ${sellingPrice}`,
       description,

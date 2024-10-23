@@ -136,8 +136,6 @@ const NewCustomer = ({ id = null, setOpenModal = undefined, onSaveCustomer = und
       shippingState: sameAddress ? billingState : shippingState,
       shippingCountry: sameAddress ? billingCountry : shippingCountry,
       shippingCode: sameAddress ? billingCode : shippingCode,
-      createdTime: new Date(),
-      lastModifiedTime: new Date(),
       note,
       facebookId
     };

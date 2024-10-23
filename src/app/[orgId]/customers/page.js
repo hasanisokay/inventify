@@ -1,18 +1,15 @@
 import NotFound from "@/components/not-found/NotFound";
 import CustomersPage from "@/components/pages/CustomersPage";
 import PaginationDefault from "@/components/pagination/PaginationDefault";
+import BarInCustomers from "@/components/selects/BarInCustomers";
+import generateUniqueIds from "@/utils/generateUniqueIds.mjs";
 import getActiveOrg from "@/utils/getActiveOrg.mjs";
 
 import getCustomers from "@/utils/getCustomers.mjs";
-import dynamic from "next/dynamic";
-const SortAndLimitBar = dynamic(
-  () => import("@/components/selects/SortAndLimitBar"),
-  { ssr: false }
-);
 const page = async ({ searchParams }) => {
   const page = parseInt(searchParams?.page) || 1;
   const limit = parseInt(searchParams?.limit) || 100;
-  const sort = searchParams?.sort || "newest";
+  const sort = searchParams?.sort || "spenders";
   const keyword = searchParams?.keyword || "";
   const orgId = await getActiveOrg();
   let customers;
@@ -35,8 +32,8 @@ const page = async ({ searchParams }) => {
 
   return (
     <div className="page-container">
-      <SortAndLimitBar limit={limit} page={page} sort={sort} />
-      <CustomersPage customers={customers?.customers} />
+      <BarInCustomers limit={limit} page={page} sort={sort} selectId ={generateUniqueIds(2)} />
+      <CustomersPage c={customers?.customers} />
       {totalCount > limit && (
         <PaginationDefault p={page} totalPages={totalPages} />
       )}

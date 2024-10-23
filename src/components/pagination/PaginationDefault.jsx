@@ -11,7 +11,7 @@ const PaginationDefault = ({ p, totalPages }) => {
         const query = new URLSearchParams(window.location.search);
         query.set('page', page);
         router.replace(`${window.location.pathname}?${query.toString()}`, { scroll: false });
-    }, [page, router]);
+    }, [page]);
 
     const handlePageChange = (newPage) => {
         setPageNow(newPage);

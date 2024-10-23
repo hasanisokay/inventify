@@ -82,6 +82,7 @@ body {
 }
 .table-last-item {
   font-weight: bold;
+  width: 100px;
 }
 
 .item-table table,

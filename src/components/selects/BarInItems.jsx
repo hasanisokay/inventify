@@ -3,13 +3,13 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import Select from 'react-select';
 
-const SortAndLimitBar = ({ sort, limit }) => {
+const BarInItems = ({ sort, limit, selectId }) => {
     const router = useRouter();
-    const [selectedSort, setSelectedSort] = useState({ value: sort, label: sort === 'newest' ? 'Newest' : 'Oldest' });
+    const [selectedSort, setSelectedSort] = useState({ value: sort, label: sort === 'highest' ? 'Top Sold' : 'Less Sold' });
     const [selectedLimit, setSelectedLimit] = useState({ value: limit, label: `${limit} items per page` });
     const sortOptions = [
-        { value: 'newest', label: 'Newest' },
-        { value: 'oldest', label: 'Oldest' },
+        { value: 'highest', label: 'Top Sold' },
+        { value: 'lowest', label: 'Less Sold' },
     ];
     const limitOptions = [
         { value: 100, label: '100 items per page' },
@@ -31,16 +31,18 @@ const SortAndLimitBar = ({ sort, limit }) => {
                 options={sortOptions}
                 onChange={(e) => setSelectedSort(e)}
                 className='select-react'
+                instanceId={selectId[0]}
             />
             <Select
                 defaultValue={selectedLimit}
                 options={limitOptions}
                 onChange={setSelectedLimit}
                 className='select-react'
+                instanceId={selectId[1]}
             />
         </div>
     );
 };
 
-export default SortAndLimitBar;
+export default BarInItems;
 

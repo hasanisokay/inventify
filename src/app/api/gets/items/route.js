@@ -17,7 +17,7 @@ export const GET = async (req) => {
     const orgId = searchParams.get("orgId");
     const nameOnly = searchParams.get("titleOnly");
     const sort = searchParams.get("sort");
-    const sortOrder = sort === "newest" ? -1 : 1;
+    const sortOrder = sort === "highest" ? -1 : 1;
     const page = parseInt(searchParams.get("page"));
     const limit = parseInt(searchParams.get("limit")) || 10;
     const skip = (page - 1) * limit;
@@ -26,14 +26,6 @@ export const GET = async (req) => {
     if (!orgId) return NextResponse.json(unauthorizedResponse);
     const itemCollection = await db.collection("items");
     const matchStage = {};
-    if (nameOnly) {
-      const res = await itemCollection
-        .find(matchStage, {
-          projection: { _id: 1, name: 1, sellingPrice: 1, unit: 1, taxes:1 },
-        })
-        .toArray();
-      return NextResponse.json(dataFoundResponse(res));
-    }
 
     if (category) {
       matchStage.category = category;
@@ -46,27 +38,74 @@ export const GET = async (req) => {
         { description: { $regex: keyword, $options: "i" } },
       ];
     }
+    if (nameOnly) {
+      const res = await itemCollection
+        .find(matchStage, {
+          projection: { _id: 1, name: 1, sellingPrice: 1, unit: 1, taxes: 1 },
+        }).toArray();
+      return NextResponse.json(dataFoundResponse(res));
+    }
+
     const result = await itemCollection
-      .find(matchStage, {
-        projection: {
-          type: 1,
+    .aggregate([
+      // Match stage to filter items based on criteria (optional)
+      { $match: matchStage },
+  
+      // Lookup invoices to include fields from invoices
+      {
+        $lookup: {
+          from: "invoices",
+          localField: "_id",
+          foreignField: "items.itemId", // Use the correct field
+          as: "invoices",
+        },
+      },
+  
+      // Unwind invoices to flatten the structure, preserving items without invoices
+      { $unwind: { path: "$invoices", preserveNullAndEmptyArrays: true } },
+  
+      // Optionally unwind the items within invoices if needed
+      { $unwind: { path: "$invoices.items", preserveNullAndEmptyArrays: true } },
+  
+      // Group back by item, aggregating necessary fields
+      {
+        $group: {
+          _id: "$_id",
+          name: { $first: "$name" },
+          sellingPrice: { $first: "$sellingPrice" },
+          unit: { $first: "$unit" },
+          taxes: { $first: "$taxes" },
+          lastModifiedTime: { $first: "$lastModifiedTime" },
+          totalOrder: { $sum: { $ifNull: ["$invoices.items.quantity", 0] } }, // Include total quantity, default to 0 if null
+        },
+      },
+  
+      // Project the fields you want in the final output
+      {
+        $project: {
+          _id: 1,
           name: 1,
           sellingPrice: 1,
           unit: 1,
-          category: 1,
-          status: 1,
-          _id: 1,
+          taxes: 1,
+          lastModifiedTime: 1,
+          totalOrder: 1,
         },
-      })
-      .sort({ createdTime: sortOrder })
-      .skip(skip)
-      .limit(limit)
-      .toArray();
+      },
+  
+      // Sort the results
+      {
+        $sort: {totalOrder: sortOrder },
+      },
+  
+      // Implement pagination
+      { $skip: skip },
+      { $limit: limit },
+    ])
+    .toArray();
     let totalCount;
     totalCount = await itemCollection.countDocuments(matchStage);
-    return NextResponse.json(
-      dataFoundResponse({ customers: result, totalCount })
-    );
+    return NextResponse.json(dataFoundResponse({ items: result, totalCount }));
   } catch {
     return NextResponse.json(serverErrorResponse);
   }

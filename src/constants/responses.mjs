@@ -19,6 +19,16 @@ export const unauthorizedResponse = {
   error: "Unauthorized",
   message: "Unauthorized access. Please check your credentials.",
 };
+export const dataDeleteErrorResponse = {
+  status: 500,
+  error: "Internal Server Error",
+  message: "An error occurred while attempting to delete the data.",
+};
+
+export const dataDeletedResponse = {
+  status: 200,
+  message: "Data deleted successfully.",
+};
 
 export const suspendedAccountResponse = {
   status: 403,

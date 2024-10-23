@@ -16,7 +16,12 @@ export const GET = async (req) => {
     const nameOnly = searchParams.get("titleOnly");
     const sort = searchParams.get("sort");
     const orgId = searchParams.get("orgId");
-    const sortOrder = sort === "newest" ? -1 : 1;
+    const sortField = sort === "spenders" ? "totalPaid" : sort === "debtors" ? "totalDue" : "lastModifiedTime";
+
+    let sortOrder = - 1 
+//         { value: 'spenders', label: 'Highest Spenders' },
+// { value: 'debtors', label: 'Highest Debtors' },
+
     const page = parseInt(searchParams.get("page"));
     const limit = parseInt(searchParams.get("limit")) || 10;
     const skip = (page - 1) * limit;
@@ -61,9 +66,8 @@ export const GET = async (req) => {
         },
         {
           $addFields: {
-            totalDue: { $sum: "$invoices.due" },
-            totalPaid: { $sum: "$invoices.paid" },
-            currency: { $sum: "$invoices.currency" },
+            totalDue: { $sum: "$invoices.dueAmount" },
+            totalPaid: { $sum: "$invoices.paidAmount" },
           },
         },
         {
@@ -76,9 +80,10 @@ export const GET = async (req) => {
             currency: 1,
             totalDue: 1,
             totalPaid: 1,
+            lastModifiedTime : 1
           },
         },
-        { $sort: { createdTime: sortOrder } },
+        { $sort: { [sortField]: sortOrder } },
         { $skip: skip },
         { $limit: limit },
       ])
