@@ -7,7 +7,6 @@ const ItemModal = ({ openModal, setOpenModal, item}) => {
     useEffect(()=>{
 
     },[item])
-    console.log(item)
     return (
         <div className="mx-auto flex w-72 items-center justify-center">
             <div onClick={() => setOpenModal(false)} className={`fixed z-[100] flex items-center justify-center ${openModal ? 'opacity-1 visible' : 'invisible opacity-0'} inset-0 h-full w-full bg-black/20 backdrop-blur-sm duration-100`}>

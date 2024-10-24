@@ -354,12 +354,12 @@ const NewInvoice = ({ activeOrg }) => {
             <div className="text-start w-[350px] h-auto mb-6 space-y-1">
               {activeOrganization?.logoUrl && <Image src={activeOrganization.logoUrl || ""} alt="Company Logo" width={100} height={100} />}
               <h1 className="text-2xl font-semibold">{activeOrganization?.name}</h1>
-              <div className="flex w-fit pt-2 items-center gap-2">
+              {activeOrganization?.address && <div className="flex w-fit pt-2 items-center gap-2">
                 <div className="w-[40px]"><AddressSVG height={'20px'} width={'20px'} /></div> <p className="w-[200px] h-auto font-semibold">{getFullAddress(activeOrganization?.address)}</p>
-              </div>
-              <div className="flex items-center gap-2"><div className="w-[40px]"><PhoneSVG height={'20px'} width={'20px'} /></div> <p className="w-[100px h-auto] font-semibold">{activeOrganization?.phone}</p></div>
-              <div className="flex items-center gap-2"><div className="w-[40px]"><GlobeSVG height={'20px'} width={'20px'} /></div> <p className="w-[100px h-auto] font-semibold">{activeOrganization?.website}</p></div>
-              <div className="flex items-center gap-2"><div className="w-[40px]"><MailSVG height={'20px'} width={'20px'} /></div> <p className="w-[100px h-auto] font-semibold">{activeOrganization?.email}</p></div>
+              </div>}
+              {activeOrganization?.phone && <div className="flex items-center gap-2"><div className="w-[40px]"><PhoneSVG height={'20px'} width={'20px'} /></div> <p className="w-[100px h-auto] font-semibold">{activeOrganization?.phone}</p></div>}
+              {activeOrganization?.website && <div className="flex items-center gap-2"><div className="w-[40px]"><GlobeSVG height={'20px'} width={'20px'} /></div> <p className="w-[100px h-auto] font-semibold">{activeOrganization?.website}</p></div>}
+              {activeOrganization?.email && <div className="flex items-center gap-2"><div className="w-[40px]"><MailSVG height={'20px'} width={'20px'} /></div> <p className="w-[100px h-auto] font-semibold">{activeOrganization?.email}</p></div>}
             </div>
           </div>
           <div className="flex flex-col w-[350px] h-auto flex-wrap items-start">

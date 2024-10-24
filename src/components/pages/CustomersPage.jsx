@@ -3,7 +3,9 @@ import { useEffect, useState } from "react";
 import CustomerModal from "../modal/CustomerModal";
 import toast from "react-hot-toast";
 
-const CustomersPage = ({ c }) => {
+
+const CustomersPage = ({ c, sort, page: p, totalPages, limit, totalCount }) => {
+    const [page, setPage] = useState(p)
     const [openModal, setOpenModal] = useState(false);
     const [selectedCustomer, setSelectedCustomer] = useState(null);
     const [customers, setCustomers] = useState(c)
@@ -47,6 +49,8 @@ const CustomersPage = ({ c }) => {
                         <th className="border border-gray-300 p-2 text-left">Name</th>
                         <th className="border border-gray-300 p-2 text-left">Phone</th>
                         <th className="border border-gray-300 p-2 text-left">Company</th>
+                        <th className="border border-gray-300 p-2 text-left">Total Order</th>
+
                         <th className="border border-gray-300 p-2 text-left">Due</th>
                         <th className="border border-gray-300 p-2 text-left">Paid</th>
                     </tr>
@@ -82,8 +86,9 @@ const CustomersPage = ({ c }) => {
                                 </div>
 
                             </td>
-                            <td className="border border-gray-300 p-2">{c.phone}</td>
-                            <td className="border border-gray-300 p-2">{c.companyName}</td>
+                            <td className="border border-gray-300 p-2">{c?.phone}</td>
+                            <td className="border border-gray-300 p-2">{c?.companyName}</td>
+                            <td className="border border-gray-300 p-2">{c?.totalOrder}</td>
                             <td className="border border-gray-300 p-2">{c?.currency || "BDT "} {c?.totalDue}</td>
                             <td className="border border-gray-300 p-2">{c?.currency || "BDT "} {c?.totalPaid}</td>
                         </tr>
@@ -99,6 +104,7 @@ const CustomersPage = ({ c }) => {
                 />
             )}
         </div>
+
     );
 };
 

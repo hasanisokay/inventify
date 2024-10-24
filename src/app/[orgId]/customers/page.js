@@ -32,10 +32,10 @@ const page = async ({ searchParams }) => {
 
   return (
     <div className="page-container">
-      <BarInCustomers limit={limit} page={page} sort={sort} selectId ={generateUniqueIds(2)} />
-      <CustomersPage c={customers?.customers} />
+       <BarInCustomers limit={limit} page={page} sort={sort} selectId ={generateUniqueIds(2)} />
+      <CustomersPage c={customers?.customers} totalCount={totalCount} totalPages={totalPages} limit={limit} page={page} sort={sort} />
       {totalCount > limit && (
-        <PaginationDefault p={page} totalPages={totalPages} />
+        <PaginationDefault p={page} totalPages={totalPages} limit={limit} />
       )}
     </div>
   );

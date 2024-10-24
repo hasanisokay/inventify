@@ -4,61 +4,51 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const PaginationDefault = ({ p, totalPages }) => {
-    const [page, setPageNow] = useState(p);
+    const [page, setPage] = useState(p)
+    const [hasMounted, setHasMounted] = useState(false)
     const router = useRouter();
-
-    useEffect(() => {
-        const query = new URLSearchParams(window.location.search);
-        query.set('page', page);
-        router.replace(`${window.location.pathname}?${query.toString()}`, { scroll: false });
-    }, [page]);
-
-    const handlePageChange = (newPage) => {
-        setPageNow(newPage);
-    };
-
     const renderPageNumbers = () => {
         const pages = [];
         for (let i = 1; i <= totalPages; i++) {
-            pages.push(
-                <button
-                    key={i}
-                    onClick={() => handlePageChange(i)}
-                    disabled={i === page}
-                    style={{
-                        margin: '0 5px',
-                        padding: '5px 10px',
-                        backgroundColor: i === page ? '#0070f3' : '#fff',
-                        color: i === page ? '#fff' : '#0070f3',
-                        border: '1px solid #0070f3',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                    }}
-                >
-                    {i}
-                </button>
-            );
+            if (i === totalPages || i === 1 || Math.abs(page - i) < 3 || Math.abs(totalPages - i) < 2) {
+                pages.push(
+                    <div key={i}>
+                        <span className="font-semibold">
+                            {Math.abs(totalPages - i) < 2 && Math.abs(totalPages - i) >= 1 &&
+                            
+                            Math.abs(totalPages - page) > 3 &&  Math.abs(page - i) > 3 && "..."}
+                        </span>
+                        <span className="font-semibold">
+                            {i !==1 && i > 2 && page - i >= 2 &&  "..."}
+                        </span>
+                        <button
+                            onClick={() => setPage(i)}
+                            disabled={i === page}
+                            className={`h-[30px] rounded text-white w-[40px] mx-1 ${i === page ? 'bg-slate-700' : "bg-blue-600"} `}
+                        >
+                            {i}
+                        </button>
+                    </div>
+
+                );
+            }
+
         }
         return pages;
     };
-
+    useEffect(() => {
+        if (hasMounted) {
+            const query = new URLSearchParams(window.location.search);
+            query.set('page', page);
+            router.replace(`${window.location.pathname}?${query.toString()}`, { scroll: false });
+        } else {
+            setHasMounted(true);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [page]);
     return (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '20px 0' }}>
-            <button
-                onClick={() => handlePageChange(page > 1 ? page - 1 : 1)}
-                disabled={page === 1}
-                style={{ marginRight: '10px' }}
-            >
-                Previous
-            </button>
+        <div className="flex flex-wrap h-auto w-[420px] mt-4 items-center mx-auto">
             {renderPageNumbers()}
-            <button
-                onClick={() => handlePageChange(page < totalPages ? page + 1 : totalPages)}
-                disabled={page === totalPages}
-                style={{ marginLeft: '10px' }}
-            >
-                Next
-            </button>
         </div>
     );
 };

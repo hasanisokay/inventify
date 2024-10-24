@@ -42,28 +42,26 @@ const ItemsPage = ({ i }) => {
             setSelectedItem(null)
         }
     }, [openModal])
-    console.log(items)
-    return<></>
+
     return (
         <div className="w-full">
             <table className="min-w-full border-collapse border border-gray-300">
                 <thead className="bg-gray-200">
                     <tr>
                         <th className="border border-gray-300 p-2 text-left">Name</th>
-                        <th className="border border-gray-300 p-2 text-left">Type</th>
-                        <th className="border border-gray-300 p-2 text-left">Unit</th>
                         <th className="border border-gray-300 p-2 text-left">Price</th>
-                        <th className="border border-gray-300 p-2 text-left">Total Sell</th>
+                        <th className="border border-gray-300 p-2 text-left">Unit</th>
+                        <th className="border border-gray-300 p-2 text-left">Total Sold</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {items?.map((c) => (
+                    {items?.map((i) => (
                         <tr
-                            key={c._id}
+                            key={i._id}
                             className="hover:bg-gray-100 cursor-pointer group"
-                            onClick={() => handleRowClick(c)}
+                            onClick={() => handleRowClick(i)}
                         >
-                            <td className="border border-gray-300 p-2">{c.firstName + " " + c.lastName}
+                            <td className="border border-gray-300 p-2">{i.name}
 
                                 <div className="flex space-x-2 opacity-0 group-hover:opacity-100">
                                     <button
@@ -79,7 +77,7 @@ const ItemsPage = ({ i }) => {
                                         className="text-red-500 hover:underline"
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            handleDelete(c?._id)
+                                            handleDelete(i?._id)
                                         }}
                                     >
                                         Delete
@@ -87,10 +85,10 @@ const ItemsPage = ({ i }) => {
                                 </div>
 
                             </td>
-                            <td className="border border-gray-300 p-2">{c.phone}</td>
-                            <td className="border border-gray-300 p-2">{c.companyName}</td>
-                            <td className="border border-gray-300 p-2">{c?.currency || "BDT "} {c?.totalDue}</td>
-                            <td className="border border-gray-300 p-2">{c?.currency || "BDT "} {c?.totalPaid}</td>
+                            <td className="border border-gray-300 p-2">{i?.sellingPrice?.split(" ")[1] || 0}</td>
+                            <td className="border border-gray-300 p-2">{i?.unit}</td>
+                            <td className="border border-gray-300 p-2">{i?.totalOrder}</td>
+                            {/* <td className="border border-gray-300 p-2">{c?.currency || "BDT "} {c?.totalPaid}</td> */}
                         </tr>
                     ))}
                 </tbody>

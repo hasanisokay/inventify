@@ -68,6 +68,8 @@ export const GET = async (req) => {
           $addFields: {
             totalDue: { $sum: "$invoices.dueAmount" },
             totalPaid: { $sum: "$invoices.paidAmount" },
+            totalOrder: { $size: "$invoices" },
+            // i need total order. invoices 
           },
         },
         {
@@ -80,6 +82,7 @@ export const GET = async (req) => {
             currency: 1,
             totalDue: 1,
             totalPaid: 1,
+            totalOrder :1 ,
             lastModifiedTime : 1
           },
         },
