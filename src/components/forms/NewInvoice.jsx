@@ -75,7 +75,6 @@ const NewInvoice = ({ activeOrg }) => {
       setSavedItems(i);
     })()
   }, [])
-
   const calculateTax = (item) => {
     try {
       let amountObj = item.taxes.find(i => i.type === "amount");

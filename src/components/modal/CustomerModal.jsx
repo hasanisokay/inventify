@@ -1,3 +1,4 @@
+import { defaultSortOptions } from "@/constants/options.mjs";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import Select from 'react-select';
@@ -26,16 +27,14 @@ const CustomerModal = ({ openModal, setOpenModal, customer }) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sortOrder])
 
-    const sortOptions = [
-        { value: -1, label: 'Newest' },
-        { value: 1, label: 'Oldest' },
-    ];
 
     const markAsPaid = async (order) => {
         const formData = {
             invoiceNumber: order.invoiceNumber,
             newPaidAmount: order.subtotal,
             newDueAmount: order.newDueAmount,
+            paymentFromNumber: order.paymentFromNumber,
+            trxId: order.trxId,
             paymentMethod: order.paymentMethod ==="not-paid" ? "": order.paymentMethod 
         }
         const res = await fetch('/api/updates/mark-invoice-as-paid', {
@@ -86,8 +85,8 @@ const CustomerModal = ({ openModal, setOpenModal, customer }) => {
 
                     <div className="px-5 pb-5 pt-3 lg:pb-10 lg:pt-5 lg:px-10">
                         {customerOrderDetails.length > 0 && <Select
-                            options={sortOptions}
-                            value={sortOptions.find((u) => u.value === sortOrder)}
+                            options={defaultSortOptions}
+                            value={defaultSortOptions.find((u) => u.value === sortOrder)}
                             onChange={(selectedOption) => setSortOrder(selectedOption.value)}
                             className='select-react w-fit mb-2'
                         />}

@@ -141,15 +141,11 @@ const NewCustomer = ({ id = null, setOpenModal = undefined, onSaveCustomer = und
     };
     let apiPath = `/api/adds/new-customer`
     let method = "POST"
-    let returnId = false;
+
     if (updateable) {
       customerData.id = id;
       apiPath = `/api/updates/customer`
       method = "PUT"
-    }
-    if (onSaveCustomer && setOpenModal) {
-      returnId = true;
-
     }
     const res = await fetch(apiPath, {
       method,
@@ -160,6 +156,7 @@ const NewCustomer = ({ id = null, setOpenModal = undefined, onSaveCustomer = und
       credentials: "include",
     })
     const data = await res.json();
+
     if (data.status === 201 || data.status === 200) {
       toast.success(data?.message)
 

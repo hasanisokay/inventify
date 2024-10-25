@@ -2,16 +2,28 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import ItemModal from "../modal/ItemModal";
+import getActiveOrg from "@/utils/getActiveOrg.mjs";
+import { useRouter } from "next/navigation";
 
 const ItemsPage = ({ i }) => {
+    const router = useRouter();
     const [openModal, setOpenModal] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
     const [items, setItems] = useState(i)
+    const [activeOrg, setActiveOrg] = useState()
 
     const handleRowClick = (item) => {
         setSelectedItem(item);
         setOpenModal(true);
     };
+    
+    useEffect(() => {
+        (async () => {
+            const a = await getActiveOrg();
+            setActiveOrg(a);
+        })()
+    }, [])
+
     useEffect(() => {
         setItems(i);
     }, [i]);
@@ -38,7 +50,7 @@ const ItemsPage = ({ i }) => {
     }
     useEffect(() => {
         if (!openModal) {
-         
+
             setSelectedItem(null)
         }
     }, [openModal])
@@ -68,7 +80,7 @@ const ItemsPage = ({ i }) => {
                                         className="text-blue-500 hover:underline"
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            // Handle edit action here
+                                            router.push(`/${activeOrg}/items/new?id=${i._id}`)
                                         }}
                                     >
                                         Edit

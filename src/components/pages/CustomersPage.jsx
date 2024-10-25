@@ -2,10 +2,14 @@
 import { useEffect, useState } from "react";
 import CustomerModal from "../modal/CustomerModal";
 import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
+import getActiveOrg from "@/utils/getActiveOrg.mjs";
 
 
-const CustomersPage = ({ c, sort, page: p, totalPages, limit, totalCount }) => {
-    const [page, setPage] = useState(p)
+const CustomersPage = ({ c, page: p, }) => {
+    const [page, setPage] = useState(p);
+    const router = useRouter();
+    const [activeOrg, setActiveOrg] = useState("")
     const [openModal, setOpenModal] = useState(false);
     const [selectedCustomer, setSelectedCustomer] = useState(null);
     const [customers, setCustomers] = useState(c)
@@ -13,6 +17,12 @@ const CustomersPage = ({ c, sort, page: p, totalPages, limit, totalCount }) => {
         setSelectedCustomer(customer);
         setOpenModal(true);
     };
+    useEffect(() => {
+        (async () => {
+            const a = await getActiveOrg();
+            setActiveOrg(a);
+        })()
+    }, [])
     useEffect(() => {
         setCustomers(c);
     }, [c]);
@@ -69,7 +79,7 @@ const CustomersPage = ({ c, sort, page: p, totalPages, limit, totalCount }) => {
                                         className="text-blue-500 hover:underline"
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            // Handle edit action here
+                                            router.push(`/${activeOrg}/customers/new?id=${c._id}`)
                                         }}
                                     >
                                         Edit

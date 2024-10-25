@@ -42,67 +42,59 @@ export const GET = async (req) => {
       const res = await itemCollection
         .find(matchStage, {
           projection: { _id: 1, name: 1, sellingPrice: 1, unit: 1, taxes: 1 },
-        }).toArray();
+        })
+        .toArray();
       return NextResponse.json(dataFoundResponse(res));
     }
 
     const result = await itemCollection
-    .aggregate([
-      // Match stage to filter items based on criteria (optional)
-      { $match: matchStage },
-  
-      // Lookup invoices to include fields from invoices
-      {
-        $lookup: {
-          from: "invoices",
-          localField: "_id",
-          foreignField: "items.itemId", // Use the correct field
-          as: "invoices",
+      .aggregate([
+        { $match: matchStage },
+        {
+          $lookup: {
+            from: "invoices",
+            localField: "_id",
+            foreignField: "items.itemId",
+            as: "invoices",
+          },
         },
-      },
-  
-      // Unwind invoices to flatten the structure, preserving items without invoices
-      { $unwind: { path: "$invoices", preserveNullAndEmptyArrays: true } },
-  
-      // Optionally unwind the items within invoices if needed
-      { $unwind: { path: "$invoices.items", preserveNullAndEmptyArrays: true } },
-  
-      // Group back by item, aggregating necessary fields
-      {
-        $group: {
-          _id: "$_id",
-          name: { $first: "$name" },
-          sellingPrice: { $first: "$sellingPrice" },
-          unit: { $first: "$unit" },
-          taxes: { $first: "$taxes" },
-          lastModifiedTime: { $first: "$lastModifiedTime" },
-          totalOrder: { $sum: { $ifNull: ["$invoices.items.quantity", 0] } }, // Include total quantity, default to 0 if null
+        { $unwind: { path: "$invoices", preserveNullAndEmptyArrays: true } },
+        {
+          $unwind: {
+            path: "$invoices.items",
+            preserveNullAndEmptyArrays: true,
+          },
         },
-      },
-  
-      // Project the fields you want in the final output
-      {
-        $project: {
-          _id: 1,
-          name: 1,
-          sellingPrice: 1,
-          unit: 1,
-          taxes: 1,
-          lastModifiedTime: 1,
-          totalOrder: 1,
+
+        {
+          $group: {
+            _id: "$_id",
+            name: { $first: "$name" },
+            sellingPrice: { $first: "$sellingPrice" },
+            unit: { $first: "$unit" },
+            taxes: { $first: "$taxes" },
+            lastModifiedTime: { $first: "$lastModifiedTime" },
+            totalOrder: { $sum: "$invoices.items.quantity" },
+          },
         },
-      },
-  
-      // Sort the results
-      {
-        $sort: {totalOrder: sortOrder },
-      },
-  
-      // Implement pagination
-      { $skip: skip },
-      { $limit: limit },
-    ])
-    .toArray();
+        {
+          $project: {
+            _id: 1,
+            name: 1,
+            sellingPrice: 1,
+            unit: 1,
+            taxes: 1,
+            lastModifiedTime: 1,
+            totalOrder: 1,
+          },
+        },
+        {
+          $sort: { totalOrder: sortOrder },
+        },
+        { $skip: skip },
+        { $limit: limit },
+      ])
+      .toArray();
     let totalCount;
     totalCount = await itemCollection.countDocuments(matchStage);
     return NextResponse.json(dataFoundResponse({ items: result, totalCount }));
