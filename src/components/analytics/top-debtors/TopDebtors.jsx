@@ -96,6 +96,12 @@ const TopDebtors = () => {
                     labelTextColor: () => '#c9c6b7',
                 },
             },
+            legend: {
+                display: true,
+            },
+            datalabels: {
+                color: '#ffffff',
+            },
         },
     };
 
