@@ -64,7 +64,7 @@ const OrgNav = ({ activeOrg }) => {
                     Invoices
                 </NavLink>
             </li>}
-            {activeOrgId && <li>
+            {/* {activeOrgId && <li>
                 <NavLink activeClasses={"text-[#00e76f]"} href={`/${activeOrgId}/payments-received`} aria-label="Payment Received Page">
                     Payments Received
                 </NavLink>
@@ -73,7 +73,7 @@ const OrgNav = ({ activeOrg }) => {
                 <NavLink activeClasses={"text-[#00e76f]"} href={`/${activeOrgId}/expenses`} aria-label="Expenses Page">
                     Expenses
                 </NavLink>
-            </li>}
+            </li>} */}
             <li>
                 <button className="px-3 py-1 text-sm font-medium duration-300" onClick={async () => {
                     await logOut();

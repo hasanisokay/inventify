@@ -107,9 +107,9 @@ const CostSummary = () => {
 
                 </div>
                 <div className='items-center justify-center my-10 gap-4 flex flex-wrap'>
-                    <div>
-                        <p><span>Total Paid:</span> <span className='font-semibold'>{totalPaid}</span></p>
-                        <p>Total Due: <span className='font-semibold'>{totalDue}</span></p>
+                    <div className='flex flex-col items-start justify-start'>
+                        <p><span className='w-[115px] inline-block'>Received:</span> <span className='font-semibold min-w-[100px] inline-block'>{totalPaid}</span></p>
+                        <p> <span className='w-[120px] inline-block'>Due:</span><span className='font-semibold min-w-[100px] inline-block'>{totalDue}</span></p>
                     </div>
                     <div className='h-[400px] w-fit'>
                         {totalDue > 0 || totalPaid > 0 ? (
