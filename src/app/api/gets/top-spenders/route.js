@@ -5,7 +5,6 @@ import {
 } from "@/constants/responses.mjs";
 import dbConnect from "@/services/dbConnect.mjs";
 import getActiveOrg from "@/utils/getActiveOrg.mjs";
-import { ObjectId } from "mongodb";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -14,21 +13,28 @@ export const GET = async (req) => {
   try {
     const activeOrgId = await getActiveOrg();
     const searchParams = req.nextUrl.searchParams;
-    const itemId = searchParams.get("id");
-    const sortOrder = parseInt(searchParams.get("sortOrder")) || -1;
+    const startDateStr = searchParams.get("startDate");
+    const endDateStr = searchParams.get("endDate");
+    const limit = parseInt(searchParams.get("limit")) || 10;
+
+    const startDate = new Date(startDateStr);
+    const endDate = new Date(endDateStr);
+
+    // Validate dates
+    if (isNaN(startDate) || isNaN(endDate)) {
+      return NextResponse.json({ error: "Invalid date format." });
+    }
+
     const db = await dbConnect();
     const invoiceCollection = await db.collection("invoices");
     const res = await invoiceCollection
       .aggregate([
         {
           $match: {
-            "items.itemId": new ObjectId(itemId),
-            orgId: activeOrgId,
-          },
-        },
-        {
-          $sort: {
-            invoiceDate: sortOrder, 
+            invoiceDate: {
+              $gte: startDate,
+              $lte: endDate,
+            },
           },
         },
         {
@@ -40,28 +46,29 @@ export const GET = async (req) => {
           },
         },
         {
-          $unwind: {
-            path: "$customerDetails",
-            preserveNullAndEmptyArrays: true,
-          },
-        },        {
-          $project: {
-            invoiceNumber: 1,
-            invoiceDate: 1,
-            "items.name": 1,
-            "items.unit": 1,
-            "items.quantity": 1,
-            "items.sellingPrice": 1,
-            paidAmount: 1,
-            dueAmount: 1,
-            customerId: 1,
-            "customerDetails.firstName":1,
-            "customerDetails.lastName":1,
-            "customerDetails.billingAddress":1,
-            "customerDetails.phone":1
+          $unwind: "$customerDetails",
+        },
+        {
+          $group: {
+            _id: {
+              firstName: "$customerDetails.firstName",
+              lastName: "$customerDetails.lastName",
+            },
+            totalDueAmount: { $sum: "$dueAmount" },
+            totalPaidAmount: { $sum: "$paidAmount" },
           },
         },
-        
+        {
+          $match: {
+            totalPaidAmount: { $gt: 0 },
+          },
+        },
+        {
+          $sort: { totalPaidAmount: -1 },
+        },
+        {
+          $limit: limit,
+        },
       ])
       .toArray();
 
@@ -70,8 +77,8 @@ export const GET = async (req) => {
     } else {
       return NextResponse.json(noDataFoundResponse);
     }
-  } catch (er) {
-    console.log(er);
+  } catch (err) {
+    console.error(err);
     return NextResponse.json(serverErrorResponse);
   }
 };

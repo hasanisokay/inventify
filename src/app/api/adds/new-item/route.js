@@ -9,23 +9,15 @@ export const POST = async (req) => {
   try {
     const body = await req.json();
     const db = await dbConnect();
-    const returnId = body.returnId;
-    if(returnId){
-      delete body.returnId;
-    }
-    
-    body.createdTime= new Date()
-    body.lastModifiedTime= new Date()
+
+    body.createdTime = new Date();
+    body.lastModifiedTime = new Date();
 
     const customerCollection = await db.collection("items");
     const result = await customerCollection.insertOne(body);
     if (result.insertedId) {
       const response = { ...dataAddedResponse, _id: result.insertedId };
-      if (returnId) {
-        return NextResponse.json(response);
-      } else {
-        return NextResponse.json(dataAddedResponse);
-      }
+      return NextResponse.json(response);
     } else {
       return NextResponse.json(serverErrorResponse);
     }

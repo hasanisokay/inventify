@@ -7,8 +7,7 @@ const HomeGreetings = () => {
     return (
         <>
             {currentUser && <div>
-                <h2 className="text-center text-xl">Welcome, {currentUser?.fullName}</h2>
-             
+                <h2 className="text-center text-2xl">Greetings, {currentUser?.fullName}</h2>
             </div>
             }
         </>);

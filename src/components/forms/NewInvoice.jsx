@@ -531,6 +531,7 @@ const NewInvoice = ({ activeOrg }) => {
             <Select
               id="paymentMethod"
               options={paymentOptions}
+              selected={paymentMethod}
               placeholder="Select Payment Method"
               onChange={(option) => setPaymentMethod(option.value)}
               className="min-w-[250px] select-react"

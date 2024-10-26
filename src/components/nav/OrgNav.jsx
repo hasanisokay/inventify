@@ -20,10 +20,10 @@ const OrgNav = ({ activeOrg }) => {
     const [menuOpen, setMenuOpen] = useState(false);
     const handleScroll = () => {
         if (window.scrollY > lastScrollY) {
-            setVisible(false);
+            // setVisible(false);
             setMenuOpen(false);
         } else {
-            setVisible(true);
+            // setVisible(true);
         }
         setLastScrollY(window.scrollY);
     };

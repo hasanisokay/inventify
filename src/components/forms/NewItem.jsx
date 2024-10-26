@@ -98,16 +98,13 @@ const NewItem = ({ id, setOpenModal=undefined, onAddItem=undefined }) => {
     };
     let apiUrl = "/api/adds/new-item"
     let method = "POST";
-    let returnId = false;
+    
     if (updateable) {
       formData.id = id
       apiUrl = "/api/updates/item"
       method = "PUT"
     }
-    if (setOpenModal && onAddItem) {
-      returnId = true;
-    }
-    formData.returnId = returnId;
+    
     const res = await fetch(apiUrl, {
       method,
       headers: {
@@ -118,7 +115,6 @@ const NewItem = ({ id, setOpenModal=undefined, onAddItem=undefined }) => {
     })
     const data = await res.json();
     setLoading(false);
-    // _id: 1, name: 1, sellingPrice: 1, unit: 1, taxes:1
     if (data.status === 201 || data.status === 200) {
       toast.success(data?.message)
       if (setOpenModal && onAddItem) {

@@ -290,7 +290,6 @@ const NewCustomer = ({ id = null, setOpenModal = undefined, onSaveCustomer = und
             <label className="font-semibold mr-2 w-32">State:</label>
             <input
               type="text"
-              required
               value={billingState}
               onChange={(e) => setBillingState(e.target.value)}
               className="text-input"
@@ -302,7 +301,6 @@ const NewCustomer = ({ id = null, setOpenModal = undefined, onSaveCustomer = und
             <label className="font-semibold mr-2 w-32">Country:</label>
             <input
               type="text"
-              required
               value={billingCountry}
               onChange={(e) => setBillingCountry(e.target.value)}
               className="text-input"
@@ -312,7 +310,6 @@ const NewCustomer = ({ id = null, setOpenModal = undefined, onSaveCustomer = und
             <label className="font-semibold mr-2 w-32">Postal Code:</label>
             <input
               type="text"
-              required
               value={billingCode}
               onChange={(e) => setBillingCode(e.target.value)}
               className="text-input"

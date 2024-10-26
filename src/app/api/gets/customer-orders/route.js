@@ -8,6 +8,8 @@ import getActiveOrg from "@/utils/getActiveOrg.mjs";
 import { ObjectId } from "mongodb";
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 export const GET = async (req) => {
   try {
     const activeOrgId = await getActiveOrg();
