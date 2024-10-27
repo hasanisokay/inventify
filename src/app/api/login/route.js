@@ -31,10 +31,7 @@ export const POST = async (req) => {
       }
     );
     if (!user) return NextResponse.json(invalidCredentialsResponse);
-    if (user?.role === "suspended") {
-      return NextResponse.json(suspendedAccountResponse);
-    }
-
+    
     const passwordMatch = await bcrypt.compare(body.password, user.password);
     if (!passwordMatch) {
       return NextResponse.json(invalidCredentialsResponse);
