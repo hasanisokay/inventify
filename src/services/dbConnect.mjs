@@ -1,4 +1,4 @@
-"use server";
+"use server"
 import { MongoClient, ServerApiVersion } from "mongodb";
 let db;
 const dbConnect = async () => {
@@ -10,7 +10,7 @@ const dbConnect = async () => {
     const client = new MongoClient(uri, {
       serverApi: {
         version: ServerApiVersion.v1,
-        // strict: true,
+        strict: true,
         deprecationErrors: true,
       },
     });

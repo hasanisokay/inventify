@@ -4,7 +4,7 @@ import logOut from "./utils/logOut.mjs";
 import { COOKIE_NAME } from "./constants/constantsName.mjs";
 
 export async function middleware(request) {
-  // return NextResponse.next();
+  return NextResponse.next();
   let token = request.cookies.get(COOKIE_NAME)?.value?.split("Bearer")[1]?.trim();
   const pathName = request.nextUrl.pathname;
 

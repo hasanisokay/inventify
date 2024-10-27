@@ -30,12 +30,7 @@ export const POST = async (req) => {
         },
       }
     );
-    return NextResponse.json({
-      status: 200,
-      // user: { role: user?.role, username: user?.username, profilePictureUrl: user.profilePictureUrl, status: user.status, },
-      user,
-      message: "Validated",
-    });
+
     if (!user) return NextResponse.json(invalidCredentialsResponse);
     
     const passwordMatch = await bcrypt.compare(body.password, user.password);
@@ -71,7 +66,6 @@ export const POST = async (req) => {
       delete user.password;
       return NextResponse.json({
         status: 200,
-        // user: { role: user?.role, username: user?.username, profilePictureUrl: user.profilePictureUrl, status: user.status, },
         user,
         message: "Validated",
       });
