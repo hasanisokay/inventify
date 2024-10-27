@@ -33,7 +33,12 @@ const UserLogin = () => {
             },
             body: JSON.stringify(formData),
         });
-
+        
+        if (!res.ok) {
+            toast.error("Network error. Please try again.");
+            return;
+        }
+        
         const data = await res.json();
 
         if (!data) {

@@ -12,6 +12,7 @@ import { COOKIE_NAME } from "@/constants/constantsName.mjs";
 export const POST = async (req) => {
   try {
     const body = await req.json();
+
     const db = await dbConnect();
     if (!db) return NextResponse.json(dbErrorResponse);
     const userCollection = await db.collection("users");
