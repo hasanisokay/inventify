@@ -28,15 +28,16 @@ const UserLogin = () => {
                     body: JSON.stringify({ username, password })
                 });
                 const data = await res.json();
-
-                // const result = await userLogin(FormData);
                 if (!data) toast.error("Try again.");
-                else if (data.error) toast.error(data.message);
-                else {
+            
+                else if(data.status===200) {
                     setCurrentUser(data?.user)
                     toast.success(data.message);
                     router.push(redirectTo || "/")
                 }
+                else{
+                    toast.error(data.message);
+                } 
             }} className="space-y-6">
                 <div className="space-y-2 text-sm">
                     <label htmlFor="username" className="block text-zinc-700 dark:text-zinc-300 font-medium">
