@@ -2,6 +2,7 @@ import {
   dbErrorResponse,
   invalidCredentialsResponse,
   serverErrorResponse,
+  suspendedAccountResponse,
 } from "@/constants/responses.mjs";
 import dbConnect from "@/services/dbConnect.mjs";
 import { NextResponse } from "next/server";
@@ -31,10 +32,19 @@ export const POST = async (req) => {
       }
     );
 
-    
-    const passwordMatch = await bcrypt.compare(body?.password, user?.password ||"");
-    if (!passwordMatch || !user) {
+    if (!user) {
       return NextResponse.json(invalidCredentialsResponse);
+    }
+
+    const passwordMatch = await bcrypt.compare(
+      body?.password,
+      user?.password
+    );
+    if (!passwordMatch) {
+      return NextResponse.json(invalidCredentialsResponse);
+    }
+    if(user.status==="suspended"){
+      return NextResponse.json(suspendedAccountResponse);
     }
 
     try {
