@@ -16,6 +16,6 @@ export default page;
 export async function generateMetadata() {
   return {
     title: `Login - ${websiteName}`,
-    description: "Access your Inventify account and manage your business efficiently.",
+    description: "Access your Inventify account and manage your business efficiently .",
   };
 }
