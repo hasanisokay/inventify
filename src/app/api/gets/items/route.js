@@ -25,7 +25,7 @@ export const GET = async (req) => {
     if (!db) return NextResponse.json(dbErrorResponse);
     if (!orgId) return NextResponse.json(unauthorizedResponse);
     const itemCollection = await db.collection("items");
-    const matchStage = {};
+    const matchStage = {orgId:orgId};
 
     if (category) {
       matchStage.category = category;

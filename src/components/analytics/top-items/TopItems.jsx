@@ -128,7 +128,8 @@ const TopItems = () => {
     return (
         <>
             {loading ? <Spinner /> : <div>
-                <h2 className='font-semibold text-xl text-center'>Top 10 Items</h2>
+              <div className='md:px-10 px-2'>
+              <h2 className='font-semibold text-xl text-center'>Top 10 Items</h2>
                 <h3 className='my-2 font-semibold '>Select Date Range for top 10 items</h3>
                 <div className='flex  gap-10 flex-wrap'>
                     <div className='input-container w-[250px]'>
@@ -153,9 +154,10 @@ const TopItems = () => {
                             className='text-input'
                         />
                     </div>
-                    <button className='btn-purple' onClick={fetchData}>Fetch Data</button>
+                    <button className='btn-purple' onClick={fetchData}>Get Data</button>
 
                 </div>
+              </div>
 
                 <div className='h-[400px] w-full my-10'>
 

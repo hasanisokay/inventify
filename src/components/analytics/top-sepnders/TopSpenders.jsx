@@ -101,12 +101,12 @@ const TopSpenders = () => {
                     labelTextColor: () => '#c9c6b7',
                 },
             },
-                legend: {
-                    display: true,
-                },
-                datalabels: {
-                    color: '#ffffff',
-                },
+            legend: {
+                display: true,
+            },
+            datalabels: {
+                color: '#ffffff',
+            },
         },
     };
 
@@ -133,33 +133,35 @@ const TopSpenders = () => {
     return (
         <>
             {loading ? <Spinner /> : <div>
-                <h2 className='font-semibold text-xl text-center'>Top 10 Spenders</h2>
-                <h3 className='my-2 font-semibold '>Select Date Range for top 10 Spenders</h3>
-                <div className='flex  gap-10 flex-wrap'>
-                    <div className='input-container w-[250px]'>
-                        <label>
-                            From
-                        </label>
-                        <DatePicker
-                            selected={startDate}
-                            onChange={handleStartDateChange}
-                            className='text-input'
-                        />
+                <div className='md:px-10 px-2'>
+                    <h2 className='font-semibold text-xl text-center'>Top 10 Spenders</h2>
+                    <h3 className='my-2 font-semibold '>Select Date Range for top 10 Spenders</h3>
+                    <div className='flex  gap-10 flex-wrap'>
+                        <div className='input-container w-[250px]'>
+                            <label>
+                                From
+                            </label>
+                            <DatePicker
+                                selected={startDate}
+                                onChange={handleStartDateChange}
+                                className='text-input'
+                            />
+
+                        </div>
+                        <div className='input-container w-[250px]'>
+                            <label>
+                                To
+                            </label>
+                            <DatePicker
+                                selected={endDate}
+                                onChange={handleEndDateChange}
+                                filterDate={date => date >= startDate}
+                                className='text-input'
+                            />
+                        </div>
+                        <button className='btn-purple' onClick={fetchData}>Get Data</button>
 
                     </div>
-                    <div className='input-container w-[250px]'>
-                        <label>
-                            To
-                        </label>
-                        <DatePicker
-                            selected={endDate}
-                            onChange={handleEndDateChange}
-                            filterDate={date => date >= startDate}
-                            className='text-input'
-                        />
-                    </div>
-                    <button className='btn-purple' onClick={fetchData}>Fetch Data</button>
-
                 </div>
                 <div className='h-[400px] w-full my-10'>
                     {topCustomers?.length > 0 ? (

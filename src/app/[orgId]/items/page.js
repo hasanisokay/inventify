@@ -2,6 +2,7 @@ import NotFound from "@/components/not-found/NotFound";
 import ItemsPage from "@/components/pages/ItemsPage";
 import PaginationDefault from "@/components/pagination/PaginationDefault";
 import BarInItems from "@/components/selects/BarInItems";
+import { websiteName } from "@/constants/constantsName.mjs";
 import generateUniqueIds from "@/utils/generateUniqueIds.mjs";
 import getActiveOrg from "@/utils/getActiveOrg.mjs";
 import getItems from "@/utils/getItems.mjs";
@@ -42,3 +43,11 @@ const page = async ({ searchParams }) => {
 };
 
 export default page;
+
+export async function generateMetadata() {
+  return {
+    title: `Items - ${websiteName}`,
+    description: "Explore your items in Inventify to manage inventory and track performance.",
+    viewport: "width=device-width, initial-scale=1.0",
+  };
+}

@@ -18,7 +18,9 @@ import PhoneSVG from "../svg/PhoneSVG";
 import AddressSVG from "../svg/AddressSVG";
 import GlobeSVG from "../svg/GlobeSVG";
 import MailSVG from "../svg/MailSVG";
-const NewInvoice = ({ activeOrg }) => {
+const NewInvoice = ({ activeOrg, id }) => {
+  const [loading, setLoading] = useState(false);
+  const [updateable, setUpdateable] = useState(false);
   const [customerOptions, setCustomerOptions] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [openCustomerModal, setOpenCustomerModal] = useState(false);
@@ -66,6 +68,65 @@ const NewInvoice = ({ activeOrg }) => {
     const timestamp = Date.now();
     return `INV-${timestamp}`;
   }
+
+  const getPreviousInvoiceData = async (id) => {
+    try {
+      setLoading(true);
+      console.log(id)
+      const res = await fetch(`/api/gets/invoice?id=${id}`)
+      const data = await res.json();
+      if (data.status === 200) {
+        return data.data;
+      } else {
+        return []
+      }
+    } catch {
+      return []
+    } finally {
+      setLoading(false)
+    }
+
+  }
+  useEffect(() => {
+    (async () => {
+      if (id && savedItems?.length > 0) {
+        const data = await getPreviousInvoiceData(id)
+        if (data._id) {
+          setLoading(true)
+          const c = await getCustomerDetails(data.customerId)
+          setCustomerOptions(c);
+          const itemsWithQuantity = data.items.map(i => ({
+            itemId: i.itemId,
+            quantity: i.quantity
+          }));
+
+          const itemsWithDetails = savedItems
+            .filter(item => itemsWithQuantity.some(k => k.itemId === item._id))
+            .map(item => {
+              const foundItem = itemsWithQuantity.find(k => k.itemId === item._id);
+              return {
+                ...item,
+                quantity: foundItem ? foundItem.quantity : 1
+              };
+            });
+          setItems(itemsWithDetails);
+          setNote(data.note);
+          setPaidAmount(data.paidAmount);
+          setDueAmount(data.dueAmount);
+          setDiscount(data.discount)
+          setPaymentFromNumber(data.paymentFromNumber);
+          setPaymentMethod(data.paymentMethod);
+          setInvoiceDate(new Date(data.invoiceDate));
+          setInvoiceNumber(data.invoiceNumber);
+          setSubtotal(data.subtotal);
+          setTotalTax(data.totalTax);
+          setTrxId(data.trxId);
+          setUpdateable(true);
+          setLoading(false);
+        }
+      }
+    })()
+  }, [id, savedItems])
 
   useEffect(() => {
     (async () => {
@@ -293,8 +354,14 @@ const NewInvoice = ({ activeOrg }) => {
     };
 
     try {
-      const res = await fetch('/api/adds/new-invoice', {
-        method: "POST",
+      let apiUrl = '/api/adds/new-invoice';
+      let method = 'POST'
+      if(updateable){
+        apiUrl = '/api/updates/invoice';
+        method = "PUT";
+      }
+      const res = await fetch(apiUrl, {
+        method: method,
         headers: {
           "Content-Type": "application/json"
         },
@@ -617,9 +684,9 @@ const NewInvoice = ({ activeOrg }) => {
           className="bg-blue-500 p-2 rounded"
           onClick={() => handleSave(false)}
         >
-          Save
+          {updateable ? "Update" : "Save"}
         </button>
-        <button className="bg-blue-500 p-2 rounded" onClick={() => handleSave(true)}>Save & Print PDF</button>
+        <button className="bg-blue-500 p-2 rounded" onClick={() => handleSave(true)}>{updateable ? "Update" : "Save"} & Print PDF</button>
       </div>
 
       {/* Modals */}

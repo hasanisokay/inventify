@@ -35,11 +35,6 @@ const AuthProvider = ({ children }) => {
     }, [currentUser])
 
 
-    useEffect(() => {
-        if (activeOrganization) {
-            setActiveOrg(activeOrganization?.orgId)
-        }
-    }, [activeOrganization]);
 
     const authValues = {
         currentUser, setCurrentUser, organizations, activeOrganization, setActiveOrganization

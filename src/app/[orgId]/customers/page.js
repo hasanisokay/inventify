@@ -2,6 +2,7 @@ import NotFound from "@/components/not-found/NotFound";
 import CustomersPage from "@/components/pages/CustomersPage";
 import PaginationDefault from "@/components/pagination/PaginationDefault";
 import BarInCustomers from "@/components/selects/BarInCustomers";
+import { websiteName } from "@/constants/constantsName.mjs";
 import generateUniqueIds from "@/utils/generateUniqueIds.mjs";
 import getActiveOrg from "@/utils/getActiveOrg.mjs";
 
@@ -42,3 +43,10 @@ const page = async ({ searchParams }) => {
 };
 
 export default page;
+
+export async function generateMetadata() {
+  return {
+    title: `Customers - ${websiteName}`,
+    description:"Manage your customer relationships in Inventify. View, add, and edit customer details to enhance your business interactions and track engagement.",
+  };
+}

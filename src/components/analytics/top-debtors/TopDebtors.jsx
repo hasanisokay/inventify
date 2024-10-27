@@ -47,7 +47,7 @@ const TopDebtors = () => {
                 label: 'Top Debtors',
                 data: topDebtors.map(customer => customer.totalDueAmount), // Assuming you want to show due amount
                 backgroundColor: topDebtors.map((_, index) => index % 2 === 0 ? '#171a20' : '#2e2e34'),
-                hoverBackgroundColor: '#5a5a5a' ,
+                hoverBackgroundColor: '#5a5a5a',
                 borderColor: 'rgba(75, 192, 192, 1)',
                 borderWidth: 0.1,
                 barPercentage: 0.8,
@@ -127,33 +127,35 @@ const TopDebtors = () => {
         <>
 
             {loading ? <Spinner /> : <div>
-                <h2 className='font-semibold text-xl text-center'>Top 10 Debtors</h2>
-                <h3 className='my-2 font-semibold '>Select Date Range for top 10 Debtors</h3>
-                <div className='flex  gap-10 flex-wrap'>
-                    <div className='input-container w-[250px]'>
-                        <label>
-                            From
-                        </label>
-                        <DatePicker
-                            selected={startDate}
-                            onChange={handleStartDateChange}
-                            className='text-input'
-                        />
+                <div className='md:px-10 px-2'>
+                    <h2 className='font-semibold text-xl text-center'>Top 10 Debtors</h2>
+                    <h3 className='my-2 font-semibold '>Select Date Range for top 10 Debtors</h3>
+                    <div className='flex  gap-10 flex-wrap'>
+                        <div className='input-container w-[250px]'>
+                            <label>
+                                From
+                            </label>
+                            <DatePicker
+                                selected={startDate}
+                                onChange={handleStartDateChange}
+                                className='text-input'
+                            />
+
+                        </div>
+                        <div className='input-container w-[250px]'>
+                            <label>
+                                To
+                            </label>
+                            <DatePicker
+                                selected={endDate}
+                                onChange={handleEndDateChange}
+                                filterDate={date => date >= startDate}
+                                className='text-input'
+                            />
+                        </div>
+                        <button className='btn-purple' onClick={fetchData}>Get Data</button>
 
                     </div>
-                    <div className='input-container w-[250px]'>
-                        <label>
-                            To
-                        </label>
-                        <DatePicker
-                            selected={endDate}
-                            onChange={handleEndDateChange}
-                            filterDate={date => date >= startDate}
-                            className='text-input'
-                        />
-                    </div>
-                    <button className='btn-purple' onClick={fetchData}>Fetch Data</button>
-
                 </div>
                 <div className='h-[400px] w-full my-10'>
                     {topDebtors.length > 0 ? (

@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 export const GET = async (req) => {
   try {
-    const activeOrgId = await getActiveOrg();
+    const orgId = await getActiveOrg();
     const searchParams = req.nextUrl.searchParams;
     const startDateStr = searchParams.get("startDate");
     const endDateStr = searchParams.get("endDate");
@@ -35,6 +35,7 @@ export const GET = async (req) => {
               $gte: startDate,
               $lte: endDate,
             },
+            orgId: orgId,
           },
         },
         {

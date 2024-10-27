@@ -1,10 +1,9 @@
 'use client'
 
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import logOut from "@/utils/logOut.mjs";
-import getActiveOrg from "@/utils/getActiveOrg.mjs";
-import AuthContext from "@/contexts/AuthContext.mjs";
+
 import NavLink from "./NavLink";
 import useTheme from "@/hooks/useTheme.mjs";
 import Image from "next/image";
@@ -12,18 +11,14 @@ import logo from "@/../../public/logo1.png"
 const OrgNav = ({ activeOrg }) => {
 
     const [activeOrgId, setActiveOrgId] = useState(activeOrg);
-    const { activeOrganization } = useContext(AuthContext);
-
     const [visible, setVisible] = useState(true);
     const { theme } = useTheme();
     const [lastScrollY, setLastScrollY] = useState(0);
     const [menuOpen, setMenuOpen] = useState(false);
     const handleScroll = () => {
         if (window.scrollY > lastScrollY) {
-            // setVisible(false);
             setMenuOpen(false);
         } else {
-            // setVisible(true);
         }
         setLastScrollY(window.scrollY);
     };
@@ -36,19 +31,14 @@ const OrgNav = ({ activeOrg }) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastScrollY]);
 
-    useEffect(() => {
-        if (activeOrganization) {
-            setActiveOrgId(activeOrganization?.orgId);
-        }
-    }, [activeOrganization]);
 
     const menu = (
         <ul className="md:flex-row  flex-col flex items-center md:space-y-0 space-y-4">
-            <li>
+        {activeOrgId &&    <li>
                 <NavLink activeClasses={"text-[#00e76f]"} href='/' aria-label="Home Page">
                     Home
                 </NavLink>
-            </li>
+            </li>}
             {activeOrgId && <li>
                 <NavLink activeClasses={"text-[#00e76f]"} href={`/${activeOrgId}/customers`} aria-label="Customers Page">
                     Customers
@@ -74,14 +64,15 @@ const OrgNav = ({ activeOrg }) => {
                     Expenses
                 </NavLink>
             </li>} */}
-            <li>
+       {activeOrgId &&     <li>
                 <button className="px-3 py-1 text-sm font-medium duration-300" onClick={async () => {
                     await logOut();
                     window.location.reload();
                 }}>Log Out</button>
-            </li>
+            </li>}
         </ul>
     );
+    if(!activeOrgId) return <></>
 
     return (
         <nav
@@ -115,7 +106,7 @@ const OrgNav = ({ activeOrg }) => {
                     </ul>
                 </div>
                 <div
-                    className={`absolute top-16 md:hidden bg-black dark:bg-gray-700 dark:bg-opacity-90 text-white bg-opacity-80 left-0 w-full bg-white/5 transition-transform duration-300 border-t border-white/20 dark:border-gray-800/20 ${menuOpen ? 'translate-x-0' : 'translate-x-full'}`}
+                    className={`absolute top-16 md:hidden  pb-5 dark:bg-gray-700 dark:bg-opacity-90 text-white bg-gray-500 bg-opacity-80 left-0 w-full transition-transform duration-300 border-t border-white/20 dark:border-gray-800/20 ${menuOpen ? 'translate-x-0' : 'translate-x-full'}`}
                 >
                     {menu}
                 </div>
