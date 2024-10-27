@@ -41,10 +41,6 @@ export const POST = async (req) => {
     }
 
     try {
-      await userCollection.updateOne(
-        { username: body?.username },
-        { $set: { lastLogin: new Date() } }
-      );
       const secret = new TextEncoder().encode(process.env.JWT_ENCRYPTION_KEY);
       const token = await new SignJWT({
         sub: user._id,

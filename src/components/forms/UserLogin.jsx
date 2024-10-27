@@ -27,7 +27,9 @@ const UserLogin = () => {
                     },
                     body: JSON.stringify({ username, password })
                 });
+
                 const data = await res.json();
+
                 if (!data) toast.error("Try again.");
             
                 else if(data.status===200) {
