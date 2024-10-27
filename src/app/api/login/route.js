@@ -2,7 +2,6 @@ import {
   dbErrorResponse,
   invalidCredentialsResponse,
   serverErrorResponse,
-  suspendedAccountResponse,
 } from "@/constants/responses.mjs";
 import dbConnect from "@/services/dbConnect.mjs";
 import { NextResponse } from "next/server";
@@ -16,6 +15,7 @@ export const POST = async (req) => {
     const db = await dbConnect();
     if (!db) return NextResponse.json(dbErrorResponse);
     const userCollection = await db.collection("users");
+
     const user = await userCollection.findOne(
       { username: body?.username },
       {
@@ -30,6 +30,12 @@ export const POST = async (req) => {
         },
       }
     );
+    return NextResponse.json({
+      status: 200,
+      // user: { role: user?.role, username: user?.username, profilePictureUrl: user.profilePictureUrl, status: user.status, },
+      user,
+      message: "Validated",
+    });
     if (!user) return NextResponse.json(invalidCredentialsResponse);
     
     const passwordMatch = await bcrypt.compare(body.password, user.password);
