@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import Link from "next/link";
 import logOut from "@/utils/logOut.mjs";
 
@@ -8,8 +8,9 @@ import NavLink from "./NavLink";
 import useTheme from "@/hooks/useTheme.mjs";
 import Image from "next/image";
 import logo from "@/../../public/logo1.png"
+import AuthContext from "@/contexts/AuthContext.mjs";
 const OrgNav = ({ activeOrg }) => {
-
+    const { currentUser } = useContext(AuthContext);
     const [activeOrgId, setActiveOrgId] = useState(activeOrg);
     const [visible, setVisible] = useState(true);
     const { theme } = useTheme();
@@ -34,7 +35,7 @@ const OrgNav = ({ activeOrg }) => {
 
     const menu = (
         <ul className="md:flex-row  flex-col flex items-center md:space-y-0 space-y-4">
-        {activeOrgId &&    <li>
+            {activeOrgId && <li>
                 <NavLink activeClasses={"text-[#00e76f]"} href='/' aria-label="Home Page">
                     Home
                 </NavLink>
@@ -64,7 +65,7 @@ const OrgNav = ({ activeOrg }) => {
                     Expenses
                 </NavLink>
             </li>} */}
-       {activeOrgId &&     <li>
+            {currentUser && <li>
                 <button className="px-3 py-1 text-sm font-medium duration-300" onClick={async () => {
                     await logOut();
                     window.location.reload();
@@ -72,7 +73,7 @@ const OrgNav = ({ activeOrg }) => {
             </li>}
         </ul>
     );
-    if(!activeOrgId) return <></>
+    if (!activeOrgId) return <></>
 
     return (
         <nav

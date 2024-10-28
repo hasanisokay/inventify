@@ -212,23 +212,18 @@ const ImportCustomersPage = () => {
       )}
       {!file && (
         <ul className="list-disc list-inside">
-          <li>
-            <span className="font-semibold">First Name:</span> First name of the
-            customer
-            <br />
-            <span className="text-gray-500">Example: Rafael</span>
-          </li>
-          <li>
-            <span className="font-semibold">Last Name:</span> Last name of the
-            customer
-            <br />
-            <span className="text-gray-500">Example: Hasan</span>
-          </li>
+
           <li>
             <span className="font-semibold">Customer Name:</span> Full name of
-            the customer (if not using separate first and last names)
+            the customer
             <br />
             <span className="text-gray-500">Example: Rafael Hasan</span>
+          </li>
+          <li>
+            <span className="font-semibold">Salutation:</span> Salutation
+            the customer. Default will be nothing if not provided.
+            <br />
+            <span className="text-gray-500">Example: Mr, Mrs, Dr etc.</span>
           </li>
           <li>
             <span className="font-semibold">Company Name:</span> The name of the

@@ -1,13 +1,24 @@
 "use client";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { parse } from "csv-parse/browser/esm";
 import * as XLSX from "xlsx";
 import AuthContext from "@/contexts/AuthContext.mjs";
 import toast from "react-hot-toast";
+import getActiveOrg from "@/utils/getActiveOrg.mjs";
 const ImportItemsPage = () => {
     const [file, setFile] = useState(null);
     const [items, setItems] = useState([]);
     const { currentUser, activeOrganization } = useContext(AuthContext);
+    const [activeOrg, setActiveOrg] = useState("")
+
+
+    useEffect(() => {
+        (async () => {
+            const a = await getActiveOrg();
+            setActiveOrg(a);
+        })()
+    }, [])
+
     const handleFileUpload = (e) => {
         const uploadedFile = e.target.files[0];
         setFile(uploadedFile);
@@ -89,7 +100,7 @@ const ImportItemsPage = () => {
             status: row["Status"] || "Active",
             source: source,
             taxes: parseTaxes(row),
-            orgId: activeOrganization?.orgId,
+            orgId: activeOrg,
             ownerUsername: currentUser?.username,
         };
     };
@@ -98,9 +109,9 @@ const ImportItemsPage = () => {
     const parseTaxes = (row) => {
         const taxes = [];
         const taxPercentage =
-            row["Tax1 Percentage"]?.trim() || row["Tax Percentage"]?.trim();
-        const taxAmount = row["Tax1 Amount"]?.trim() || row["Tax Amount"]?.trim();
-        const tax = row["Tax"]?.trim();
+            row["Tax1 Percentage"] || row["Tax Percentage"];
+        const taxAmount = row["Tax1 Amount"] || row["Tax Amount"];
+        const tax = row["Tax"];
 
         if (taxPercentage) {
             taxes.push({
@@ -126,7 +137,7 @@ const ImportItemsPage = () => {
         return taxes.length > 0 ? taxes : [];
     };
     const handleSave = async () => {
-        if (!activeOrganization.orgId) return toast.error("active org not found");
+        if (!activeOrg) return toast.error("active org not found");
         if (!currentUser.username) return toast.error("No user");
         const res = await fetch("/api/adds/items", {
             method: "POST",

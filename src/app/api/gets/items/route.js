@@ -5,12 +5,14 @@ import {
   unauthorizedResponse,
 } from "@/constants/responses.mjs";
 import dbConnect from "@/services/dbConnect.mjs";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-
 export const dynamic = "force-dynamic";
 
 export const GET = async (req) => {
   try {
+    const cookieStore = cookies();
+
     const searchParams = req.nextUrl.searchParams;
     const keyword = searchParams.get("keyword");
     const category = searchParams.get("category");
@@ -38,6 +40,7 @@ export const GET = async (req) => {
         { description: { $regex: keyword, $options: "i" } },
       ];
     }
+    console.log("hit")
     if (nameOnly) {
       const res = await itemCollection
         .find(matchStage, {

@@ -56,11 +56,13 @@ const NewOrgModal = ({ openModal, setOpenModal, onSaveCustomer }) => {
       const data = await response.json();
 
       if (data.status === 200) {
+        toast.success("Image Uploaded")
         return data.data.url;
       } else {
         throw new Error(data.message);
       }
     } catch (error) {
+      toast.error("Error Uploading Image")
       console.error('Error uploading image:', error);
       throw error;
     }
@@ -227,7 +229,7 @@ const NewOrgModal = ({ openModal, setOpenModal, onSaveCustomer }) => {
             <div className="input-container mb-4">
               <label className="font-semibold mr-2 w-32">Website:</label>
               <input
-                type="url"
+                type="text"
                 name="website"
                 value={orgData.website}
                 onChange={handleChange}

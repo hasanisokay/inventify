@@ -13,6 +13,7 @@ const page = async ({ searchParams }) => {
   const sort = searchParams?.sort || "highest";
   const keyword = searchParams?.keyword || "";
   const orgId = await getActiveOrg();
+  console.log({orgId})
   let items;
   try {
     items = await getItems(page, limit, sort, keyword,"", orgId);
@@ -48,6 +49,5 @@ export async function generateMetadata() {
   return {
     title: `Items - ${websiteName}`,
     description: "Explore your items in Inventify to manage inventory and track performance.",
-    viewport: "width=device-width, initial-scale=1.0",
   };
 }

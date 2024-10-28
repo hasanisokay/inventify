@@ -1,6 +1,4 @@
 import {
-  dataFoundResponse,
-  noDataFoundResponse,
   serverErrorResponse,
 } from "@/constants/responses.mjs";
 import dbConnect from "@/services/dbConnect.mjs";
