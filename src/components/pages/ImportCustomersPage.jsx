@@ -1,16 +1,27 @@
 "use client"
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { parse } from "csv-parse/browser/esm";
 import * as XLSX from "xlsx";
 import decodeName from "@/utils/decodeName.mjs";
 import excelSerialToDate from "@/utils/excelSerialToDate.mjs";
 import toast from "react-hot-toast";
 import AuthContext from "@/contexts/AuthContext.mjs";
+import getActiveOrg from "@/utils/getActiveOrg.mjs";
 
 const ImportCustomersPage = () => {
-    const [file, setFile] = useState(null);
+  const [file, setFile] = useState(null);
   const [customers, setCustomers] = useState([]);
-  const { currentUser, activeOrganization } = useContext(AuthContext);
+  const { currentUser } = useContext(AuthContext); ``
+
+  const [activeOrg, setActiveOrg] = useState("")
+
+
+  useEffect(() => {
+    (async () => {
+      const a = await getActiveOrg();
+      setActiveOrg(a);
+    })()
+  }, [])
 
   const handleFileUpload = (e) => {
     const uploadedFile = e.target.files[0];
@@ -42,7 +53,7 @@ const ImportCustomersPage = () => {
     };
     reader.readAsText(file);
   };
-  
+
   const handleExcel = (file) => {
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -60,7 +71,7 @@ const ImportCustomersPage = () => {
     };
     reader.readAsArrayBuffer(file);
   };
-  
+
   const handleJSON = (file) => {
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -74,19 +85,19 @@ const ImportCustomersPage = () => {
     };
     reader.readAsText(file);
   };
-  
+
   // Helper function to map row data to the item/customer structure
   const mapRowToItem = (row, source) => {
     let firstName = row["First Name"] || "";
     let lastName = row["Last Name"] || "";
     const name = row["Customer Name"] || "";
-  
+
     if (!firstName || !lastName) {
       const decodedName = decodeName(name);
       firstName = decodedName.firstName || firstName;
       lastName = decodedName.lastName || lastName;
     }
-  
+
     return {
       customerType: row["Customer Type"] || "Individual",
       name: name,
@@ -114,14 +125,14 @@ const ImportCustomersPage = () => {
       shippingCountry: row["Shipping Country"] || "",
       shippingCode: row["Shipping Code"] || "",
       facebookId: row["Facebook"] || "",
-      orgId: activeOrganization?.orgId,
+      orgId: activeOrg,
       ownerUsername: currentUser?.username,
     };
   };
 
   const handleSave = async () => {
-    if(!activeOrganization.orgId) return toast.error("active org not found")
-    if(!currentUser.username) return toast.error("No user")
+    if (!activeOrg) return toast.error("active org not found")
+    if (!currentUser.username) return toast.error("No user")
     const res = await fetch("/api/adds/customers", {
       method: "POST",
       headers: {
