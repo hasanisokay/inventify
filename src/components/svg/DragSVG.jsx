@@ -26,6 +26,7 @@ const DragSVG = () => {
                     height="4"
                     x="-2"
                     y="-2"
+                    fill="#808080" // Gray color
                     rx="0"
                     ry="0"
                     transform="matrix(25 0 0 25 -100 -200)"
@@ -36,6 +37,7 @@ const DragSVG = () => {
                     height="4"
                     x="-2"
                     y="-2"
+                    fill="#808080" // Gray color
                     rx="0"
                     ry="0"
                     transform="matrix(25 0 0 25 100 -200)"
@@ -46,6 +48,7 @@ const DragSVG = () => {
                     height="4"
                     x="-2"
                     y="-2"
+                    fill="#808080" // Gray color
                     rx="0"
                     ry="0"
                     transform="matrix(25 0 0 25 -100 0)"
@@ -56,6 +59,7 @@ const DragSVG = () => {
                     height="4"
                     x="-2"
                     y="-2"
+                    fill="#808080" // Gray color
                     rx="0"
                     ry="0"
                     transform="matrix(25 0 0 25 100 0)"
@@ -66,6 +70,7 @@ const DragSVG = () => {
                     height="4"
                     x="-2"
                     y="-2"
+                    fill="#808080" // Gray color
                     rx="0"
                     ry="0"
                     transform="matrix(25 0 0 25 -100 200)"
@@ -76,6 +81,7 @@ const DragSVG = () => {
                     height="4"
                     x="-2"
                     y="-2"
+                    fill="#808080" // Gray color
                     rx="0"
                     ry="0"
                     transform="matrix(25 0 0 25 100 200)"
@@ -93,7 +99,8 @@ const DragSVG = () => {
                     vectorEffect="non-scaling-stroke"
                 ></rect>
             </g>
-        </svg>)
+        </svg>
+    );
 };
 
 export default DragSVG;

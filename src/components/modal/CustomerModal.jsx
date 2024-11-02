@@ -35,7 +35,7 @@ const CustomerModal = ({ openModal, setOpenModal, customer }) => {
             newDueAmount: order.newDueAmount,
             paymentFromNumber: order.paymentFromNumber,
             trxId: order.trxId,
-            paymentMethod: order.paymentMethod ==="not-paid" ? "": order.paymentMethod 
+            paymentMethod: order.paymentMethod === "not-paid" ? "" : order.paymentMethod
         }
         const res = await fetch('/api/updates/mark-invoice-as-paid', {
             method: "PUT",
@@ -56,19 +56,25 @@ const CustomerModal = ({ openModal, setOpenModal, customer }) => {
     return (
         <div className="mx-auto flex w-72 items-center justify-center">
             <div
-                onClick={() => setOpenModal(false)}
+                onClick={() => {
+                    setOpenModal(false)
+                    setCustomerOrderDetails([])
+                }}
                 className={`fixed z-[100] flex items-center justify-center ${openModal ? 'opacity-1 visible' : 'invisible opacity-0'} inset-0 h-full w-full bg-black/20 backdrop-blur-sm duration-100`}
             >
                 <div
                     onClick={(e_) => e_.stopPropagation()}
                     className={`absolute rounded-lg bg-white dark:bg-gray-900 drop-shadow-2xl h-[90%] w-[90%] overflow-y-auto ${openModal ? 'opacity-1 translate-y-0 duration-300' : '-translate-y-20 opacity-0 duration-150'}`}
                 >
-                    <form className="px-5 pb-5 pt-3 lg:pb-10 lg:pt-5 lg:px-10">
+                    <div className="px-5 pb-5 pt-3 lg:pb-10 lg:pt-5 lg:px-10">
                         <h1 className="pb-8 text-xl">{customer.firstName + " " + customer.lastName}</h1>
                         {customer?.company && <p><span className="inline-block w-[100px]">Company:</span>{customer.company}</p>}
                         {customer?.phone && <p><span className="inline-block w-[100px]">Phone:</span>{customer.phone}</p>}
                         {customer?.totalPaid && <p><span className="inline-block w-[100px]">Paid:</span>{customer.totalPaid}</p>}
-                        {customer?.totalDue && <p><span className="inline-block w-[100px]">Total Due:</span>{customer.totalDue}</p>}
+                        {<p>
+                            <span className="inline-block w-[100px]">Due:</span>
+                            <span>{customer.totalDue}</span>
+                        </p>}
                         {customer?.totalOrder && <p><span className="inline-block w-[100px] mb-4">Total Order:</span>{customer.totalOrder}</p>}
                         {customer?.totalOrder > 0 && customerOrderDetails.length === 0 && !loading && (
                             <button
@@ -81,7 +87,7 @@ const CustomerModal = ({ openModal, setOpenModal, customer }) => {
                                 See Orders
                             </button>
                         )}
-                    </form>
+                    </div>
 
                     <div className="px-5 pb-5 pt-3 lg:pb-10 lg:pt-5 lg:px-10">
                         {customerOrderDetails.length > 0 && <Select

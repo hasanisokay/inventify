@@ -18,8 +18,15 @@ import PhoneSVG from "../svg/PhoneSVG";
 import AddressSVG from "../svg/AddressSVG";
 import GlobeSVG from "../svg/GlobeSVG";
 import MailSVG from "../svg/MailSVG";
+import CrossSVG from "../svg/CrossSVG";
+import CustomerModal from "../modal/CustomerModal";
 const NewInvoice = ({ activeOrg, id }) => {
+  const [openCustomerDetailsModal, setOpenCustomerDetailsModal] = useState(false);
+  const [shippingCharge, setShippingCharge] = useState(0)
+  const [hideAddress, setHideAddress] = useState(false)
+  const [currency, setCurrency] = useState("BDT")
   const [loading, setLoading] = useState(false);
+  const [selectedItemOnchangeHolder, setSelectedItemOnchangeHolder] = useState(null);
   const [updateable, setUpdateable] = useState(false);
   const [customerOptions, setCustomerOptions] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -37,6 +44,7 @@ const NewInvoice = ({ activeOrg, id }) => {
   const [totalTax, setTotalTax] = useState(0);
   const [dueAmount, setDueAmount] = useState(0);
   const [paidAmount, setPaidAmount] = useState(0);
+  const [total, setTotal] = useState(0)
   const [paymentMethod, setPaymentMethod] = useState("");
   const [trxId, setTrxId] = useState('');
   const [paymentFromNumber, setPaymentFromNumber] = useState("");
@@ -130,10 +138,12 @@ const NewInvoice = ({ activeOrg, id }) => {
 
   useEffect(() => {
     (async () => {
+      setLoading(true)
       const c = await getCustomers(1, 10000, "newest", "", true, activeOrg)
       setSavedCustomers(c);
       const i = await getItems(1, 10000, "newest", "", true, activeOrg)
       setSavedItems(i);
+      setLoading(false)
     })()
   }, [])
   const calculateTax = (item) => {
@@ -147,7 +157,7 @@ const NewInvoice = ({ activeOrg, id }) => {
       if (percentage > 0) {
         const matchedItem = items.find(i => i._id === item._id);
         const quantity = matchedItem.quantity;
-        const sellingPrice = parseFloat(matchedItem.sellingPrice.split(" ")[1]) || 0;
+        const sellingPrice = matchedItem.sellingPrice;
         const tax = quantity * sellingPrice * (percentage / 100);
         return tax + amount;
       }
@@ -162,6 +172,7 @@ const NewInvoice = ({ activeOrg, id }) => {
     (async () => {
       if (selectedCustomer) {
         const c = await getCustomerDetails(selectedCustomer?.value)
+        console.log(c)
         setCustomerOptions(c);
       }
     })()
@@ -181,11 +192,31 @@ const NewInvoice = ({ activeOrg, id }) => {
     if (option.value === "add-new-item") {
       setOpenItemModal(true);
     } else {
-      const selectedItem = savedItems.find((item) => item._id === option.value);
-      setItems((prevItems) => [
-        ...prevItems,
-        { ...selectedItem, quantity: 1 },
-      ]);
+      setSelectedItemOnchangeHolder(option)
+      const isPreviouslyAdded = items.find(i => i._id === option.value)
+      if (isPreviouslyAdded) {
+
+        setItems((prev) => items.map((item, index) => item._id === option.value ? { ...item, quantity: item.quantity + 1 } : item))
+      } else {
+        const selectedItem = savedItems.find((item) => item._id === option.value);
+        const { taxes, ...itemsWithoutTaxes } = selectedItem;
+        setItems((prevItems) => {
+          const modifiedItem = [
+            ...prevItems,
+            {
+              ...itemsWithoutTaxes, quantity: 1,
+              tax: calculateTax(selectedItem),
+              sellingPrice: parseFloat(selectedItem?.sellingPrice?.split(" ")[1]) || 0,
+            },
+          ]
+          return modifiedItem
+
+        });
+      }
+      // setSelectedItemOnchangeHolder(null)
+      setTimeout(() => {
+        setSelectedItemOnchangeHolder(null)
+      }, 300);
     }
   };
   const handleAddItemFromModal = (item) => {
@@ -195,12 +226,14 @@ const NewInvoice = ({ activeOrg, id }) => {
     ]);
   }
   useEffect(() => {
-    const total = items.reduce((sum, item) => sum + item.quantity * (parseFloat(item.sellingPrice.split(" ")[1]).toFixed(2)), 0);
-    const tax = items.reduce((sum, item) => sum + calculateTax(item), 0);
-    setSubtotal(total + totalTax - (discount || 0) || 0);
+    const total = items.reduce((sum, item) => sum + item.quantity * item.sellingPrice, 0);
+    const tax = items.reduce((sum, item) => sum + item.tax, 0);
+    setSubtotal(total + totalTax || 0);
+    console.log(discount)
+    setTotal(total + totalTax - (discount || 0) || 0);
     setTotalTax(tax)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [items, discount, totalTax]);
+  }, [items, totalTax]);
   useEffect(() => {
     if (paymentMethod === "not-paid" || paymentMethod === "cash-on-delivery") {
       setPaidAmount(0)
@@ -213,8 +246,8 @@ const NewInvoice = ({ activeOrg, id }) => {
     }
   }, [subtotal, paymentMethod])
   useEffect(() => {
-    setPaidAmount((prev) => prev - (discount || 0))
-  }, [discount])
+    setTotal(subtotal + shippingCharge - discount)
+  }, [shippingCharge, discount])
   useEffect(() => {
     if (paidAmount === subtotal) {
       setDueAmount(0)
@@ -338,7 +371,7 @@ const NewInvoice = ({ activeOrg, id }) => {
         quantity: item?.quantity,
         unit: item?.unit,
         sellingPrice: parseFloat(item?.sellingPrice?.split(" ")[1]),
-        tax: item?.taxes?.length > 0 ? calculateTax(item)?.toFixed(2) : 0,
+        tax: item.tax,
       })),
       subtotal,
       discount,
@@ -356,7 +389,7 @@ const NewInvoice = ({ activeOrg, id }) => {
     try {
       let apiUrl = '/api/adds/new-invoice';
       let method = 'POST'
-      if(updateable){
+      if (updateable) {
         apiUrl = '/api/updates/invoice';
         method = "PUT";
       }
@@ -385,26 +418,61 @@ const NewInvoice = ({ activeOrg, id }) => {
     }
   };
   return (
-    <div className="invoice-form p-2">
+    <div className="invoice-form p-2 mt-10">
 
-      <div className="mb-4 input-container">
-        <label htmlFor="customer" className="form-label">Customer</label>
+      <div className="mb-4 input-container ">
+        <label htmlFor="customer" className="form-label2">Select Customer</label>
         <Select
-          className="min-w-[250px] select-react"
+          className="md:w-[420px] w-[] select-react"
           id="customer"
+          theme={{ borderRadius: '10px' }}
           options={[
             { label: "Add New Customer", value: "add-new-customer" },
             ...savedCustomers?.map((c) => ({
               label: `${c.firstName} ${c.lastName}`,
               value: c._id,
             })),
-
           ]}
-          placeholder="Select or Add Customer"
+          placeholder={loading ? "Loading Customers..." : "Select or Add Customer"}
           onChange={handleCustomerChange}
         />
       </div>
-      {customerOptions?.firstName && <div className="flex items-center mb-4">
+
+      <div className="flex flex-wrap justify-between my-4 md:mx-10 mx-2">
+        <div className={`space-y-1 transition-transform duration-1000 transform ${customerOptions.firstName ? 'translate-x-0' : '-translate-x-full'}`}>
+          <p className="text-xl font-bold">{customerOptions.firstName} {customerOptions.lastName}</p>
+          {!hideAddress && <>
+            {customerOptions?.billingAddress && <h2 className="text-base font-semibold">Billing Address</h2>}
+            {customerOptions.firstName && <p className="text-sm"><span className="font-semibold"></span> {customerOptions.billingAddress || getFullBillingAddress(customerOptions) || ""}</p>}
+            {customerOptions?.shippingAddress && !sameAddress && <h2 className="text-base font-semibold">Shipping Address</h2>}
+            {customerOptions.firstName && !sameAddress && <p className="text-sm"><span className="font-semibold"></span> {customerOptions.shippingAddress || getFullShippingAddress(customerOptions)}</p>}
+          </>}
+          {customerOptions?.phone?.length > 0 && <p className="text-sm"><span className="font-semibold">Phone:</span> {customerOptions.phone}</p>}
+          {customerOptions.companyName && <p className="text-sm"><span className="font-semibold">Company:</span> {customerOptions.companyName}</p>}
+        </div>
+
+        <div className={`transition-transform duration-1000 transform ${customerOptions.firstName ? 'translate-x-0' : 'translate-x-full'}`}>
+          {customerOptions.firstName && (
+            <button
+              className="btn-gray"
+              onClick={() => setOpenCustomerDetailsModal(true)}
+              title={`See Details of ${customerOptions.firstName} ${customerOptions.lastName}`}
+            >
+              {customerOptions.firstName} {customerOptions.lastName}
+            </button>
+          )}
+        </div>
+      </div>
+      {(customerOptions?.billingAddress?.length > 0 || customerOptions?.shippingAddress?.length > 0) && <div className="flex items-center mb-4">
+        <input
+          type="checkbox"
+          checked={hideAddress}
+          onChange={() => setHideAddress(!hideAddress)}
+          className="mr-2"
+        />
+        <label className="font-semibold">Hide Address</label>
+      </div>}
+      {customerOptions?.billingAddress?.length > 0 && customerOptions?.shippingAddress?.length > 0 && <div className="flex items-center mb-4">
         <input
           type="checkbox"
           checked={sameAddress}
@@ -414,6 +482,298 @@ const NewInvoice = ({ activeOrg, id }) => {
         <label className="font-semibold">Shipping address same as billing address</label>
       </div>}
 
+
+
+      <div className="input-container">
+        <label htmlFor="invoiceNumber" className="form-label2">Invoice: </label>
+        <input
+          type="text"
+          id="invoiceNumber"
+          value={invoiceNumber}
+          onChange={(e) => setInvoiceNumber(e.target.value)}
+          className="text-input2"
+        />
+      </div>
+
+      <div className="input-container pt-4">
+        <label htmlFor="invoiceDate" className="form-label2">Invoice Date: </label>
+        <DatePicker
+          id="invoiceDate"
+          selected={invoiceDate}
+          onChange={(date) => setInvoiceDate(date)}
+          dateFormat="do MMM yyyy"
+          className="text-input2 focus:outline-none outline-none border-none"
+        />
+      </div>
+
+      <h2>Items Table</h2>
+      <div id="invoice-table-part" className="md:w-[90%] mx-auto item-table min-h-[100px] mb-10 mt-4">
+        {<table className="table-auto">
+          <thead>
+            <tr>
+              <th>Item Name</th>
+              <th>Quantity</th>
+              <th>Unit</th>
+              <th>Rate</th>
+              <th>Tax</th>
+              <th>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items?.map((item, index) => (
+              <tr key={index}
+                draggable
+                onDragStart={() => handleDragStart(index)}
+                onDragOver={() => handleDragOver(index)}
+                onDragEnd={handleDragEnd}
+                className={draggingIndex === index ? "bg-gray-400" : ""}
+              >
+
+                <td className="w-[400px] ">
+                  <>
+                    <div className="relative">
+                      <span
+                        className="cursor-move absolute top-0 -left-8 w-[24px] block text-gray-400 "
+                        draggable
+                        onDragStart={() => handleDragStart(index)}
+                      >
+                        <DragSVG />
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>{item.name}</span>
+                      <button
+                        className=" w-[40px]"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setItems((prev) => prev.filter((i) => i._id !== item?._id));
+                        }}
+                      >
+                        <CrossSVG />
+                      </button>
+                    </div>
+                  </>
+
+                </td>
+                <td className="w-[150px]">
+                  <input
+                    type="number"
+                    className="rounded bg-inherit focus:outline-blue-600 focus:outline-offset-4 font-semibold w-[100px] px-1"
+                    value={item.quantity}
+                    min={1}
+                    minLength={0.1}
+                    onChange={(e) =>
+                      setItems((prevItems) =>
+                        prevItems.map((it, i) =>
+                          i === index ? { ...it, quantity: parseFloat(e.target.value) || 0 } : it
+                        )
+                      )
+                    }
+                  />
+                </td>
+
+                <td className="w-[150px]">
+
+                  <input
+                    type="text"
+                    className="rounded bg-inherit focus:outline-blue-600 focus:outline-offset-4 font-semibold w-[100px] px-1"
+                    value={item.unit}
+                    onChange={(e) =>
+                      setItems((prevItems) =>
+                        prevItems.map((it, i) =>
+                          i === index ? { ...it, unit: e.target.value || "" } : it
+                        )
+                      )
+                    }
+                  />
+                </td>
+                <td className="w-[150px]">
+                  <input
+                    type="number"
+                    className="rounded bg-inherit focus:outline-blue-600 focus:outline-offset-4 font-semibold w-[100px] px-1"
+                    onChange={(e) => setItems(prev => prev.map((it, i) => i === index ? { ...it, sellingPrice: parseFloat(e.target.value) || 0 } : it))}
+
+                    value={item.sellingPrice}
+                  />
+
+                </td>
+                <td className="w-[150px]">
+                  <input
+                    type="number"
+                    className="rounded bg-inherit focus:outline-blue-600 focus:outline-offset-4 font-semibold w-[100px] px-1"
+                    onChange={(e) => setItems(prev => prev.map((it, i) => i === index ? { ...it, tax: parseFloat(e.target.value) || 0 } : it))}
+
+                    value={item.tax}
+                  />
+
+
+                </td>
+                <td className="w-[150px]">{(item.quantity * item.sellingPrice) + item.tax}</td>
+              </tr>
+            ))}
+            <tr className="w-[400px]">
+
+              <Select
+                className="w-[400px]  select-react"
+                id="item"
+                options={[
+                  { label: "Add New Item", value: "add-new-item" },
+                  ...savedItems?.map((item) => ({
+                    label: item.name,
+                    value: item._id,
+                  })),
+
+                ]}
+                value={selectedItemOnchangeHolder}
+                menuPortalTarget={document.body}
+                styles={{
+                  menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                  control: (provided, state) => ({
+                    ...provided,
+                    padding: '10px',
+                    minHeight: '50px',
+                    backgroundColor: '#fefefe',
+                    border: 'none',
+                    width: "100%",
+                    borderRadius: '0px',
+                    zIndex: 40,
+                  }),
+                  indicatorsContainer: (provided) => ({
+                    display: 'none',
+                  }),
+                  singleValue: (provided) => ({
+                    ...provided,
+                    padding: '10px',
+                  }),
+                  input: (provided) => ({
+                    ...provided,
+                    padding: '10px',
+                  }),
+                }}
+                placeholder={loading ? "Loading Items..." : "Select or Search Item"}
+                onChange={handleItemChange}
+              />
+
+            </tr>
+          </tbody>
+        </table>}
+      </div>
+
+      <div className="md:w-[90%] relative min-h-[480px] mb-4">
+        <div className="absolute md:right-0">
+          <div className="border rounded py-6 px-4 shadow-lg bg-gray-100 md:w-[600px]">
+            <p className="flex justify-between mb-3"><span className="font-semibold">Subtotal</span> <span className="w-[200px] font-semibold pl-[8px] py-[4px]">{subtotal}</span> </p>
+            <div className="mb-4 input-container flex-wrap flex justify-between">
+              <label htmlFor="shippingCharge" className="form-label">Shipping Charge</label>
+              <input
+                type="number"
+                min={0}
+                id="shippingCharge"
+                value={shippingCharge}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value);
+                  if (!isNaN(value) && value >= 0) {
+                    console.log(value);
+                    setShippingCharge(value);
+                  }
+                }}
+                className="text-input3"
+              />
+            </div>
+            <div className="mb-4 input-container flex justify-between">
+              <label htmlFor="discount" className="form-label">Discount</label>
+              <input
+                type="number"
+                min={0}
+                id="discount"
+                value={discount}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value);
+                  if (!isNaN(value) && value >= 0) {
+                    setDiscount(value);
+                  }
+                }}
+                className="text-input3"
+              />
+            </div>
+            <div className="mb-4 input-container flex justify-between">
+              <label htmlFor="paymentMethod" className="form-label">Payment Method</label>
+              <Select
+                id="paymentMethod"
+                options={paymentOptions}
+                selected={paymentMethod}
+                placeholder="Select"
+                onChange={(option) => setPaymentMethod(option.value)}
+                className="min-w-[200px] select-react"
+              />
+            </div>
+
+            <div className="mb-4 input-container flex-wrap flex justify-between">
+              <label htmlFor="paidAmount" className="form-label">Paid Amount</label>
+              <input
+                type="number"
+                id="paidAmount"
+                value={paidAmount}
+                onChange={(e) => {
+                  if (parseInt(e.target.value) > subtotal) return;
+                  const paid = parseFloat(e.target.value) || 0;
+                  setPaidAmount(paid);
+                  const newDue = subtotal - paid;
+                  setDueAmount(newDue > 0 ? newDue : 0);
+                }}
+                className="text-input3"
+              />
+            </div>
+
+            {paymentMethod !== "not-paid" && paymentMethod !== "cash-on-delivery" && paymentMethod !== "cash" && paymentMethod && (
+              <div className="mb-4 input-container flex-wrap flex justify-between">
+                <label htmlFor="trxId" className="form-label">Trx Id</label>
+                <input
+                  type="text"
+                  id="trxId"
+                  value={trxId}
+                  onChange={(e) => setTrxId(e.target.value)}
+                  className="text-input3"
+                />
+              </div>
+            )}
+
+            {(paymentMethod === "bkash" || paymentMethod === "nagad" || paymentMethod === "rocket") && (
+              <div className="mb-4 input-container flex-wrap flex justify-between">
+                <label htmlFor="trxNumber" className="form-label">{getPaymentLabel(paymentMethod)} Number</label>
+                <input
+                  type="text"
+                  id="trxNumber"
+                  value={paymentFromNumber}
+                  onChange={(e) => setPaymentFromNumber(e.target.value)}
+                  className="text-input3"
+                />
+              </div>
+            )}
+            <hr className="border-t border-gray-400 my-4" />
+            <div className="flex justify-between flex-wrap">
+              <h3 className="font-bold text-xl">Total ({currency})</h3>
+              <p className="w-[200px] font-bold text-xl px-[8px]">{total}</p>
+            </div>
+
+
+
+
+
+          </div>
+        </div>
+      </div>
+      <div className="mb-4 input-container md:w-[90%] mx-auto">
+        <label htmlFor="note" className="form-label">Note</label>
+        <textarea
+          id="note"
+          placeholder="Any notes about this order will appear in the footer of the invoice."
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          className="form-textarea"
+        />
+      </div>
+      {/* 
       <div ref={invoiceRef} id="invoice-wrapper" className="p-2">
         <div id="invoice-top" className="justify-between flex">
           <div className="flex justify-between items-start">
@@ -441,17 +801,7 @@ const NewInvoice = ({ activeOrg, id }) => {
             </div>
 
 
-            <div className="space-y-1 my-4">
-              <p className="text-xl font-bold">{customerOptions.firstName} {customerOptions.lastName}</p>
-              {customerOptions?.billingAddress && <h2 className="text-base font-semibold">Billing Address</h2>}
-              {customerOptions.firstName && <p className="text-sm"><span className="font-semibold">Address:</span> {customerOptions.billingAddress || getFullBillingAddress(customerOptions) || "Not Provided"}</p>}
-              {
-                customerOptions?.phone?.length > 0 && <p className="text-sm"><span className="font-semibold">Phone:</span> {customerOptions.phone}</p>
-              }
-              {
-                customerOptions.companyName && <p className="text-sm"><span className="font-semibold">Company:</span> {customerOptions.companyName}</p>
-              }
-            </div>
+
 
             {!sameAddress && <div className="space-y-1 my-4">
               <h2 className="text-base font-semibold">Shipping Address</h2>
@@ -463,221 +813,9 @@ const NewInvoice = ({ activeOrg, id }) => {
             </div>}
           </div>
         </div>
-        {/* Item Table */}
-        <div id="invoice-table-part" className="item-table mb-4 mt-10 min-h-[100px]">
-          {items?.length > 0 && <table className="min-w-full table-auto">
-            <thead>
-              <tr className="">
-                <th>SL</th>
-                <th>Item Name</th>
-                <th>Quantity</th>
-                <th>Unit</th>
-                <th>Rate</th>
-                <th>Tax</th>
-                <th>Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items?.map((item, index) => (
-                <tr key={index}
-                  draggable
-                  onDragStart={() => handleDragStart(index)}
-                  onDragOver={() => handleDragOver(index)}
-                  onDragEnd={handleDragEnd}
-                  className={draggingIndex === index ? "bg-gray-400" : ""}
-                >
-                  <td className="group w-[50px]">
-                    <div className="flex items-center">
-                      {index + 1}.
-                      <span
-                        className="cursor-move w-[24px] inline-block opacity-0 group-hover:opacity-100"
-                        draggable
-                        onDragStart={() => handleDragStart(index)}
-                      >
-                        <DragSVG />
-                      </span>
-                    </div>
-                  </td>
-                  <td className="group w-[300px] ">
-                    <div className="flex items-center">
-                      <span>{item.name}</span>
-                      <button
-                        className="text-red-500 hover:underline group-hover:opacity-100 opacity-0 pl-2 font-semibold text-sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setItems((prev) => prev.filter((i) => i._id !== item?._id));
-                        }}
-                      >
-                        Delete
-                      </button>
-                    </div>
+      </div> */}
 
-                  </td>
-                  <td className="w-[100px]">
-                    <input
-                      type="number"
-                      className="rounded bg-inherit focus:outline-none font-semibold w-[100px] px-1"
-                      value={item.quantity}
-                      min={1}
-                      minLength={0.1}
-                      onChange={(e) =>
-                        setItems((prevItems) =>
-                          prevItems.map((it, i) =>
-                            i === index ? { ...it, quantity: parseFloat(e.target.value) } : it
-                          )
-                        )
-                      }
-                    />
-                  </td>
-                  <td>{item.unit}</td>
-                  <td>{parseFloat(item.sellingPrice.split(" ")[1]).toFixed(2)} {item.sellingPrice.split(" ")[0]}</td>
-                  <td>{item?.taxes?.length > 0 ? parseFloat(calculateTax(item)).toFixed(2) : 0}</td>
-                  <td>{(item.quantity * parseFloat(item.sellingPrice.split(" ")[1])).toFixed(2)}</td>
-                </tr>
-              ))}
 
-              {discount > 0 && <tr className="table-last-item">
-                <td colSpan={6} className="text-right font-semibold">Discount:</td>
-                <td>{discount.toFixed(2)}</td>
-              </tr>}
-              <tr className="table-last-item">
-                <td colSpan={6} className="text-right font-semibold">Subtotal:</td>
-                <td>{subtotal.toFixed(2)}</td>
-              </tr>
-              {dueAmount > 0 && <tr className="table-last-item">
-                <td colSpan={6} className="text-right font-semibold">Due:</td>
-                <td>{dueAmount}</td>
-              </tr>}
-              {paymentMethod && <tr className="table-last-item">
-                <td colSpan={6} className="text-right font-semibold">Payment Status:</td>
-                <td className="w-[230px]">{getPaymentDetails(paymentMethod)}</td>
-              </tr>}
-            </tbody>
-          </table>}
-        </div>
-        <div id="invoice-footer" className="my-4">
-          {note?.trim()?.length > 0 && <p className="text-sm">*{note}</p>}
-        </div>
-      </div>
-      <div className="flex justify-between flex-wrap">
-        <div>
-          <div className="mb-4 input-container">
-            <label htmlFor="item" className="form-label">Item</label>
-            <Select
-              className="min-w-[250px] select-react"
-              id="item"
-              options={[
-                { label: "Add New Item", value: "add-new-item" },
-                ...savedItems?.map((item) => ({
-                  label: item.name,
-                  value: item._id,
-                })),
-
-              ]}
-              placeholder="Select or Add Item"
-              onChange={handleItemChange}
-            />
-          </div>
-          <div className="mb-4 input-container">
-            <label htmlFor="discount" className="form-label">Discount</label>
-            <input
-              type="number"
-              min={0}
-              id="discount"
-              value={discount}
-              onChange={(e) => {
-                if (e.target.value < 0) return
-                setDiscount(parseFloat(e.target.value))
-              }}
-              className="text-input"
-            />
-          </div>
-
-          <div className="mb-4 input-container">
-            <label htmlFor="paymentMethod" className="form-label">Payment Method</label>
-            <Select
-              id="paymentMethod"
-              options={paymentOptions}
-              selected={paymentMethod}
-              placeholder="Select Payment Method"
-              onChange={(option) => setPaymentMethod(option.value)}
-              className="min-w-[250px] select-react"
-            />
-          </div>
-          <div className="mb-4 input-container">
-            <label htmlFor="paidAmount" className="form-label">Paid Amount</label>
-            <input
-              type="number"
-              id="paidAmount"
-              value={paidAmount}
-              // min={0}
-              onChange={(e) => {
-                if (parseInt(e.target.value) > subtotal) return
-                const paid = parseFloat(e.target.value) || 0;
-                setPaidAmount(paid);
-                const newDue = subtotal - paid;
-                setDueAmount(newDue > 0 ? newDue : 0);
-              }}
-              className="text-input"
-            />
-          </div>
-          {paymentMethod !== "not-paid" && paymentMethod !== "cash-on-delivery" && paymentMethod !== "cash" && paymentMethod && <div className="mb-4 input-container">
-            <label htmlFor="trxId" className="form-label">Trx Id</label>
-            <input
-              type="text"
-              id="trxId"
-              value={trxId}
-              onChange={(e) => setTrxId(e.target.value)}
-              className="text-input"
-            />
-          </div>}
-          {(paymentMethod === "bkash" || paymentMethod === "nagad" || paymentMethod === "rocket") && <div className="mb-4 input-container">
-            <label htmlFor="trxNumber" className="form-label">{getPaymentLabel(paymentMethod)} Number</label>
-            <input
-              type="text"
-              id="trxNumber"
-              value={paymentFromNumber}
-              onChange={(e) => setPaymentFromNumber(e.target.value)}
-              className="text-input"
-            />
-          </div>
-          }        </div>
-        <div>
-
-          <div className="input-container">
-            <label htmlFor="invoiceNumber" className="form-label">Invoice: </label>
-            <input
-              type="text"
-              id="invoiceNumber"
-              value={invoiceNumber}
-              onChange={(e) => setInvoiceNumber(e.target.value)}
-              className="text-input"
-            />
-          </div>
-          <p>Keep unchanged if you don&#39;t want to change the default invoice number.</p>
-          <div className="input-container pt-4">
-            <label htmlFor="invoiceDate" className="font-semibold form-label">Invoice Date: </label>
-            <DatePicker
-              id="invoiceDate"
-              selected={invoiceDate}
-              onChange={(date) => setInvoiceDate(date)}
-              dateFormat="do MMM yyyy"
-              className="text-input focus:outline-none outline-none border-none"
-            />
-          </div>
-          <p>Keep unchanged to use the current date.</p>
-          <div className="my-4 input-container">
-            <label htmlFor="note" className="form-label">Note</label>
-            <textarea
-              id="note"
-              placeholder="Any notes about this order will appear in the footer of the invoice."
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              className=" form-textarea"
-            />
-          </div>
-        </div>
-      </div>
 
       <div className="flex space-x-4 mb-10 justify-center items-center text-white">
         <button
@@ -694,6 +832,11 @@ const NewInvoice = ({ activeOrg, id }) => {
         openModal={openCustomerModal}
         setOpenModal={setOpenCustomerModal}
         onSaveCustomer={setCustomerOptions}
+      />
+      <CustomerModal
+        setOpenModal={setOpenCustomerDetailsModal}
+        openModal={openCustomerDetailsModal}
+        customer={customerOptions}
       />
       <NewItemModal
         openModal={openItemModal}
