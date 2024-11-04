@@ -106,6 +106,13 @@ body {
   font-size: 12px;
   color: white;
 }
+.btn-gray2{
+  background-color:#6b7cba;
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: white;
+}
 
 /* .item-table table,
 .item-table th,

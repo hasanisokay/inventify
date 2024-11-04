@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
+import Loading from "../loader/Loading";
 
 const InvoiceModal = ({ openModal, setOpenModal, item }) => {
-    const [invoiceData, setInvoiceData] = useState(null); // Changed to null to handle loading state
+    const [invoiceData, setInvoiceData] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [customer,setCustomer] = useState(item?.customer)
-    console.log(item)
+    const [customer, setCustomer] = useState(item?.customer);
+
     const getInvoiceDetails = async () => {
         setLoading(true);
         const res = await fetch(`/api/gets/invoice?id=${item?._id}`);
@@ -18,50 +19,98 @@ const InvoiceModal = ({ openModal, setOpenModal, item }) => {
     };
 
     useEffect(() => {
-        if (item?._id) { // Ensure item is valid before fetching
+        if (item?._id) {
             getInvoiceDetails();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [item]);
 
     if (loading) {
-        return <div>Loading...</div>; // Optional loading state
+        return <Loading loading={loading} />
     }
 
     if (!invoiceData) {
-        return null; // Return null if no data and not loading
+        return null;
     }
 
     return (
-        <div className="mx-auto flex w-72 items-center justify-center">
-            <div onClick={() => setOpenModal(false)} className={`fixed z-[100] flex items-center justify-center ${openModal ? 'opacity-1 visible' : 'invisible opacity-0'} inset-0 h-full w-full bg-black/20 backdrop-blur-sm duration-100`}>
-                <div onClick={(e_) => e_.stopPropagation()} className={`absolute w-fit min-w-[90%] md:min-w-[60%] max-h-[90%] overflow-y-auto rounded-lg bg-white dark:bg-gray-900 drop-shadow-2xl ${openModal ? 'opacity-1 translate-y-0 duration-300' : '-translate-y-20 opacity-0 duration-150'}`}>
-                    <div className="px-5 pb-5 pt-3 lg:pb-10 lg:pt-5 lg:px-10">
-                        <h2 className="text-xl font-bold">Invoice #{invoiceData.invoiceNumber}</h2>
-                        <p>Date: {new Date(invoiceData.invoiceDate).toLocaleDateString()}</p>
-                        <div>
-                            <p>   Customer: <span className="font-semibold">{customer.firstName} {customer.lastName}</span></p>
-                        </div>
-                        <div>
-                            <h3 className="mt-4">Items:</h3>
-                            <ul>
-                                {invoiceData.items.map((item) => (
-                                    <li key={item.itemId}>
-                                        <span className="font-semibold">{item.name}</span> - <span className="font-semibold">{item.quantity}</span> {item.unit} @ <span className="font-semibold">{item.sellingPrice.toFixed(2)}</span> per {item.unit}
-                                    </li>
-                                ))}
-                            </ul>
-                            <p className="mt-4 font-semibold">Subtotal: {invoiceData.subtotal.toFixed(2)}</p>
-                            <p className="font-semibold">Discount: {invoiceData.discount.toFixed(2)}</p>
-                            <p className="font-semibold">Total Tax: {invoiceData.totalTax.toFixed(2)}</p>
-                            <p className="font-semibold">Due Amount: <span className={`${invoiceData.dueAmount > 0 ? "text-red-500" : ""}`}>{invoiceData.dueAmount.toFixed(2)}</span></p>
-                            <p className="font-semibold">Paid Amount: {invoiceData.paidAmount.toFixed(2)}</p>
-                            <p className="font-semibold">Payment Method: {invoiceData.paymentMethod || "N/A"}</p>
-                            <p className="font-semibold">Note: {invoiceData.note || "N/A"}</p>
-                        </div>
-
+        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+            <div
+                onClick={() => setOpenModal(false)}
+                className={`fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity ${
+                    openModal ? "opacity-100 visible" : "opacity-0 invisible"
+                }`}
+            />
+            <div
+                onClick={(e) => e.stopPropagation()}
+                className={`relative max-w-md w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg transition-all transform ${
+                    openModal ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-10"
+                } p-6`}
+            >
+                <div className="flex justify-between items-center border-b pb-4 mb-4">
+                    <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
+                        Invoice #{invoiceData.invoiceNumber}
+                    </h2>
+                    <button
+                        onClick={() => setOpenModal(false)}
+                        className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                    >
+                        &#10005;
+                    </button>
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-300 space-y-2">
+                    <p>
+                        <span className="font-medium">Date:</span>{" "}
+                        {new Date(invoiceData.invoiceDate).toLocaleDateString()}
+                    </p>
+                    <p>
+                        <span className="font-medium">Customer:</span> {customer.firstName} {customer.lastName}
+                    </p>
+                    <h3 className="mt-4 text-lg font-semibold text-gray-700 dark:text-gray-200">Items:</h3>
+                    <ul className="space-y-1 overflow-auto max-h-[25vh]">
+                        {invoiceData.items.map((item) => (
+                            <li key={item.itemId} className="text-gray-700 dark:text-gray-200">
+                                <span className="font-semibold">{item.name}</span> - {item.quantity} {item.unit} @{" "}
+                                <span className="font-semibold">{item.sellingPrice}</span> per {item.unit}
+                            </li>
+                        ))}
+                    </ul>
+                    <div className="mt-4 border-t pt-4 space-y-1 max-h-[35vh] overflow-auto">
+                        <p>
+                            <span className="font-semibold">Total:</span> {invoiceData.total}
+                        </p>
+                        <p>
+                            <span className="font-semibold">Shipping Charge:</span> {invoiceData.shippingCharge}
+                        </p>
+                        <p>
+                            <span className="font-semibold">Discount:</span> {invoiceData.discount}
+                        </p>
+                        <p>
+                            <span className="font-semibold">Total Tax:</span> {invoiceData.totalTax}
+                        </p>
+                        <p>
+                            <span className="font-semibold">Due Amount:</span>{" "}
+                            <span className={invoiceData.dueAmount > 0 ? "text-red-500" : ""}>
+                                {invoiceData.dueAmount}
+                            </span>
+                        </p>
+                        <p>
+                            <span className="font-semibold">Paid Amount:</span> {invoiceData.paidAmount}
+                        </p>
+                        <p>
+                            <span className="font-semibold">Payment Method:</span>{" "}
+                            {invoiceData.paymentMethod || "N/A"}
+                        </p>
+                        <p>
+                            <span className="font-semibold">Note:</span> {invoiceData.note || "N/A"}
+                        </p>
                     </div>
                 </div>
+                <button
+                    onClick={() => setOpenModal(false)}
+                    className="mt-6 w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                    Close
+                </button>
             </div>
         </div>
     );

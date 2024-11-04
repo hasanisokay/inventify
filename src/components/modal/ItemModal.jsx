@@ -1,11 +1,12 @@
-import { defaultSortOptions } from "@/constants/options.mjs";
 import { useEffect, useState } from "react";
+import Select from "react-select";
+import { defaultSortOptions } from "@/constants/options.mjs";
 
-import Select from 'react-select';
 const ItemModal = ({ openModal, setOpenModal, item }) => {
     const [sortOrder, setSortOrder] = useState(-1);
     const [loading, setLoading] = useState(false);
     const [itemsInvoices, setItemsInvoices] = useState([]);
+
     const getItemsInvoices = async (id) => {
         setLoading(true);
         const res = await fetch(`/api/gets/item-orders?id=${id}&&sortOrder=${sortOrder}`);
@@ -13,81 +14,142 @@ const ItemModal = ({ openModal, setOpenModal, item }) => {
         if (data.status === 200) {
             setItemsInvoices(data.data);
         } else {
-            // Handle error (optional)
             console.error("Failed to fetch order data");
         }
         setLoading(false);
-    }
+    };
 
     useEffect(() => {
         if (itemsInvoices.length < 1) return;
-        else {
-            getItemsInvoices(item?._id)
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sortOrder])
+        getItemsInvoices(item?._id);
+    }, [sortOrder]);
 
     return (
-        <div className="mx-auto flex w-72 items-center justify-center">
-            <div onClick={() => setOpenModal(false)} className={`fixed z-[100] flex items-center justify-center ${openModal ? 'opacity-1 visible' : 'invisible opacity-0'} inset-0 h-full w-full bg-black/20 backdrop-blur-sm duration-100`}>
-                <div onClick={(e_) => e_.stopPropagation()} className={`absolute w-[90%] max-h-[90%] overflow-y-auto rounded-lg bg-white dark:bg-gray-900 drop-shadow-2xl ${openModal ? 'opacity-1 translate-y-0 duration-300' : '-translate-y-20 opacity-0 duration-150'}`}>
-                    <div className="px-5 pb-5 pt-3 lg:pb-10 lg:pt-5 lg:px-10">
-                        <p className="text-lg font-semibold">{item.name}</p>
-                        <p><span>Price: </span> <span>{item?.sellingPrice}</span> <span>per {item.unit}</span> </p>
-                        <p><span>Total Sold:</span> <span>{item.totalOrder}</span></p>
-                        <div className="my-4">
-                            {itemsInvoices?.length < 1 && <button onClick={() => getItemsInvoices(item._id)} className="btn-purple">See Orders</button>}
-                        </div>
-                        {loading && <p className="text-center text-lg mt-4">Loading...</p>}
-                        <div>
-                            {itemsInvoices?.length > 0 && <Select
-                                options={defaultSortOptions}
-                                value={defaultSortOptions.find((u) => u.value === sortOrder)}
-                                onChange={(selectedOption) => setSortOrder(selectedOption.value)}
-                                className='select-react w-fit mb-2'
-                            />}
-                        </div>
-                        <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-2">
-                            {itemsInvoices?.length > 0 && itemsInvoices?.map((i, index) => <div key={i._id} className={`border p-3 rounded mb-2 ${index % 2 === 0 ? "bg-slate-300" : "bg-gray-200"} `}>
-                                <h2 ><span className="inline-block w-[100px] font-medium">Order: </span> <span className="font-bold">{i.invoiceNumber}</span></h2>
-                                <p>
-                                    <span className="inline-block w-[100px] font-medium" >Date:</span> {new Date(i.invoiceDate).toLocaleString("en-US", {
-                                        year: "numeric",
-                                        month: "2-digit",
-                                        day: "2-digit",
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                        second: "2-digit",
-                                        hour12: true,
-                                    })}
-                                </p>
-
-                                <div className="my-2">
-                                    <h2><span className="inline-block w-[100px] font-medium">Customer: </span> {i?.customerDetails?.name ? i?.customerDetails?.name : i.customerDetails?.firstName + " " + i.customerDetails?.lastName}</h2>
-                                    <p><span className="inline-block w-[100px] font-medium">Phone </span>  {i.customerDetails?.phone || "Not Provided"}</p>
-                                    <p><span className="inline-block w-[100px] font-medium">Billing: </span>{i.customerDetails?.billingAddress || "Not Provided"}</p>
-                                </div>
-                                <p><span className="inline-block w-[100px] font-medium">Paid Amount:</span> {i.paidAmount}</p>
-                                <p><span className="inline-block w-[100px] font-medium">Due Amount:</span> {i.dueAmount}</p>
-                                {i.paymentMethod && <p><span className="inline-block w-[100px] font-medium">Payment:</span> {i.paymentMethod}</p>}
-                                {i.paymentFromNumber && <p><span className="inline-block w-[100px] font-medium">Payment From:</span> {i.paymentFromNumber}</p>
-                                }
-                                {i.trxId && <p>Trx ID: {i.trxId}</p>
-                                }
-                                <h3 className="mt-4 mb-1 font-semibold text-lg text-center">Items</h3>
-                                <ul>
-                                    {i.items.map((item) => (
-                                        <li key={item.itemId}>
-                                            <span className="font-semibold">{item.name}</span> - {item.quantity} {item.unit} @ {item.sellingPrice} each
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>)}
-                        </div>
-                    </div>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+            <div
+                onClick={() => setOpenModal(false)}
+                className={`fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity ${openModal ? "opacity-100 visible" : "opacity-0 invisible"
+                    }`}
+            />
+            <div
+                onClick={(e) => e.stopPropagation()}
+                className={`relative w-full max-w-3xl bg-white dark:bg-gray-900 rounded-lg shadow-lg transform transition-all ${openModal ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-10"
+                    } p-6`}
+            >
+                <div className="flex justify-between items-center border-b pb-4 mb-4">
+                    <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{item.name}</h2>
+                    <button
+                        onClick={() => setOpenModal(false)}
+                        className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                    >
+                        &#10005;
+                    </button>
                 </div>
+                <p className="text-lg font-semibold text-gray-700 dark:text-gray-200">Price: {item?.sellingPrice} per {item.unit}</p>
+                <p className="text-gray-600 dark:text-gray-300">Total Sold: {item.totalOrder}</p>
+
+                <div className="my-4">
+                    {itemsInvoices?.length < 1 && item.totalOrder > 0 && (
+                        <button
+                            onClick={() => getItemsInvoices(item._id)}
+                            className="w-full bg-purple-600 text-white font-semibold py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                        >
+                            See Orders
+                        </button>
+                    )}
+                </div>
+
+                {loading && <p className="text-center text-lg mt-4">Loading...</p>}
+
+                {itemsInvoices?.length > 0 && (
+                    <>
+                        <Select
+                            options={defaultSortOptions}
+                            value={defaultSortOptions.find((u) => u.value === sortOrder)}
+                            onChange={(selectedOption) => setSortOrder(selectedOption.value)}
+                            className="w-48 mb-4"
+                        />
+                        <div className="grid md:grid-cols-2 grid-cols-1 gap-4 overflow-y-auto max-h-[70vh]">
+
+                            {itemsInvoices.map((i, index) => (
+                                <div key={i._id} className="border p-4 rounded-lg bg-gray-100 dark:bg-gray-800 overflow-auto">
+                                    <h3 className="font-semibold text-gray-800 dark:text-gray-100">
+                                        Order #{i.invoiceNumber}
+                                    </h3>
+                                    <p className="text-gray-600 dark:text-gray-300">
+                                        <span className="font-medium">Date:</span>{" "}
+                                        {new Date(i.invoiceDate).toLocaleString("en-US", {
+                                            year: "numeric",
+                                            month: "2-digit",
+                                            day: "2-digit",
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                            second: "2-digit",
+                                            hour12: true,
+                                        })}
+                                    </p>
+                                    <div className="mt-2">
+                                        <p className="text-gray-600 dark:text-gray-300">
+                                            <span className="font-medium">Customer:</span>{" "}
+                                            {i?.customerDetails?.name ||
+                                                `${i.customerDetails?.firstName} ${i.customerDetails?.lastName}`}
+                                        </p>
+                                        <p className="text-gray-600 dark:text-gray-300">
+                                            <span className="font-medium">Phone:</span>{" "}
+                                            {i.customerDetails?.phone || "Not Provided"}
+                                        </p>
+                                        <p className="text-gray-600 dark:text-gray-300">
+                                            <span className="font-medium">Billing:</span>{" "}
+                                            {i.customerDetails?.billingAddress || "Not Provided"}
+                                        </p>
+                                    </div>
+                                    <div className="mt-2 space-y-1 text-gray-700 dark:text-gray-200">
+                                        <p>
+                                            <span className="font-medium">Total:</span> {i?.total}
+                                        </p>
+                        
+                                        <p>
+                                            <span className="font-medium">Paid Amount:</span> {i.paidAmount}
+                                        </p>
+                                        <p>
+                                            <span className="font-medium">Due Amount:</span>{" "}
+                                            <span className={i.dueAmount > 0 ? "text-red-500" : ""}>{i.dueAmount}</span>
+                                        </p>
+                                        {i.paymentMethod && (
+                                            <p>
+                                                <span className="font-medium">Payment:</span> {i.paymentMethod}
+                                            </p>
+                                        )}
+                                        {i.paymentFromNumber && (
+                                            <p>
+                                                <span className="font-medium">Payment From:</span> {i.paymentFromNumber}
+                                            </p>
+                                        )}
+                                        {i.trxId && <p>Trx ID: {i.trxId}</p>}
+                                    </div>
+                                    <h4 className="mt-4 font-semibold text-center">Items</h4>
+                                    <ul className="text-gray-600 dark:text-gray-300">
+                                        {i.items.map((item) => (
+                                            <li key={item.itemId}>
+                                                <span className="font-semibold">{item.name}</span> - {item.quantity}{" "}
+                                                {item.unit} @ {item.sellingPrice} each
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            ))}
+                        </div>
+                    </>
+                )}
             </div>
         </div>
-    )
-}
+    );
+};
+
 export default ItemModal;
+
+
+
+
+
+

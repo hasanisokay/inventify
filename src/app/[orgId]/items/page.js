@@ -13,7 +13,7 @@ const page = async ({ searchParams }) => {
   const sort = searchParams?.sort || "highest";
   const keyword = searchParams?.keyword || "";
   const orgId = await getActiveOrg();
-  console.log({orgId})
+
   let items;
   try {
     items = await getItems(page, limit, sort, keyword,"", orgId);

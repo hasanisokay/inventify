@@ -40,7 +40,6 @@ export const GET = async (req) => {
         { description: { $regex: keyword, $options: "i" } },
       ];
     }
-    console.log("hit")
     if (nameOnly) {
       const res = await itemCollection
         .find(matchStage, {

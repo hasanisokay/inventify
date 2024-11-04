@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 'use client'
-import React, { useState, useEffect, useRef, useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import Select from "react-select";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -10,20 +10,17 @@ import getCustomers from "@/utils/getCustomers.mjs";
 import getCustomerDetails from "@/utils/getCustomerDetails.mjs";
 import getItems from "@/utils/getItems.mjs";
 import DragSVG from "../svg/DragSVG";
-import Image from "next/image";
-import generatePDF from 'react-to-pdf';
+
+
 import AuthContext from "@/contexts/AuthContext.mjs";
 import toast from "react-hot-toast";
-import PhoneSVG from "../svg/PhoneSVG";
-import AddressSVG from "../svg/AddressSVG";
-import GlobeSVG from "../svg/GlobeSVG";
-import MailSVG from "../svg/MailSVG";
 import CrossSVG from "../svg/CrossSVG";
 import CustomerModal from "../modal/CustomerModal";
+import PrintInvoiceModal from "../modal/PrintInvoiceModal";
+import Loading from "../loader/Loading";
 const NewInvoice = ({ activeOrg, id }) => {
   const [openCustomerDetailsModal, setOpenCustomerDetailsModal] = useState(false);
   const [shippingCharge, setShippingCharge] = useState(0)
-  const [hideAddress, setHideAddress] = useState(false)
   const [currency, setCurrency] = useState("BDT")
   const [loading, setLoading] = useState(false);
   const [selectedItemOnchangeHolder, setSelectedItemOnchangeHolder] = useState(null);
@@ -48,7 +45,7 @@ const NewInvoice = ({ activeOrg, id }) => {
   const [paymentMethod, setPaymentMethod] = useState("");
   const [trxId, setTrxId] = useState('');
   const [paymentFromNumber, setPaymentFromNumber] = useState("");
-  const invoiceRef = useRef();
+  const [openPrintInvoiceModal, setOpenPrintInvoiceModal] = useState(false)
   const [sameAddress, setSameAddress] = useState(true)
   const { activeOrganization, currentUser } = useContext(AuthContext);
   const handleDragStart = (index) => {
@@ -79,8 +76,6 @@ const NewInvoice = ({ activeOrg, id }) => {
 
   const getPreviousInvoiceData = async (id) => {
     try {
-      setLoading(true);
-      console.log(id)
       const res = await fetch(`/api/gets/invoice?id=${id}`)
       const data = await res.json();
       if (data.status === 200) {
@@ -91,21 +86,23 @@ const NewInvoice = ({ activeOrg, id }) => {
     } catch {
       return []
     } finally {
-      setLoading(false)
     }
 
   }
   useEffect(() => {
     (async () => {
       if (id && savedItems?.length > 0) {
+        setLoading(true)
         const data = await getPreviousInvoiceData(id)
         if (data._id) {
-          setLoading(true)
           const c = await getCustomerDetails(data.customerId)
           setCustomerOptions(c);
+
           const itemsWithQuantity = data.items.map(i => ({
             itemId: i.itemId,
-            quantity: i.quantity
+            quantity: i.quantity,
+            tax: i.tax,
+            sellingPrice: i.sellingPrice
           }));
 
           const itemsWithDetails = savedItems
@@ -114,11 +111,17 @@ const NewInvoice = ({ activeOrg, id }) => {
               const foundItem = itemsWithQuantity.find(k => k.itemId === item._id);
               return {
                 ...item,
-                quantity: foundItem ? foundItem.quantity : 1
+                quantity: foundItem ? foundItem.quantity : 1,
+                tax: foundItem ? foundItem.tax : 1,
+                sellingPrice: foundItem ? foundItem.sellingPrice : 0
               };
             });
           setItems(itemsWithDetails);
+          setCurrency(data?.currency || "BDT");
           setNote(data.note);
+          setSubtotal(data.subtotal)
+          setTotal(data.total)
+          setShippingCharge(data.shippingCharge);
           setPaidAmount(data.paidAmount);
           setDueAmount(data.dueAmount);
           setDiscount(data.discount)
@@ -126,12 +129,11 @@ const NewInvoice = ({ activeOrg, id }) => {
           setPaymentMethod(data.paymentMethod);
           setInvoiceDate(new Date(data.invoiceDate));
           setInvoiceNumber(data.invoiceNumber);
-          setSubtotal(data.subtotal);
           setTotalTax(data.totalTax);
           setTrxId(data.trxId);
           setUpdateable(true);
-          setLoading(false);
         }
+        setLoading(false);
       }
     })()
   }, [id, savedItems])
@@ -172,7 +174,7 @@ const NewInvoice = ({ activeOrg, id }) => {
     (async () => {
       if (selectedCustomer) {
         const c = await getCustomerDetails(selectedCustomer?.value)
-        console.log(c)
+ 
         setCustomerOptions(c);
       }
     })()
@@ -229,30 +231,24 @@ const NewInvoice = ({ activeOrg, id }) => {
     const total = items.reduce((sum, item) => sum + item.quantity * item.sellingPrice, 0);
     const tax = items.reduce((sum, item) => sum + item.tax, 0);
     setSubtotal(total + totalTax || 0);
-    console.log(discount)
-    setTotal(total + totalTax - (discount || 0) || 0);
+    setTotal(total + totalTax + shippingCharge - discount || 0);
     setTotalTax(tax)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items, totalTax]);
-  useEffect(() => {
-    if (paymentMethod === "not-paid" || paymentMethod === "cash-on-delivery") {
-      setPaidAmount(0)
-      setDueAmount(subtotal)
-    } else {
-      setPaidAmount(subtotal)
-      if (dueAmount > 0) {
-        setDueAmount(subtotal - paidAmount)
-      }
-    }
-  }, [subtotal, paymentMethod])
+
   useEffect(() => {
     setTotal(subtotal + shippingCharge - discount)
   }, [shippingCharge, discount])
   useEffect(() => {
-    if (paidAmount === subtotal) {
+    if (paidAmount === total) {
       setDueAmount(0)
+    }else if(paidAmount===0){
+      setDueAmount(total)
     }
-  }, [paidAmount])
+     else {
+      setDueAmount(total - paidAmount)
+    }
+  }, [paidAmount,items, total])
 
   const paymentOptions = [
     { label: "Not Paid", value: "not-paid" },
@@ -263,16 +259,7 @@ const NewInvoice = ({ activeOrg, id }) => {
     { label: "Rocket", value: "rocket" },
     { label: "Bank Transfer", value: "bank-transfer" },
   ]
-  const getFullAddress = (a) => {
-    const parts = [
-      a?.street,
-      a?.city,
-      a?.state,
-      a?.postalCode,
-      a?.country
-    ].filter(Boolean);
-    return parts.join(', ');
-  }
+
   const getFullBillingAddress = (a) => {
     const parts = [
       a?.billingStreet,
@@ -298,50 +285,8 @@ const NewInvoice = ({ activeOrg, id }) => {
     const option = o ? o.label : "";
     return option;
   }
-  const getPaymentDetails = (value) => {
-    const o = paymentOptions.find(option => option.value === value);
-    const option = o ? o.label : "";
-    if (subtotal === paidAmount) {
-      return `Paid (${option})`
-    }
-    if (parseInt(paidAmount) === 0) {
-      return "Not Paid"
-    }
-    if (parseInt(subtotal) > parseInt(paidAmount)) {
-      return `Partially Paid (${option})`
-    }
 
-  }
-  const pdfOptions = {
-    filename: `${invoiceNumber}.pdf`,
-    method: "save",
 
-    page: {
-      margin: {
-        top: 20,
-        bottom: 20,
-        left: 10,
-        right: 10,
-      },
-      format: "A4",
-      orientation: "portrait",
-    },
-    canvas: {
-      // default is 'image/jpeg' for better size performance
-      mimeType: "image/png",
-      qualityRatio: 1,
-    },
-    overrides: {
-      // see https://artskydj.github.io/jsPDF/docs/jsPDF.html for more options
-      pdf: {
-        compress: true,
-      },
-      // see https://html2canvas.hertzen.com/configuration for more options
-      canvas: {
-        useCORS: true,
-      },
-    },
-  };
   const resetStates = () => {
     setSelectedCustomer(null);
     setInvoiceNumber(generateInvoiceNumber());
@@ -356,11 +301,12 @@ const NewInvoice = ({ activeOrg, id }) => {
     setTrxId("");
     setPaymentFromNumber("");
     setSameAddress(true);
+    setUpdateable(false);
+    setShippingCharge(0)
   };
-  const openPDF = () => {
-    generatePDF(() => document.getElementById("invoice-wrapper"), pdfOptions);
-  };
+
   const handleSave = async (createPdf = false) => {
+    if (!customerOptions._id) return toast.error("No Customer Found.")
     const invoiceData = {
       invoiceNumber,
       invoiceDate,
@@ -370,10 +316,12 @@ const NewInvoice = ({ activeOrg, id }) => {
         name: item?.name,
         quantity: item?.quantity,
         unit: item?.unit,
-        sellingPrice: parseFloat(item?.sellingPrice?.split(" ")[1]),
+        sellingPrice: item.sellingPrice,
         tax: item.tax,
       })),
       subtotal,
+      shippingCharge,
+      total,
       discount,
       totalTax,
       dueAmount,
@@ -404,9 +352,10 @@ const NewInvoice = ({ activeOrg, id }) => {
       if (data.status === 200 || data.status === 201) {
         toast.success(data.message);
         if (createPdf) {
-          openPDF();
+          setOpenPrintInvoiceModal(true)
+        } else {
+          resetStates()
         }
-        resetStates()
 
       } else {
         toast.error(data.message);
@@ -417,13 +366,14 @@ const NewInvoice = ({ activeOrg, id }) => {
 
     }
   };
+
   return (
     <div className="invoice-form p-2 mt-10">
-
+      {loading && <Loading loading={loading} />}
       <div className="mb-4 input-container ">
         <label htmlFor="customer" className="form-label2">Select Customer</label>
         <Select
-          className="md:w-[420px] w-[] select-react"
+          className="md:w-[420px] w-[] select-react z-50"
           id="customer"
           theme={{ borderRadius: '10px' }}
           options={[
@@ -441,12 +391,11 @@ const NewInvoice = ({ activeOrg, id }) => {
       <div className="flex flex-wrap justify-between my-4 md:mx-10 mx-2">
         <div className={`space-y-1 transition-transform duration-1000 transform ${customerOptions.firstName ? 'translate-x-0' : '-translate-x-full'}`}>
           <p className="text-xl font-bold">{customerOptions.firstName} {customerOptions.lastName}</p>
-          {!hideAddress && <>
-            {customerOptions?.billingAddress && <h2 className="text-base font-semibold">Billing Address</h2>}
-            {customerOptions.firstName && <p className="text-sm"><span className="font-semibold"></span> {customerOptions.billingAddress || getFullBillingAddress(customerOptions) || ""}</p>}
-            {customerOptions?.shippingAddress && !sameAddress && <h2 className="text-base font-semibold">Shipping Address</h2>}
-            {customerOptions.firstName && !sameAddress && <p className="text-sm"><span className="font-semibold"></span> {customerOptions.shippingAddress || getFullShippingAddress(customerOptions)}</p>}
-          </>}
+          {customerOptions?.billingAddress && <h2 className="text-base font-semibold">Billing Address</h2>}
+          {customerOptions.firstName && <p className="text-sm"><span className="font-semibold"></span> {customerOptions.billingAddress || getFullBillingAddress(customerOptions) || ""}</p>}
+          {customerOptions?.shippingAddress && !sameAddress && <h2 className="text-base font-semibold">Shipping Address</h2>}
+          {customerOptions.firstName && !sameAddress && <p className="text-sm"><span className="font-semibold"></span> {customerOptions.shippingAddress || getFullShippingAddress(customerOptions)}</p>}
+
           {customerOptions?.phone?.length > 0 && <p className="text-sm"><span className="font-semibold">Phone:</span> {customerOptions.phone}</p>}
           {customerOptions.companyName && <p className="text-sm"><span className="font-semibold">Company:</span> {customerOptions.companyName}</p>}
         </div>
@@ -463,15 +412,7 @@ const NewInvoice = ({ activeOrg, id }) => {
           )}
         </div>
       </div>
-      {(customerOptions?.billingAddress?.length > 0 || customerOptions?.shippingAddress?.length > 0) && <div className="flex items-center mb-4">
-        <input
-          type="checkbox"
-          checked={hideAddress}
-          onChange={() => setHideAddress(!hideAddress)}
-          className="mr-2"
-        />
-        <label className="font-semibold">Hide Address</label>
-      </div>}
+
       {customerOptions?.billingAddress?.length > 0 && customerOptions?.shippingAddress?.length > 0 && <div className="flex items-center mb-4">
         <input
           type="checkbox"
@@ -506,7 +447,7 @@ const NewInvoice = ({ activeOrg, id }) => {
         />
       </div>
 
-      <h2>Items Table</h2>
+      <h2 className="text-center text-lg font-semibold">Items Table</h2>
       <div id="invoice-table-part" className="md:w-[90%] mx-auto item-table min-h-[100px] mb-10 mt-4">
         {<table className="table-auto">
           <thead>
@@ -673,7 +614,7 @@ const NewInvoice = ({ activeOrg, id }) => {
                 onChange={(e) => {
                   const value = parseFloat(e.target.value);
                   if (!isNaN(value) && value >= 0) {
-                    console.log(value);
+          
                     setShippingCharge(value);
                   }
                 }}
@@ -715,7 +656,7 @@ const NewInvoice = ({ activeOrg, id }) => {
                 id="paidAmount"
                 value={paidAmount}
                 onChange={(e) => {
-                  if (parseInt(e.target.value) > subtotal) return;
+                  if (parseInt(e.target.value) > total) return;
                   const paid = parseFloat(e.target.value) || 0;
                   setPaidAmount(paid);
                   const newDue = subtotal - paid;
@@ -773,50 +714,6 @@ const NewInvoice = ({ activeOrg, id }) => {
           className="form-textarea"
         />
       </div>
-      {/* 
-      <div ref={invoiceRef} id="invoice-wrapper" className="p-2">
-        <div id="invoice-top" className="justify-between flex">
-          <div className="flex justify-between items-start">
-            <div className="text-start w-[350px] h-auto mb-6 space-y-1">
-              {activeOrganization?.logoUrl && <Image src={activeOrganization.logoUrl || ""} alt="Company Logo" width={100} height={100} />}
-              <h1 className="text-2xl font-semibold">{activeOrganization?.name}</h1>
-              {activeOrganization?.address && <div className="flex w-fit pt-2 items-center gap-2">
-                <div className="w-[40px]"><AddressSVG height={'20px'} width={'20px'} /></div> <p className="w-[200px] h-auto font-semibold">{getFullAddress(activeOrganization?.address)}</p>
-              </div>}
-              {activeOrganization?.phone && <div className="flex items-center gap-2"><div className="w-[40px]"><PhoneSVG height={'20px'} width={'20px'} /></div> <p className="w-[100px h-auto] font-semibold">{activeOrganization?.phone}</p></div>}
-              {activeOrganization?.website && <div className="flex items-center gap-2"><div className="w-[40px]"><GlobeSVG height={'20px'} width={'20px'} /></div> <p className="w-[100px h-auto] font-semibold">{activeOrganization?.website}</p></div>}
-              {activeOrganization?.email && <div className="flex items-center gap-2"><div className="w-[40px]"><MailSVG height={'20px'} width={'20px'} /></div> <p className="w-[100px h-auto] font-semibold">{activeOrganization?.email}</p></div>}
-            </div>
-          </div>
-          <div className="flex flex-col w-[350px] h-auto flex-wrap items-start">
-            <div className="flex flex-col gap-1 text-[14px]">
-              <div className="flex font-semibold">
-                <p className="w-[60px]">Invoice:</p> <p>{invoiceNumber}</p>
-              </div>
-              <div className="flex font-semibold">
-                <p className="w-[60px]">Date: </p>
-                <p>{invoiceDate?.toLocaleDateString("en-GB", { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-              </div>
-
-            </div>
-
-
-
-
-            {!sameAddress && <div className="space-y-1 my-4">
-              <h2 className="text-base font-semibold">Shipping Address</h2>
-              <p className="text-sm"><span className="font-semibold">Address:</span> {customerOptions.shippingAddress || getFullShippingAddress(customerOptions) || "Not provided"}</p>
-              {customerOptions?.phone?.length > 0 && <p className="text-sm"><span className="font-semibold">Phone:</span> {customerOptions.phone}</p>}
-              {
-                customerOptions.companyName && <p className="text-sm"><span className="font-semibold">Company:</span> {customerOptions.companyName}</p>
-              }
-            </div>}
-          </div>
-        </div>
-      </div> */}
-
-
-
       <div className="flex space-x-4 mb-10 justify-center items-center text-white">
         <button
           className="bg-blue-500 p-2 rounded"
@@ -842,6 +739,24 @@ const NewInvoice = ({ activeOrg, id }) => {
         openModal={openItemModal}
         setOpenModal={setOpenItemModal}
         onAddItem={(item) => handleAddItemFromModal(item)}
+      />
+      <PrintInvoiceModal
+        customerInfo={customerOptions}
+        paidAmount={paidAmount}
+        total={total}
+        shippingCharge={shippingCharge}
+        items={items}
+        note={note}
+        subtotal={subtotal}
+        discount={discount}
+        totalTax={totalTax}
+        orgInfo={activeOrganization}
+        openModal={openPrintInvoiceModal}
+        setOpenModal={setOpenPrintInvoiceModal}
+        currency={currency}
+        invoiceDate={invoiceDate}
+        resetStates={resetStates}
+        invoiceNumber={invoiceNumber}
       />
     </div>
   );

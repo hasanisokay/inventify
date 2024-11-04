@@ -54,6 +54,7 @@ export const GET = async (req) => {
             "items.sellingPrice": 1,
             paidAmount: 1,
             dueAmount: 1,
+            total: 1,
             customerId: 1,
             "customerDetails.firstName":1,
             "customerDetails.lastName":1,

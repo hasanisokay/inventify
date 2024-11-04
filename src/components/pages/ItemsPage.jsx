@@ -4,6 +4,8 @@ import toast from "react-hot-toast";
 import ItemModal from "../modal/ItemModal";
 import getActiveOrg from "@/utils/getActiveOrg.mjs";
 import { useRouter } from "next/navigation";
+import EditSVG from "../svg/EditSVG";
+import DeleteSVG from "../svg/DeleteSVG";
 
 const ItemsPage = ({ i }) => {
     const router = useRouter();
@@ -16,7 +18,7 @@ const ItemsPage = ({ i }) => {
         setSelectedItem(item);
         setOpenModal(true);
     };
-    
+
     useEffect(() => {
         (async () => {
             const a = await getActiveOrg();
@@ -57,7 +59,8 @@ const ItemsPage = ({ i }) => {
 
     return (
         <div className="w-full">
-            <table className="min-w-full border-collapse border border-gray-300">
+            {/* <table className="min-w-full border-collapse border border-gray-300"> */}
+            <table className="item-table ">
                 <thead className="bg-gray-200">
                     <tr>
                         <th className="border border-gray-300 p-2 text-left">Name</th>
@@ -75,24 +78,30 @@ const ItemsPage = ({ i }) => {
                         >
                             <td className="border border-gray-300 p-2">{i.name}
 
-                                <div className="flex space-x-2 opacity-0 group-hover:opacity-100">
+                                <div className="flex justify-start gap-10 duration-500 opacity-0 group-hover:opacity-100">
                                     <button
                                         className="text-blue-500 hover:underline"
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             router.push(`/${activeOrg}/items/new?id=${i._id}`)
                                         }}
+                                        title="Edit this item"
                                     >
-                                        Edit
+                                        <EditSVG />
                                     </button>
                                     <button
                                         className="text-red-500 hover:underline"
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            handleDelete(i?._id)
+                                            const confirmed = window.confirm("Sure to delete this item?")
+                                            if (confirmed) {
+                                                handleDelete(i?._id)
+                                            }
+
                                         }}
+                                        title="Delete this item"
                                     >
-                                        Delete
+                                        <DeleteSVG />
                                     </button>
                                 </div>
 

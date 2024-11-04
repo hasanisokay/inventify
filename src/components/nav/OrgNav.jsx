@@ -77,7 +77,7 @@ const OrgNav = ({ activeOrg }) => {
 
     return (
         <nav
-            className={`fixed top-0 left-0 w-full bg-black z-50 transition-transform
+            className={`fixed top-0 left-0 w-full bg-black z-[100] transition-transform
             bg-opacity-50 backdrop-blur-sm shadow-md
             duration-300 ${visible ? 'transform-none' : '-translate-y-full'
                 }`}

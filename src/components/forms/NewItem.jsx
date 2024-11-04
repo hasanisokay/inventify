@@ -34,6 +34,7 @@ const NewItem = ({ id, setOpenModal=undefined, onAddItem=undefined }) => {
   const fetchCategories = async () => {
     const res = await fetch("/api/gets/categories");
     const data = await res.json()
+
     if (data.status === 200) {
       setCategories(data.data);
     } else {

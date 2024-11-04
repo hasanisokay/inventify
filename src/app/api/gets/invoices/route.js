@@ -64,6 +64,8 @@ export const GET = async (req) => {
             customer: {
               firstName: "$customer.firstName",
               lastName: "$customer.lastName",
+              billingAddress: "$customer.billingAddress",
+              phone: "$customer.phone",
             },
             subtotal: 1,
             discount: 1,
@@ -72,6 +74,8 @@ export const GET = async (req) => {
             paidAmount: 1,
             dueAmount: 1,
             totalTax: 1,
+            total:1,
+            shippingCharge:1,
           },
         },
         { $sort: sorting },
