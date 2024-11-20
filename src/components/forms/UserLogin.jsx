@@ -41,7 +41,7 @@ const UserLogin = () => {
         } else if (data.status === 200) {
             setCurrentUser(data.user);
             toast.success(data.message);
-            router.push(redirectTo || "/");
+            router.replace(redirectTo || "/");
         } else {
             toast.error(data.message);
         }
