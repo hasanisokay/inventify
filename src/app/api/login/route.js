@@ -59,7 +59,7 @@ export const POST = async (req) => {
       })
         .setProtectedHeader({ alg: "HS256" })
         .setIssuedAt()
-        .setExpirationTime("30d")
+        .setExpirationTime("365d")
         .sign(secret);
 
       // setting cookies
@@ -69,7 +69,7 @@ export const POST = async (req) => {
         httpOnly: true,
         sameSite: "strict",
         secure: process.env.NODE_ENV === "production",
-        maxAge: 24 * 60 * 60 * 3,
+        maxAge: 24 * 60 * 60 * 365,
       });
 
       delete user.password;
