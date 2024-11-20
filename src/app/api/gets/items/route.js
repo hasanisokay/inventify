@@ -27,7 +27,7 @@ export const GET = async (req) => {
     if (!db) return NextResponse.json(dbErrorResponse);
     if (!orgId) return NextResponse.json(unauthorizedResponse);
     const itemCollection = await db.collection("items");
-    const matchStage = {orgId};
+    const matchStage = { orgId };
 
     if (category) {
       matchStage.category = category;
@@ -40,6 +40,8 @@ export const GET = async (req) => {
       ];
     }
     if (nameOnly) {
+      matchStage.status = "Active";
+
       const res = await itemCollection
         .find(matchStage, {
           projection: { _id: 1, name: 1, sellingPrice: 1, unit: 1, taxes: 1 },
@@ -74,6 +76,7 @@ export const GET = async (req) => {
             sellingPrice: { $first: "$sellingPrice" },
             unit: { $first: "$unit" },
             taxes: { $first: "$taxes" },
+            status: { $first: "$status" },
             lastModifiedTime: { $first: "$lastModifiedTime" },
             totalOrder: { $sum: "$invoices.items.quantity" },
           },
@@ -85,6 +88,7 @@ export const GET = async (req) => {
             sellingPrice: 1,
             unit: 1,
             taxes: 1,
+            status:1,
             lastModifiedTime: 1,
             totalOrder: 1,
           },

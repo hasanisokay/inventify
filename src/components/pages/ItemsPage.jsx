@@ -57,6 +57,7 @@ const ItemsPage = ({ i }) => {
             setSelectedItem(null)
         }
     }, [openModal])
+    console.log(items)
 
     return (
         <div>
@@ -69,6 +70,7 @@ const ItemsPage = ({ i }) => {
                         <th className="border border-gray-300 p-2 text-left">Price</th>
                         <th className="border border-gray-300 p-2 text-left">Unit</th>
                         <th className="border border-gray-300 p-2 text-left">Total Sold</th>
+                        <th className="border border-gray-300 p-2 text-left">Status</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -111,6 +113,8 @@ const ItemsPage = ({ i }) => {
                             <td className="border border-gray-300 p-2">{i?.sellingPrice?.split(" ")[1] || 0}</td>
                             <td className="border border-gray-300 p-2">{i?.unit}</td>
                             <td className="border border-gray-300 p-2">{i?.totalOrder}</td>
+                            <td className="border border-gray-300 p-2"><span className={`font-semibold ${i.status === "Active" ? "text-green-500" : "text-red-500"}`}>
+                                {i?.status}</span></td>
                             {/* <td className="border border-gray-300 p-2">{c?.currency || "BDT "} {c?.totalPaid}</td> */}
                         </tr>
                     ))}
