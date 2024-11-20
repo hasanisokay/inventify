@@ -1,5 +1,11 @@
 'use client'
-import NewCustomer from "../forms/NewCustomer";
+
+import dynamic from "next/dynamic";
+import Spinner from "../loader/Spinner";
+
+const NewCustomer = dynamic(()=>import("@/components/forms/NewCustomer"),{
+  loading: () => <Spinner />, ssr: false
+})
 
 const NewCustomerModal = ({ openModal, setOpenModal, onSaveCustomer }) => {
 

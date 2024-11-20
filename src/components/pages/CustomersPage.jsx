@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import getActiveOrg from "@/utils/getActiveOrg.mjs";
 import EditSVG from "../svg/EditSVG";
 import DeleteSVG from "../svg/DeleteSVG";
+import SearchBar from "../SearchBar/SearchBar";
 
 
 const CustomersPage = ({ c, page: p, }) => {
@@ -55,6 +56,8 @@ const CustomersPage = ({ c, page: p, }) => {
     }, [openModal])
     return (
         <div className="w-full">
+            <h1 className="text-2xl font-semibold mb-4">Customers</h1>
+            <SearchBar placeholder={"Search with name, phone, address, email, fbId"} />
             <table className="item-table">
                 <thead className="bg-gray-200">
                     <tr>

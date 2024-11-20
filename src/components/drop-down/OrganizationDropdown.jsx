@@ -4,7 +4,6 @@ import { useContext, useEffect, useState } from "react";
 import Select from "react-select";
 import NewOrgModal from "../modal/NewOrgModal";
 import setActiveOrg from "@/utils/setActiveOrg.mjs";
-import Link from "next/link";
 import getActiveOrg from "@/utils/getActiveOrg.mjs";
 import ChangePasswordModal from "../modal/ChangePasswordModal";
 
@@ -44,7 +43,7 @@ const OrganizationDropdown = () => {
                             value={defaultValue}
                             onChange={handleOrganizationChange}
                             options={options}
-                            className="text-black dark:text-white"
+                            className="text-black"
                             classNamePrefix="react-select"
                         // theme={(theme) => ({
                         //     ...theme,
@@ -61,11 +60,11 @@ const OrganizationDropdown = () => {
                     <div>
                         <button onClick={() => setOpenNewOrgModal(true)} className="py-2 font-semibold">Add New Org</button>
                     </div>
-                    <div>
+                    {/* <div>
                         {
                             activeOrg && <Link className="py-2 font-semibold" href={`/${activeOrg}`}>See Analytics</Link>
                         }
-                    </div>
+                    </div> */}
                     <div>
                         <button onClick={() => setOpenChangePassModal(true)} className="py-2 font-semibold">Change Password</button>
                     </div>

@@ -1,34 +1,39 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 'use client';
+
 import { useEffect, useState } from 'react';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, Tooltip, CategoryScale, LinearScale, BarElement, Title } from 'chart.js';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 import useTheme from '@/hooks/useTheme.mjs';
 import Spinner from '@/components/loader/Spinner';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip);
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, ChartDataLabels);
 
 const TopDebtors = () => {
     const { theme } = useTheme();
     const [loading, setLoading] = useState(false);
-    const [textColor, setTextColor] = useState("#ffffff");
+    const [textColor, setTextColor] = useState("#000000");
     const [topDebtors, setTopDebtors] = useState([]);
     const [endDate, setEndDate] = useState(new Date());
     const [startDate, setStartDate] = useState(new Date(new Date().setMonth(endDate.getMonth() - 1)));
 
     const fetchData = async () => {
         try {
-            setLoading(true)
-            const res = await fetch(`/api/gets/top-debtors?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}&limit=${10}`, {
-                credentials: 'include'
-            });
+
+            setLoading(true);
+            const res = await fetch(
+                `/api/gets/top-debtors?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}&limit=10`,
+                { credentials: 'include' }
+            );
             const data = await res.json();
             setTopDebtors(data.data || []);
-            setLoading(false);
         } catch (error) {
             console.error("Error fetching data:", error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -37,74 +42,68 @@ const TopDebtors = () => {
     }, []);
 
     useEffect(() => {
-        setTextColor(theme === "dark" ? "#ffffff" : "#000000")
-    }, [theme])
+        setTextColor(theme === "dark" ? "#ffffff" : "#000000");
+    }, [theme]);
 
     const chartData = {
-        labels: topDebtors.map(customer => `${customer._id.firstName} ${customer._id.lastName}`),
+        labels: topDebtors.map((debtor) => `${debtor._id.firstName} ${debtor._id.lastName}`),
         datasets: [
             {
-                label: 'Top Debtors',
-                data: topDebtors.map(customer => customer.totalDueAmount), // Assuming you want to show due amount
-                backgroundColor: topDebtors.map((_, index) => index % 2 === 0 ? '#171a20' : '#2e2e34'),
-                hoverBackgroundColor: '#5a5a5a',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 0.1,
-                barPercentage: 0.8,
-                categoryPercentage: 0.9,
+                label: 'Total Due Amount',
+                data: topDebtors.map((debtor) => debtor.totalDueAmount),
+                backgroundColor: topDebtors.map((_, index) =>
+                    index % 2 === 0 ? '#2e6aec' : '#9333ea'
+                ),
+                hoverBackgroundColor: topDebtors.map((_, index) =>
+                    index % 2 === 0 ? '#2e6adc' : '#9334ea'
+                ),
+                borderWidth: 0,
             },
         ],
     };
 
     const options = {
         maintainAspectRatio: false,
+        responsive: true,
         scales: {
             x: {
                 ticks: {
-                    autoSkip: false,
-                    color: textColor
+                    color: textColor,
                 },
-                stacked: false,
                 grid: {
                     display: false,
                 },
             },
             y: {
-                beginAtZero: true,
                 ticks: {
                     color: textColor,
                 },
                 grid: {
-                    color: 'rgba(0, 0, 0, 0.1)',
+                    color: theme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
                 },
             },
         },
         plugins: {
+            datalabels: {
+                color: theme === "dark" ? "#ffffff" : "#000000",
+                font: { size: 12, weight: "bold" },
+                anchor: "center",
+                align: "center",
+                formatter: (value) => `${value.toFixed(2)}`,
+            },
             tooltip: {
-                enabled: true,
                 callbacks: {
-                    label: (tooltipItem) => {
-                        const customer = topDebtors[tooltipItem.dataIndex];
-                        return `${customer._id.firstName} ${customer._id.lastName}\nTotal Due: ${customer.totalDueAmount}\nTotal Paid: ${customer.totalPaidAmount}`;
+                    label: (context) => {
+                        const debtor = topDebtors[context.dataIndex];
+                        return `${debtor._id.firstName} ${debtor._id.lastName}\nDue: $${debtor.totalDueAmount}`;
                     },
-                    labelColor: () => ({
-                        backgroundColor: 'rgb(255, 0, 0)',
-                        borderWidth: 2,
-                        borderDash: [2, 2],
-                        borderRadius: 2,
-                    }),
-                    labelTextColor: () => '#c9c6b7',
                 },
             },
             legend: {
-                display: true,
-            },
-            datalabels: {
-                color: '#ffffff',
+                display: false,
             },
         },
     };
-
     const handleStartDateChange = (date) => {
         if (date <= endDate) {
             setStartDate(date);
@@ -122,50 +121,57 @@ const TopDebtors = () => {
             setStartDate(date);
         }
     };
-
     return (
-        <>
+        <div className='container min-h-[594px] mx-auto p-6 bg-white dark:bg-gray-900 shadow-xl rounded-lg relative'>
+            {loading ? (
+         <div className="absolute inset-0 bg-white dark:bg-gray-600 dark:bg-opacity-50 bg-opacity-20 backdrop-blur-lg flex justify-center items-center z-10">
+         <div className="text-center text-2xl text-gray-800 dark:text-white">
+             <p>Loading...</p>
+             <Spinner />
+         </div>
+     </div>
+            ) : (
+                <>
+                    <div className="text-center mb-6">
+                        <h2 className="text-2xl font-bold">Top 10 Debtors</h2>
+                        <p className="text-gray-600 dark:text-gray-400">View overdue amounts for the selected date range.</p>
+                    </div>
 
-            {loading ? <Spinner /> : <div>
-                <div className='md:px-10 px-2'>
-                    <h2 className='font-semibold text-xl text-center'>Top 10 Debtors</h2>
-                    <h3 className='my-2 font-semibold '>Select Date Range for top 10 Debtors</h3>
-                    <div className='flex  gap-10 flex-wrap'>
-                        <div className='input-container w-[250px]'>
-                            <label>
-                                From
-                            </label>
+                    <div className="flex gap-8 justify-center mb-8 flex-wrap">
+                        <div className="w-[250px]">
+                            <label className={`text-sm mr-1 font-medium dark:text-gray-200 text-gray-700`}>From</label>
                             <DatePicker
                                 selected={startDate}
                                 onChange={handleStartDateChange}
-                                className='text-input'
+                                className={`w-full p-3 border rounded-lg shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 bg-white text-black border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600`}
                             />
-
                         </div>
-                        <div className='input-container w-[250px]'>
-                            <label>
-                                To
-                            </label>
+                        <div className="w-[250px]">
+                            <label className={`text-sm mr-1 font-medium dark:text-gray-200 text-gray-700`}>To</label>
                             <DatePicker
                                 selected={endDate}
                                 onChange={handleEndDateChange}
                                 filterDate={date => date >= startDate}
-                                className='text-input'
+                                className={`w-full p-3 border rounded-lg shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 bg-white text-black border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600`}
                             />
                         </div>
-                        <button className='btn-purple' onClick={fetchData}>Get Data</button>
-
+                        <button
+                            className={`px-6 py-3 dark:bg-indigo-800 bg-indigo-600 text-white rounded-lg shadow-lg hover:bg-indigo-700  transition-all duration-300`}
+                            onClick={fetchData}
+                        >
+                            Get Data
+                        </button>
                     </div>
-                </div>
-                <div className='h-[400px] w-full my-10'>
-                    {topDebtors.length > 0 ? (
-                        <Bar data={chartData} options={options} />
-                    ) : (
-                        <p>No debtors found.</p>
-                    )}
-                </div>
-            </div>}
-        </>
+                    <div className="h-96">
+                        {topDebtors.length > 0 ? (
+                            <Bar data={chartData} options={options} />
+                        ) : (
+                            <p className="text-center text-gray-500 dark:text-gray-400">No debtors found.</p>
+                        )}
+                    </div>
+                </>
+            )}
+        </div>
     );
 };
 

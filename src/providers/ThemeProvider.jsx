@@ -7,6 +7,7 @@ const ThemeProvider = ({ children, initialTheme }) => {
     const [theme, setTheme] = useState(initialTheme || "light");
 
     useEffect(() => {
+        setThemeCookie(theme)
         document.querySelector("html").setAttribute("data-theme", theme);
     }, [theme]);
 
@@ -18,20 +19,22 @@ const ThemeProvider = ({ children, initialTheme }) => {
         };
 
         window
-            .matchMedia("(prefers-color-scheme: light)")
+            .matchMedia("(prefers-color-scheme: dark)")
             .addEventListener("change", onChange);
 
         return () => {
             window
-                .matchMedia("(prefers-color-scheme: light)")
+                .matchMedia("(prefers-color-scheme: dark)")
                 .removeEventListener("change", onChange);
         };
     }, []);
 
+
+
+
     const toggleTheme = () => {
         setTheme((preTheme) => {
             const currentTheme = preTheme === "dark" ? "light" : "dark";
-            setThemeCookie(currentTheme)
             return currentTheme;
         });
     };

@@ -25,7 +25,7 @@ const NewInvoice = ({ activeOrg, id }) => {
   const [loading, setLoading] = useState(false);
   const [selectedItemOnchangeHolder, setSelectedItemOnchangeHolder] = useState(null);
   const [updateable, setUpdateable] = useState(false);
-  const [customerOptions, setCustomerOptions] = useState([]);
+  const [customerDetails, setCustomerDetails] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [openCustomerModal, setOpenCustomerModal] = useState(false);
   const [invoiceNumber, setInvoiceNumber] = useState(generateInvoiceNumber());
@@ -96,7 +96,7 @@ const NewInvoice = ({ activeOrg, id }) => {
         const data = await getPreviousInvoiceData(id)
         if (data._id) {
           const c = await getCustomerDetails(data.customerId)
-          setCustomerOptions(c);
+          setCustomerDetails(c);
 
           const itemsWithQuantity = data.items.map(i => ({
             itemId: i.itemId,
@@ -175,7 +175,7 @@ const NewInvoice = ({ activeOrg, id }) => {
       if (selectedCustomer) {
         const c = await getCustomerDetails(selectedCustomer?.value)
  
-        setCustomerOptions(c);
+        setCustomerDetails(c);
       }
     })()
   }, [selectedCustomer]);
@@ -306,11 +306,11 @@ const NewInvoice = ({ activeOrg, id }) => {
   };
 
   const handleSave = async (createPdf = false) => {
-    if (!customerOptions._id) return toast.error("No Customer Found.")
+    if (!customerDetails._id) return toast.error("No Customer Found.")
     const invoiceData = {
       invoiceNumber,
       invoiceDate,
-      customerId: customerOptions._id,
+      customerId: customerDetails._id,
       items: items.map(item => ({
         itemId: item?._id,
         name: item?.name,
@@ -389,31 +389,31 @@ const NewInvoice = ({ activeOrg, id }) => {
       </div>
 
       <div className="flex flex-wrap justify-between my-4 md:mx-10 mx-2">
-        <div className={`space-y-1 transition-transform duration-1000 transform ${customerOptions.firstName ? 'translate-x-0' : '-translate-x-full'}`}>
-          <p className="text-xl font-bold">{customerOptions.firstName} {customerOptions.lastName}</p>
-          {customerOptions?.billingAddress && <h2 className="text-base font-semibold">Billing Address</h2>}
-          {customerOptions.firstName && <p className="text-sm"><span className="font-semibold"></span> {customerOptions.billingAddress || getFullBillingAddress(customerOptions) || ""}</p>}
-          {customerOptions?.shippingAddress && !sameAddress && <h2 className="text-base font-semibold">Shipping Address</h2>}
-          {customerOptions.firstName && !sameAddress && <p className="text-sm"><span className="font-semibold"></span> {customerOptions.shippingAddress || getFullShippingAddress(customerOptions)}</p>}
+        <div className={`space-y-1 transition-transform duration-1000 transform ${customerDetails.firstName ? 'translate-x-0' : '-translate-x-full'}`}>
+          <p className="text-xl font-bold">{customerDetails.firstName} {customerDetails.lastName}</p>
+          {customerDetails?.billingAddress && <h2 className="text-base font-semibold">Billing Address</h2>}
+          {customerDetails.firstName && <p className="text-sm"><span className="font-semibold"></span> {customerDetails.billingAddress || getFullBillingAddress(customerDetails) || ""}</p>}
+          {customerDetails?.shippingAddress && !sameAddress && <h2 className="text-base font-semibold">Shipping Address</h2>}
+          {customerDetails.firstName && !sameAddress && <p className="text-sm"><span className="font-semibold"></span> {customerDetails.shippingAddress || getFullShippingAddress(customerDetails)}</p>}
 
-          {customerOptions?.phone?.length > 0 && <p className="text-sm"><span className="font-semibold">Phone:</span> {customerOptions.phone}</p>}
-          {customerOptions.companyName && <p className="text-sm"><span className="font-semibold">Company:</span> {customerOptions.companyName}</p>}
+          {customerDetails?.phone?.length > 0 && <p className="text-sm"><span className="font-semibold">Phone:</span> {customerDetails.phone}</p>}
+          {customerDetails.companyName && <p className="text-sm"><span className="font-semibold">Company:</span> {customerDetails.companyName}</p>}
         </div>
 
-        <div className={`transition-transform duration-1000 transform ${customerOptions.firstName ? 'translate-x-0' : 'translate-x-full'}`}>
-          {customerOptions.firstName && (
+        <div className={`transition-transform duration-1000 transform ${customerDetails.firstName ? 'translate-x-0' : 'translate-x-full'}`}>
+          {customerDetails.firstName && (
             <button
               className="btn-gray"
               onClick={() => setOpenCustomerDetailsModal(true)}
-              title={`See Details of ${customerOptions.firstName} ${customerOptions.lastName}`}
+              title={`See Details of ${customerDetails.firstName} ${customerDetails.lastName}`}
             >
-              {customerOptions.firstName} {customerOptions.lastName}
+              {customerDetails.firstName} {customerDetails.lastName}
             </button>
           )}
         </div>
       </div>
 
-      {customerOptions?.billingAddress?.length > 0 && customerOptions?.shippingAddress?.length > 0 && <div className="flex items-center mb-4">
+      {customerDetails?.billingAddress?.length > 0 && customerDetails?.shippingAddress?.length > 0 && <div className="flex items-center mb-4">
         <input
           type="checkbox"
           checked={sameAddress}
@@ -555,7 +555,7 @@ const NewInvoice = ({ activeOrg, id }) => {
             <tr className="w-[400px]">
 
               <Select
-                className="w-[400px]  select-react"
+                className="w-[400px]"
                 id="item"
                 options={[
                   { label: "Add New Item", value: "add-new-item" },
@@ -579,6 +579,10 @@ const NewInvoice = ({ activeOrg, id }) => {
                     borderRadius: '0px',
                     zIndex: 40,
                   }),
+                  option: (provided )=>({
+...provided, color:"black"
+                  })
+                  ,
                   indicatorsContainer: (provided) => ({
                     display: 'none',
                   }),
@@ -600,7 +604,7 @@ const NewInvoice = ({ activeOrg, id }) => {
         </table>}
       </div>
 
-      <div className="md:w-[90%] relative min-h-[480px] mb-4">
+      <div className="md:w-[90%] relative min-h-[480px] mb-4 text-black">
         <div className="absolute md:right-0">
           <div className="border rounded py-6 px-4 shadow-lg bg-gray-100 md:w-[600px]">
             <p className="flex justify-between mb-3"><span className="font-semibold">Subtotal</span> <span className="w-[200px] font-semibold pl-[8px] py-[4px]">{subtotal}</span> </p>
@@ -728,12 +732,12 @@ const NewInvoice = ({ activeOrg, id }) => {
       <NewCustomerModal
         openModal={openCustomerModal}
         setOpenModal={setOpenCustomerModal}
-        onSaveCustomer={setCustomerOptions}
+        onSaveCustomer={setCustomerDetails}
       />
       <CustomerModal
         setOpenModal={setOpenCustomerDetailsModal}
         openModal={openCustomerDetailsModal}
-        customer={customerOptions}
+        customer={customerDetails}
       />
       <NewItemModal
         openModal={openItemModal}
@@ -741,7 +745,7 @@ const NewInvoice = ({ activeOrg, id }) => {
         onAddItem={(item) => handleAddItemFromModal(item)}
       />
       <PrintInvoiceModal
-        customerInfo={customerOptions}
+        customerInfo={customerDetails}
         paidAmount={paidAmount}
         total={total}
         shippingCharge={shippingCharge}

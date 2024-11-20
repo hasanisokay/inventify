@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 'use client';
 import { useEffect, useState } from 'react';
 import DatePicker from "react-datepicker";
@@ -12,23 +11,27 @@ ChartJS.register(Title, Tooltip, Legend, ArcElement, ChartDataLabels);
 
 const CostSummary = () => {
     const [totalDue, setTotalDue] = useState(undefined);
-    const [loading, setLoading] = useState(false);
     const [totalPaid, setTotalPaid] = useState(undefined);
+    const [totalExpenses, setTotalExpenses] = useState(undefined);
+    const [loading, setLoading] = useState(false);
     const [startDate, setStartDate] = useState(new Date(new Date().setMonth(new Date().getMonth() - 1)));
     const [endDate, setEndDate] = useState(new Date());
 
     const fetchData = async () => {
         try {
-            setLoading(true)
+            setLoading(true);
             const res = await fetch(`/api/gets/cost-summary?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`, {
                 credentials: 'include'
             });
             const data = await res.json();
             setTotalDue(data.totalDue);
             setTotalPaid(data.totalPaid);
-            setLoading(false)
+            setTotalExpenses(data.totalExpenses);
         } catch (err) {
-            console.log(err)
+            console.log(err);
+
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -37,26 +40,38 @@ const CostSummary = () => {
     }, []);
 
     const chartData = {
-        labels: ['Total Due', 'Total Paid'],
+        labels: ['Total Due', 'Total Paid', 'Total Expenses'],
         datasets: [{
-            data: [totalDue, totalPaid],
-            backgroundColor: ['#e72d2d', '#308853'],
-            hoverBackgroundColor: ['#ff0f10', '#1c6c47'],
+            data: [totalDue, totalPaid, totalExpenses],
+            backgroundColor: ['#e72d2d', '#308853', '#f39c12'],  // Colors for Pie chart segments
+            hoverBackgroundColor: ['#ff0f10', '#1c6c47', '#e67e22'],
         }],
     };
+
     const options = {
         plugins: {
             legend: {
-                display: true,
+                position: 'bottom',
+                labels: {
+                    fontSize: 14,
+                    boxWidth: 20,
+                    padding: 10,
+                    fontColor: '#333', // Default text color for light mode
+                },
             },
             datalabels: {
-                color: '#ffffff',
+                color: '#fff',
+                font: {
+                    weight: 'bold',
+                    size: 16,
+                },
                 formatter: (value) => {
-                    return value > 0 ? `${value}` : '';
+                    return value > 0 ? `${value.toLocaleString()} BDT` : '';
                 },
             },
         },
     };
+
     const handleStartDateChange = (date) => {
         if (date <= endDate) {
             setStartDate(date);
@@ -76,55 +91,72 @@ const CostSummary = () => {
     };
 
     return (
-        <>
-            {loading ? <Spinner /> : <>
-                <div>
-                    <div className='md:px-10 px-2'>
-                        <h2 className='font-semibold text-xl mt-4 mb-2 text-center'>Cost Summary</h2>
-                        <h3 className='my-2 font-semibold '>Select Date Range for Cost Summary</h3>
-                        <div className='flex  gap-10 flex-wrap'>
-                            <div className='input-container w-[250px]'>
-                                <label>
-                                    From
-                                </label>
-                                <DatePicker
-                                    selected={startDate}
-                                    onChange={handleStartDateChange}
-                                    className='text-input'
-                                />
-
-                            </div>
-                            <div className='input-container w-[250px]'>
-                                <label>
-                                    To
-                                </label>
-                                <DatePicker
-                                    selected={endDate}
-                                    onChange={handleEndDateChange}
-                                    filterDate={date => date >= startDate}
-                                    className='text-input'
-                                />
-                            </div>
-                            <button className='btn-purple' onClick={fetchData}>Get Data</button>
-
-                        </div>
+        <div className="container min-h-[628px] mx-auto p-6 bg-white dark:bg-gray-900 shadow-xl rounded-lg relative">
+            {loading ? (
+                <div className="absolute inset-0 bg-white dark:bg-gray-600 dark:bg-opacity-50 bg-opacity-20 backdrop-blur-lg flex justify-center items-center z-10">
+                    <div className="text-center text-2xl text-gray-800 dark:text-white">
+                        <p>Loading...</p>
+                        <Spinner />
                     </div>
-                    <div className='items-center justify-center my-10 gap-4 flex flex-wrap'>
-                        <div className='flex flex-col items-start justify-start'>
-                            {totalPaid && <p><span className='w-[115px] inline-block'>Received:</span> <span className='font-semibold min-w-[100px] inline-block'>{totalPaid}</span></p>}
-                            {totalDue && <p> <span className='w-[120px] inline-block'>Due:</span><span className='font-semibold min-w-[100px] inline-block'>{totalDue}</span></p>}
+                </div>
+            ) : (
+                <>
+                    <div className="text-center mb-8">
+                        <h2 className="text-4xl font-semibold text-gray-800 dark:text-white mb-2">Cost Summary</h2>
+                        <h3 className="text-lg text-gray-600 dark:text-gray-300">Select a Date Range for Cost Summary</h3>
+                    </div>
+
+                    <div className="flex gap-8 justify-center mb-8 flex-wrap">
+                        <div className="w-[250px]">
+                            <label className="text-sm mr-1 font-medium dark:text-gray-200 text-gray-700">From</label>
+                            <DatePicker
+                                selected={startDate}
+                                onChange={handleStartDateChange}
+                                className="w-full p-3 border rounded-lg shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 bg-white text-black border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                            />
                         </div>
-                        <div className='h-[400px] w-fit'>
-                            {totalDue > 0 || totalPaid > 0 ? (
+                        <div className="w-[250px]">
+                            <label className="text-sm mr-1 font-medium dark:text-gray-200 text-gray-700">To</label>
+                            <DatePicker
+                                selected={endDate}
+                                onChange={handleEndDateChange}
+                                filterDate={(date) => date >= startDate}
+                                className="w-full p-3 border rounded-lg shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 bg-white text-black border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                            />
+                        </div>
+                        <button
+                            className="px-6 py-3 dark:bg-indigo-800 bg-indigo-600 text-white rounded-lg shadow-lg hover:bg-indigo-700 transition-all duration-300"
+                            onClick={fetchData}
+                        >
+                            Get Data
+                        </button>
+                    </div>
+
+                    <div className="flex justify-between gap-12 items-center flex-wrap">
+                        <div className="text-lg font-medium text-gray-800 dark:text-gray-300 space-y-4">
+                            {totalPaid !== undefined && (
+                                <p><span className="font-semibold">Received:</span> {totalPaid.toLocaleString()} BDT</p>
+                            )}
+                            {totalDue !== undefined && (
+                                <p><span className="font-semibold">Due From Invoice:</span> {totalDue.toLocaleString()} BDT</p>
+                            )}
+                            {totalExpenses !== undefined && (
+                                <p><span className="font-semibold">Expenses:</span> {totalExpenses.toLocaleString()} BDT</p>
+                            )}
+                        </div>
+
+                        <div className="h-[400px] w-[400px]">
+                            {totalDue > 0 || totalPaid > 0 || totalExpenses > 0 ? (
                                 <Pie data={chartData} options={options} />
                             ) : (
-                                <p>No data available for the selected range.</p>
+                                <p className="text-center text-gray-600 dark:text-gray-400">No data available for the selected range.</p>
                             )}
                         </div>
                     </div>
-                </div>
-            </>}
-        </>
+                </>
+            )}
+        </div>
+
     );
 };
 

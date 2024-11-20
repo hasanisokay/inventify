@@ -18,8 +18,10 @@ export const GET = async (req) => {
     }
 
     const db = await dbConnect();
+
+    // Fetch data from invoices with aggregation
     const invoiceCollection = await db.collection("invoices");
-    const results = await invoiceCollection
+    const invoiceResults = await invoiceCollection
       .aggregate([
         {
           $match: {
@@ -40,15 +42,38 @@ export const GET = async (req) => {
       ])
       .toArray();
 
-    if (results.length > 0) {
-      return NextResponse.json({
-        success: true,
-        totalDue: results[0].totalDue,
-        totalPaid: results[0].totalPaid,
-      });
-    } else {
-      return NextResponse.json({ success: false, message: "No data found." });
-    }
+    // Fetch total expenses using aggregation
+    const expenseCollection = await db.collection("expenses");
+    const expenseResults = await expenseCollection
+      .aggregate([
+        {
+          $match: {
+            date: {
+              $gte: startDate,
+              $lte: endDate,
+            },
+            orgId: orgId,
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            totalExpenses: { $sum: "$total" },
+          },
+        },
+      ])
+      .toArray();
+
+
+    const response = {
+      success: true,
+      totalDue: invoiceResults.length > 0 ? invoiceResults[0].totalDue : 0,
+      totalPaid: invoiceResults.length > 0 ? invoiceResults[0].totalPaid : 0,
+      totalExpenses: expenseResults.length > 0 ? expenseResults[0].totalExpenses : 0,
+    };
+
+    return NextResponse.json(response);
+
   } catch (error) {
     console.error("Error fetching cost summary:", error);
     return NextResponse.json({ success: false, message: "Server error." });

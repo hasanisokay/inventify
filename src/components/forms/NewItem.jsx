@@ -1,10 +1,13 @@
 'use client'
+import AuthContext from '@/contexts/AuthContext.mjs';
+import getActiveOrg from '@/utils/getActiveOrg.mjs';
 import getItem from '@/utils/getItem.mjs';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import Select from 'react-select';
 
-const NewItem = ({ id, setOpenModal=undefined, onAddItem=undefined }) => {
+const NewItem = ({ id, setOpenModal = undefined, onAddItem = undefined, actOrg }) => {
+
   const [loading, setLoading] = useState(false);
   const [updateable, setUpdateable] = useState(false)
   const [type, setType] = useState('goods');
@@ -21,7 +24,16 @@ const NewItem = ({ id, setOpenModal=undefined, onAddItem=undefined }) => {
   ]);
   const [selectedTaxes, setSelectedTaxes] = useState([]);
   const [taxValues, setTaxValues] = useState({ percentage: '', amount: '' });
-
+  const { currentUser } = useContext(AuthContext);
+  const [activeOrg, setActiveOrg] = useState(actOrg);
+  useEffect(() => {
+    if (!actOrg) {
+      (async () => {
+        const a = await getActiveOrg()
+        setActiveOrg(a);
+      })()
+    }
+  }, [])
   const units = [
     { value: 'box', label: 'Box' },
     { value: 'pcs', label: 'Pcs' },
@@ -96,16 +108,18 @@ const NewItem = ({ id, setOpenModal=undefined, onAddItem=undefined }) => {
         value: taxValues[tax.value] || '',
       })),
       status: "Active",
+      ownerUsername: currentUser?.username,
+      orgId: activeOrg,
     };
     let apiUrl = "/api/adds/new-item"
     let method = "POST";
-    
+
     if (updateable) {
       formData.id = id
       apiUrl = "/api/updates/item"
       method = "PUT"
     }
-    
+
     const res = await fetch(apiUrl, {
       method,
       headers: {

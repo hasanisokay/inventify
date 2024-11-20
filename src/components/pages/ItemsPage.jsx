@@ -6,6 +6,7 @@ import getActiveOrg from "@/utils/getActiveOrg.mjs";
 import { useRouter } from "next/navigation";
 import EditSVG from "../svg/EditSVG";
 import DeleteSVG from "../svg/DeleteSVG";
+import SearchBar from "../SearchBar/SearchBar";
 
 const ItemsPage = ({ i }) => {
     const router = useRouter();
@@ -58,10 +59,11 @@ const ItemsPage = ({ i }) => {
     }, [openModal])
 
     return (
-        <div className="w-full">
-            {/* <table className="min-w-full border-collapse border border-gray-300"> */}
+        <div>
+            <h1 className="text-2xl font-semibold mb-4">Items</h1>
+            <SearchBar placeholder={'Search with name or description'} />
             <table className="item-table ">
-                <thead className="bg-gray-200">
+                <thead >
                     <tr>
                         <th className="border border-gray-300 p-2 text-left">Name</th>
                         <th className="border border-gray-300 p-2 text-left">Price</th>

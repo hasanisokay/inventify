@@ -1,4 +1,3 @@
-
 const generateUniqueIds = (count) => {
   const ids = [];
 
@@ -13,7 +12,9 @@ const generateUniqueIds = (count) => {
     );
     ids.push(id);
   }
-
+  if (count === 1) {
+    return ids[0];
+  }
   return ids;
 };
 

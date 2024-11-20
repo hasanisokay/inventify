@@ -32,57 +32,81 @@ export const GET = async (req) => {
     if (category) {
       matchStage.category = category;
     }
+
     let sorting = {};
     if (sort === "top-paid") {
       sorting.paidAmount = -1;
     } else if (sort === "top-due") {
       sorting.dueAmount = -1;
+    } else if (sort === "oldest") {
+      sorting.invoiceDate = 1;
     } else {
       sorting.invoiceDate = -1;
     }
-    const result = await itemCollection
-      .aggregate([
-        { $match: matchStage },
-        {
-          $lookup: {
-            from: "customers",
-            localField: "customerId",
-            foreignField: "_id",
-            as: "customer",
-          },
+
+    // Start with the aggregation pipeline
+    const pipeline = [
+      { $match: matchStage }, // Match invoices based on orgId and category (if provided)
+      {
+        $lookup: {
+          from: "customers", // Join with the customers collection
+          localField: "customerId", // Join using the customerId field from invoices
+          foreignField: "_id", // Join with _id in the customers collection
+          as: "customer", // Resulting customer data will be in the "customer" array
         },
-        {
-          $unwind: {
-            // This flattens the customer array
-            path: "$customer",
-            preserveNullAndEmptyArrays: true, // Optional: keeps invoices without customers
-          },
+      },
+      {
+        $unwind: {
+          path: "$customer", // Flatten the customer array so we can access customer fields directly
+          preserveNullAndEmptyArrays: true, // Keep invoices without customers
         },
-        {
-          $project: {
-            _id: 1,
-            customer: {
-              firstName: "$customer.firstName",
-              lastName: "$customer.lastName",
-              billingAddress: "$customer.billingAddress",
-              phone: "$customer.phone",
-            },
-            subtotal: 1,
-            discount: 1,
-            invoiceDate: 1,
-            invoiceNumber: 1,
-            paidAmount: 1,
-            dueAmount: 1,
-            totalTax: 1,
-            total:1,
-            shippingCharge:1,
-          },
+      },
+    ];
+
+    // If there's a keyword, filter by customer firstName and lastName
+    if (keyword) {
+      pipeline.push({
+        $match: {
+          $or: [
+            { 'items.name': { $regex: keyword, $options: "i" } },
+            { 'customer.firstName': { $regex: keyword, $options: "i" } },
+            { 'customer.lastName': { $regex: keyword, $options: "i" } },
+          ],
         },
-        { $sort: sorting },
-        { $skip: skip },
-        { $limit: limit },
-      ])
-      .toArray();
+      });
+    }
+
+    // Add project stage to shape the data we need
+    pipeline.push({
+      $project: {
+        _id: 1,
+        customer: {
+          firstName: "$customer.firstName",
+          lastName: "$customer.lastName",
+          billingAddress: "$customer.billingAddress",
+          phone: "$customer.phone",
+        },
+        subtotal: 1,
+        discount: 1,
+        invoiceDate: 1,
+        invoiceNumber: 1,
+        paidAmount: 1,
+        dueAmount: 1,
+        totalTax: 1,
+        total: 1,
+        shippingCharge: 1,
+      },
+    });
+
+    // Sorting stage
+    pipeline.push({ $sort: sorting });
+
+    // Pagination: skip and limit
+    pipeline.push({ $skip: skip });
+    pipeline.push({ $limit: limit });
+
+    // Execute the aggregation pipeline
+    const result = await itemCollection.aggregate(pipeline).toArray();
 
     const totalCount = await itemCollection.countDocuments(matchStage);
 

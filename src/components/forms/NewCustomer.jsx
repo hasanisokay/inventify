@@ -1,11 +1,13 @@
 "use client";
+import AuthContext from "@/contexts/AuthContext.mjs";
+import generateUniqueIds from "@/utils/generateUniqueIds.mjs";
+import getActiveOrg from "@/utils/getActiveOrg.mjs";
 import getCustomerDetails from "@/utils/getCustomerDetails.mjs";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import Select from "react-select";
 
-const NewCustomer = ({ id = null, setOpenModal = undefined, onSaveCustomer = undefined }) => {
+const NewCustomer = ({ id = null, actOrg, setOpenModal = undefined, onSaveCustomer = undefined }) => {
   const [updateable, setUpdateable] = useState(false);
   const [salutation, setSalutation] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -30,7 +32,17 @@ const NewCustomer = ({ id = null, setOpenModal = undefined, onSaveCustomer = und
   const [note, setNote] = useState("")
   const [facebookId, setFacebookId] = useState("")
   const [loading, setLoading] = useState(false);
-  const router = useRouter()
+  const { currentUser } = useContext(AuthContext);
+  const [activeOrg, setActiveOrg] = useState(actOrg);
+  useEffect(() => {
+    if (!actOrg) {
+      (async () => {
+        const a = await getActiveOrg()
+        setActiveOrg(a);
+      })()
+    }
+  }, [])
+
   const salutations = [
     { value: "Mr", label: "Mr" },
     { value: "Ms", label: "Ms" },
@@ -137,7 +149,9 @@ const NewCustomer = ({ id = null, setOpenModal = undefined, onSaveCustomer = und
       shippingCountry: sameAddress ? billingCountry : shippingCountry,
       shippingCode: sameAddress ? billingCode : shippingCode,
       note,
-      facebookId
+      facebookId,
+      ownerUsername: currentUser?.username,
+      orgId: activeOrg,
     };
     let apiPath = `/api/adds/new-customer`
     let method = "POST"
@@ -176,6 +190,7 @@ const NewCustomer = ({ id = null, setOpenModal = undefined, onSaveCustomer = und
           <div className="input-container">
             <label className="font-semibold mr-2 w-32">Salutation:</label>
             <Select
+            instanceId={generateUniqueIds(1)}
               options={salutations}
               value={salutations.find((s) => s.value === salutation)}
               onChange={(selected) => setSalutation(selected.value)}
@@ -206,6 +221,7 @@ const NewCustomer = ({ id = null, setOpenModal = undefined, onSaveCustomer = und
             <label className="font-semibold mr-2 w-32">Customer Type:</label>
             <Select
               options={customerTypes}
+              instanceId={generateUniqueIds(1)}
               value={customerTypes.find((c) => c.value === customerType)}
               onChange={(selected) => setCustomerType(selected.value)}
               className="w-[200px] select-react"
@@ -225,7 +241,7 @@ const NewCustomer = ({ id = null, setOpenModal = undefined, onSaveCustomer = und
             <label className="font-semibold mr-2 w-32">Phone:</label>
             <input
               type="text"
-              required
+
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               className="text-input"

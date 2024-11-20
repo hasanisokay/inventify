@@ -25,7 +25,7 @@ const ItemModal = ({ openModal, setOpenModal, item }) => {
     }, [sortOrder]);
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+        <div className="fixed inset-0 z-[100]  flex items-center justify-center">
             <div
                 onClick={() => setOpenModal(false)}
                 className={`fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity ${openModal ? "opacity-100 visible" : "opacity-0 invisible"
@@ -33,7 +33,7 @@ const ItemModal = ({ openModal, setOpenModal, item }) => {
             />
             <div
                 onClick={(e) => e.stopPropagation()}
-                className={`relative w-full max-w-3xl bg-white dark:bg-gray-900 rounded-lg shadow-lg transform transition-all ${openModal ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-10"
+                className={`relative w-full overflow-y-auto max-h-[99%] max-w-3xl bg-white dark:bg-gray-900 rounded-lg shadow-lg transform transition-all ${openModal ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-10"
                     } p-6`}
             >
                 <div className="flex justify-between items-center border-b pb-4 mb-4">
@@ -67,9 +67,9 @@ const ItemModal = ({ openModal, setOpenModal, item }) => {
                             options={defaultSortOptions}
                             value={defaultSortOptions.find((u) => u.value === sortOrder)}
                             onChange={(selectedOption) => setSortOrder(selectedOption.value)}
-                            className="w-48 mb-4"
+                            className="w-48 mb-4 select-react"
                         />
-                        <div className="grid md:grid-cols-2 grid-cols-1 gap-4 overflow-y-auto max-h-[70vh]">
+                        <div className="grid md:grid-cols-2 grid-cols-1 gap-4 max-h-[60vh] overflow-y-auto">
 
                             {itemsInvoices.map((i, index) => (
                                 <div key={i._id} className="border p-4 rounded-lg bg-gray-100 dark:bg-gray-800 overflow-auto">

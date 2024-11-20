@@ -4,11 +4,10 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import Select from 'react-select';
 
-const BarInInvoices = ({ limit, selectId, }) => {
+const BarInExpenses = ({ sort, limit, selectId, }) => {
     const router = useRouter();
     const [hasMounted, setHasMounted] = useState(false);
     const [selectedLimit, setSelectedLimit] = useState({ value: limit, label: `${limit} items per page` });
-
 
     useEffect(() => {
         if (hasMounted) {
@@ -37,5 +36,5 @@ const BarInInvoices = ({ limit, selectId, }) => {
     );
 };
 
-export default BarInInvoices;
+export default BarInExpenses;
 

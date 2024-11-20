@@ -5,6 +5,7 @@ import {
   unauthorizedResponse,
 } from "@/constants/responses.mjs";
 import dbConnect from "@/services/dbConnect.mjs";
+import { ObjectId } from "mongodb";
 
 import { NextResponse } from "next/server";
 
@@ -17,12 +18,17 @@ export const GET = async (req) => {
     const keyword = searchParams.get("keyword");
     const nameOnly = searchParams.get("titleOnly");
     const sort = searchParams.get("sort");
- 
-    const sortField = sort === "spenders" ? "totalPaid" : sort === "debtors" ? "totalDue" : "lastModifiedTime";
 
-    let sortOrder = - 1 
-//         { value: 'spenders', label: 'Highest Spenders' },
-// { value: 'debtors', label: 'Highest Debtors' },
+    const sortField =
+      sort === "spenders"
+        ? "totalPaid"
+        : sort === "debtors"
+        ? "totalDue"
+        : "lastModifiedTime";
+
+    let sortOrder = -1;
+    //         { value: 'spenders', label: 'Highest Spenders' },
+    // { value: 'debtors', label: 'Highest Debtors' },
 
     const page = parseInt(searchParams.get("page"));
     const limit = parseInt(searchParams.get("limit")) || 10;
@@ -34,8 +40,7 @@ export const GET = async (req) => {
 
     const customerCollection = await db.collection("customers");
 
-
-    const matchStage = {orgId:orgId};
+    const matchStage = { orgId: orgId };
 
     if (keyword) {
       matchStage.$or = [
@@ -47,12 +52,18 @@ export const GET = async (req) => {
         { facebookId: { $regex: keyword, $options: "i" } },
       ];
     }
+    const defaultUser = {
+      _id: new ObjectId('673b0dca95e2c44a6c32d4a5'),
+      firstName:"Default",
+      lastName: "Customer",
+    };
 
     if (nameOnly) {
       const res = await customerCollection
-        .find(matchStage, { projection: { _id: 1, firstName: 1, lastName: 1 } })
+        .find({...matchStage,$nor: [{ firstName: "Default", lastName: "Customer" }] },  { projection: { _id: 1, firstName: 1, lastName: 1 } })
         .toArray();
-      return NextResponse.json(dataFoundResponse(res));
+      const data = [defaultUser, ...res];
+      return NextResponse.json(dataFoundResponse(data));
     }
 
     const result = await customerCollection
@@ -71,7 +82,7 @@ export const GET = async (req) => {
             totalDue: { $sum: "$invoices.dueAmount" },
             totalPaid: { $sum: "$invoices.paidAmount" },
             totalOrder: { $size: "$invoices" },
-            // i need total order. invoices 
+            // i need total order. invoices
           },
         },
         {
@@ -84,8 +95,8 @@ export const GET = async (req) => {
             currency: 1,
             totalDue: 1,
             totalPaid: 1,
-            totalOrder :1 ,
-            lastModifiedTime : 1
+            totalOrder: 1,
+            lastModifiedTime: 1,
           },
         },
         { $sort: { [sortField]: sortOrder } },

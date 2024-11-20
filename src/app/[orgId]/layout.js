@@ -1,7 +1,6 @@
 
-
-const layout = async ({ children }) => {
-  return children;
+const orgLayout = ({children}) => {
+  return children
 };
 
-export default layout;
+export default orgLayout;

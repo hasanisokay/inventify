@@ -34,15 +34,13 @@ const CustomerModal = ({ openModal, setOpenModal, customer }) => {
                     setOpenModal(false);
                     setCustomerOrderDetails([]);
                 }}
-                className={`fixed z-[100] flex items-center justify-center ${
-                    openModal ? 'opacity-1 visible' : 'invisible opacity-0'
-                } inset-0 h-full w-full bg-black/20 backdrop-blur-sm duration-100`}
+                className={`fixed z-[100] flex items-center justify-center ${openModal ? 'opacity-1 visible' : 'invisible opacity-0'
+                    } inset-0 h-full w-full bg-black/20 backdrop-blur-sm duration-100`}
             >
                 <div
                     onClick={(e_) => e_.stopPropagation()}
-                    className={`absolute rounded-lg bg-white dark:bg-gray-900 shadow-lg max-h-[90%] min-h-[50%] min-w-[50%] max-w-[90%] overflow-y-auto border border-gray-300 dark:border-gray-700 ${
-                        openModal ? 'opacity-1 translate-y-0 duration-300' : '-translate-y-20 opacity-0 duration-150'
-                    }`}
+                    className={`absolute rounded-lg bg-white dark:bg-gray-900 shadow-lg max-h-[90%] min-h-[50%] min-w-[50%] max-w-[90%] overflow-y-auto border border-gray-300 dark:border-gray-700 ${openModal ? 'opacity-1 translate-y-0 duration-300' : '-translate-y-20 opacity-0 duration-150'
+                        }`}
                 >
                     <div className="px-5 pb-5 pt-3 lg:pb-10 lg:pt-5 lg:px-10">
                         <h1 className="pb-6 text-2xl font-semibold text-gray-800 dark:text-gray-200 border-b border-gray-200 dark:border-gray-700">
@@ -50,12 +48,12 @@ const CustomerModal = ({ openModal, setOpenModal, customer }) => {
                         </h1>
                         {customer?.company && <p><span className="font-medium text-gray-700 dark:text-gray-400">Company:</span> {customer.company}</p>}
                         {customer?.phone && <p><span className="font-medium text-gray-700 dark:text-gray-400">Phone:</span> {customer.phone}</p>}
-                        {customer?.totalPaid && <p><span className="font-medium text-gray-700 dark:text-gray-400">Paid:</span> {customer.totalPaid}</p>}
+                        <p><span className="font-medium text-gray-700 dark:text-gray-400">Paid:</span> {customer?.totalPaid}</p>
                         <p>
-                            <span className="font-medium text-gray-700 dark:text-gray-400">Due:</span> {customer.totalDue}
+                            <span className="font-medium text-gray-700 dark:text-gray-400">Due:</span> {customer?.totalDue}
                         </p>
-                        {customer?.totalOrder && <p><span className="font-medium text-gray-700 dark:text-gray-400">Total Order:</span> {customer.totalOrder}</p>}
-                        
+                        <p><span className="font-medium text-gray-700 dark:text-gray-400">Total Order:</span> {customer?.totalOrder}</p>
+
                         {customer?.totalOrder > 0 && customerOrderDetails.length === 0 && !loading && (
                             <button
                                 onClick={(e) => {
@@ -103,7 +101,7 @@ const CustomerModal = ({ openModal, setOpenModal, customer }) => {
                                         <p className={`${order?.dueAmount && "text-red-600 font-semibold "} mt-2`}>
                                             <span className="font-medium text-gray-700 dark:text-gray-400">Due Amount:</span> {order.dueAmount} {
                                                 order.dueAmount > 0 && (
-                                                    <button 
+                                                    <button
                                                         className="ml-4 text-sm text-green-600 bg-gray-50 dark:bg-gray-700 px-2 py-1 rounded-md shadow-sm opacity-0 group-hover:opacity-100 transition duration-150 hover:bg-green-50 hover:text-green-700"
                                                         onClick={() => markAsPaid(order)}
                                                     >

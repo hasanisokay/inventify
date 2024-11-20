@@ -12,14 +12,20 @@ import DeleteSVG from "../svg/DeleteSVG";
 import PrintSVG from "./PrintSVG";
 import CheckSVG from "./CheckSVG";
 import Loading from "../loader/Loading";
+import { useRouter } from "next/navigation";
+import SearchBar from "../SearchBar/SearchBar";
 
-const ItemsPage = ({ invoices: i }) => {
+const InvoicePage = ({ invoices: i }) => {
+    const router = useRouter();
+    const [hasMounted, setHasMounted] = useState(false);
     const [openInvoiceModal, setOpenInvoiceModal] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
     const [invoices, setItems] = useState(i);
     const [loading, setLoading] = useState(false);
     const [activeOrg, setActiveOrg] = useState()
     const { activeOrganization } = useContext(AuthContext);
+    const [selectedSort, setSelectedSort] = useState('newest');
+
     const [openInvoicePrintModal, setOpenInvoicePrintModal] = useState(false);
     const handleRowClick = (item) => {
         setSelectedItem(item);
@@ -80,19 +86,152 @@ const ItemsPage = ({ invoices: i }) => {
         }
     }, [selectedInvoiceForPrint])
 
+    const handleDateSort = (s) => {
+        if (s === "newest") {
+            if (selectedSort === "newest") {
+                setSelectedSort('lowest')
+            }
+            else {
+                setSelectedSort('newest')
+            }
+        }
+        if (s === "oldest") {
+            if (selectedSort === "oldest") {
+                setSelectedSort('newest')
+            } else {
+                setSelectedSort('oldest')
+            }
+        }
+    }
+    const handleAmountSort = (s) => {
+        if (s === "top-due") {
+            if (selectedSort === "top-due") {
+                setSelectedSort('top-paid')
+            }
+            else {
+                setSelectedSort("top-due")
+            }
+        }
+        if (s === "top-paid") {
+            if (selectedSort === "top-paid") {
+                setSelectedSort('top-due')
+            }
+            else {
+                setSelectedSort("top-paid")
+            }
+        }
+    }
+    useEffect(() => {
+        if (hasMounted) {
+            const query = new URLSearchParams(window.location.search);
+            query.set('sort', selectedSort);
+            router.replace(`${window.location.pathname}?${query.toString()}`, { scroll: false });
+        } else {
+            setHasMounted(true)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedSort]);
+
+
     return (
         <div className="w-full">
-              {loading && <Loading loading={loading} />}
-            {/* <table className="min-w-full border-collapse border border-gray-300"> */}
-            <table className="item-table duration-300">
+            {loading && <Loading loading={loading} />}
+            <h1 className="text-2xl font-semibold mb-4">Invoices</h1>
+            <SearchBar placeholder={"Search with items or customer name"}/>
+            <table className="item-table item-table-large-first-child duration-300">
                 <thead className="bg-gray-200">
                     <tr>
                         <th className="border border-gray-300 p-2 text-left">Customer</th>
                         <th className="border border-gray-300 p-2 text-left">Invoice</th>
-                        <th className="border border-gray-300 p-2 text-left">Date</th>
+                        <th className="border border-gray-300 p-2 text-left">
+                            <div className="flex items-center gap-2">
+                                Date
+                                <div className="flex flex-col cursor-pointer text-gray-500">
+                                    <svg
+                                        onClick={() => handleDateSort("newest")}
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className={`w-[8px] h-[8px] ${selectedSort === "newest" && "text-gray-800"}`}
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        strokeWidth="5"
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+                                    </svg>
+                                    <svg
+                                        onClick={() => handleDateSort("oldest")}
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className={`w-[8px] h-[8px] ${selectedSort === "oldest" && "text-gray-800"}`}
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        strokeWidth="5"
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </th>
                         <th className="border border-gray-300 p-2 text-left">Tax</th>
-                        <th className="border border-gray-300 p-2 text-left">Paid</th>
-                        <th className="border border-gray-300 p-2 text-left">Due</th>
+                        <th className="border border-gray-300 p-2 text-left">
+
+                            <div className="flex items-center justify-start gap-2">
+                                Paid
+                                <div className="flex flex-col cursor-pointer text-gray-500">
+                                    <svg
+                                        onClick={() => handleAmountSort("top-paid")}
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className={`w-[8px] h-[8px] ${selectedSort === "top-paid" && "text-gray-800"}`}
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        strokeWidth="5"
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+                                    </svg>
+                                    <svg
+                                        onClick={() => handleAmountSort("top-due")}
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className={`w-[8px] h-[8px] ${selectedSort === "top-due" && "text-gray-800"}`}
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        strokeWidth="5"
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </th>
+                        <th className="border border-gray-300 p-2 text-left">
+                        <div className="flex items-center justify-start gap-2">
+                                Due
+                                <div className="flex flex-col cursor-pointer text-gray-500">
+                                    <svg
+                                        onClick={() => handleAmountSort("top-due")}
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className={`w-[8px] h-[8px] ${selectedSort === "top-due" && "text-gray-800"}`}
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        strokeWidth="5"
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+                                    </svg>
+                                    <svg
+                                        onClick={() => handleAmountSort("top-paid")}
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className={`w-[8px] h-[8px] ${selectedSort === "top-paid" && "text-gray-800"}`}
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        strokeWidth="5"
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </th>
                         <th className="border border-gray-300 p-2 text-left">Total</th>
                     </tr>
                 </thead>
@@ -170,7 +309,7 @@ const ItemsPage = ({ invoices: i }) => {
                             })}</td>
                             <td className="border border-gray-300 p-2">{i?.totalTax}</td>
                             <td className="border border-gray-300 p-2 font-semibold">{i?.paidAmount}</td>
-                            <td className="border border-gray-300 font-semibold text-red-500 p-2">{i?.dueAmount}</td>
+                            <td className="border border-gray-300 font-semibold dark:text-yellow-400 text-red-500 p-2">{i?.dueAmount}</td>
                             <td className="border border-gray-300 p-2 font-semibold">{i?.total}</td>
                             {/* <td className="border border-gray-300 p-2">{c?.currency || "BDT "} {c?.totalPaid}</td> */}
                         </tr>
@@ -207,4 +346,4 @@ const ItemsPage = ({ invoices: i }) => {
     );
 };
 
-export default ItemsPage;
+export default InvoicePage;

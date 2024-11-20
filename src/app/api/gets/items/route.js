@@ -27,7 +27,7 @@ export const GET = async (req) => {
     if (!db) return NextResponse.json(dbErrorResponse);
     if (!orgId) return NextResponse.json(unauthorizedResponse);
     const itemCollection = await db.collection("items");
-    const matchStage = {orgId:orgId};
+    const matchStage = {orgId};
 
     if (category) {
       matchStage.category = category;
@@ -37,7 +37,6 @@ export const GET = async (req) => {
       matchStage.$or = [
         { description: { $regex: keyword, $options: "i" } },
         { name: { $regex: keyword, $options: "i" } },
-        { description: { $regex: keyword, $options: "i" } },
       ];
     }
     if (nameOnly) {

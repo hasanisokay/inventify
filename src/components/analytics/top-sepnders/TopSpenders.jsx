@@ -5,54 +5,56 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, Tooltip, CategoryScale, LinearScale, BarElement, Title } from 'chart.js';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 import useTheme from '@/hooks/useTheme.mjs';
 import Spinner from '@/components/loader/Spinner';
 
-
-
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip);
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, ChartDataLabels);
 
 const TopSpenders = () => {
     const { theme } = useTheme();
     const [loading, setLoading] = useState(false);
-    const [textColor, setTextColor] = useState("#ffffff");
+    const [textColor, setTextColor] = useState("#000000");
     const [topCustomers, setTopCustomers] = useState([]);
     const [endDate, setEndDate] = useState(new Date());
     const [startDate, setStartDate] = useState(new Date(new Date().setMonth(endDate.getMonth() - 1)));
 
     const fetchData = async () => {
-        setLoading(true)
-        const res = await fetch(`/api/gets/top-spenders?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}&limit=${10}`, {
-            credentials: 'include'
-        });
-        const data = await res.json();
-        setTopCustomers(data.data || []);
-        setLoading(false);
+        try {
+            setLoading(true);
+            const res = await fetch(`/api/gets/top-spenders?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}&limit=${10}`, {
+                credentials: 'include',
+            });
+            const data = await res.json();
+            setTopCustomers(data.data || []);
+        } catch (err) {
+            console.log(err);
+
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => {
         fetchData();
     }, []);
     useEffect(() => {
-        setTextColor(theme === "dark" ? "#ffffff" : "#000000")
-    }, [theme])
+        setTextColor(theme === "dark" ? "#ffffff" : "#000000");
+    }, [theme]);
 
     const chartData = {
-        labels: topCustomers?.map(customer => `${customer._id.firstName} ${customer._id.lastName}`),
+        labels: topCustomers.map(customer => `${customer._id.firstName} ${customer._id.lastName}`),
         datasets: [
             {
                 label: 'Top Spenders',
-                data: topCustomers?.map(customer => customer.totalPaidAmount),
-                backgroundColor: topCustomers?.map((customer, index) => index % 2 === 0 ? '#5a5a5a' : '#111827'),
-                hoverBackgroundColor: "#3d6b6a",
-
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 0.1,
-
-                barPercentage: 0.8, // Adjusted width of the bars
-                categoryPercentage: 0.9,
-
-
+                data: topCustomers.map(customer => Math.max(customer.totalPaidAmount, 1)),
+                backgroundColor: topCustomers.map((_, index) =>
+                    index % 2 === 0 ? '#14ae5c' : '#fd602b'
+                ),
+                hoverBackgroundColor: topCustomers.map((_, index) =>
+                    index % 2 === 0 ? '#14ae4c' : '#fd601b'
+                ),
+                borderWidth: 0,
             },
         ],
     };
@@ -63,116 +65,96 @@ const TopSpenders = () => {
             x: {
                 ticks: {
                     autoSkip: false,
-                    color: textColor
+                    color: textColor,
+                    font: { size: 12 },
                 },
-                stacked: false,
-                grid: {
-                    display: false,
-                },
+                grid: { display: false },
             },
             y: {
                 beginAtZero: true,
                 ticks: {
                     color: textColor,
+                    font: { size: 12 },
                 },
-                grid: {
-                    color: 'rgba(0, 0, 0, 0.1)', // Optional grid line color
-                },
+                grid: { color: theme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)" },
             },
         },
         plugins: {
-
-
+            datalabels: {
+                color: theme === "dark" ? "#ffffff" : "#000000",
+                font: {
+                    size: 12,
+                    weight: "bold",
+                },
+                align: "center",
+                anchor: "center",
+                formatter: (value) => `${value.toFixed(2)}`,
+            },
             tooltip: {
-                enabled: true,
                 callbacks: {
                     label: (tooltipItem) => {
                         const customer = topCustomers[tooltipItem.dataIndex];
-                        return `${customer._id.firstName} ${customer._id.lastName} \n Total Paid: ${customer.totalPaidAmount} Total Due: ${customer.totalDueAmount}`;
+                        return `${customer._id.firstName} ${customer._id.lastName} - Total Paid: $${customer.totalPaidAmount}`;
                     },
-                    labelColor: (context) => {
-                        return {
-                            backgroundColor: 'rgb(255, 0, 0)',
-                            borderWidth: 2,
-                            borderDash: [2, 2],
-                            borderRadius: 2,
-                        };
-                    },
-                    labelTextColor: () => '#c9c6b7',
                 },
             },
-            legend: {
-                display: true,
-            },
-            datalabels: {
-                color: '#ffffff',
-            },
+            legend: { display: false },
         },
     };
 
-    const handleStartDateChange = (date) => {
-        if (date <= endDate) {
-            setStartDate(date);
-        } else {
-            // Optionally, set end date to the same as start date if it was invalid
-            setStartDate(date);
-            setEndDate(date);
-        }
-    };
+    const handleStartDateChange = (date) => setStartDate(date <= endDate ? date : endDate);
+    const handleEndDateChange = (date) => setEndDate(date >= startDate ? date : startDate);
 
-    // Handler for end date change
-    const handleEndDateChange = (date) => {
-        if (date >= startDate) {
-            setEndDate(date);
-        } else {
-            // Optionally, set start date to the same as end date if it was invalid
-            setEndDate(date);
-            setStartDate(date);
-        }
-    };
     return (
-        <>
-            {loading ? <Spinner /> : <div>
-                <div className='md:px-10 px-2'>
-                    <h2 className='font-semibold text-xl text-center'>Top 10 Spenders</h2>
-                    <h3 className='my-2 font-semibold '>Select Date Range for top 10 Spenders</h3>
-                    <div className='flex  gap-10 flex-wrap'>
-                        <div className='input-container w-[250px]'>
-                            <label>
-                                From
-                            </label>
+        <div className='container min-h-[658px] mx-auto p-6 bg-white dark:bg-gray-900 shadow-xl rounded-lg relative'>
+            {loading ? (
+                <div className="absolute inset-0 bg-white dark:bg-gray-600 dark:bg-opacity-50 bg-opacity-20 backdrop-blur-lg flex justify-center items-center z-10">
+                    <div className="text-center text-2xl text-gray-800 dark:text-white">
+                        <p>Loading...</p>
+                        <Spinner />
+                    </div>
+                </div>
+            ) : (
+                <>
+                    <div className="text-center mb-6">
+                        <h2 className="text-2xl font-bold">Top 10 Spenders</h2>
+                        <p className="text-gray-600 dark:text-gray-400">View spending data for the selected date range.</p>
+                    </div>
+                    <div className="flex gap-8 justify-center mb-8 flex-wrap">
+                        <div className="w-[250px]">
+                            <label className={`text-sm mr-1 font-medium dark:text-gray-200 text-gray-700`}>From</label>
                             <DatePicker
                                 selected={startDate}
                                 onChange={handleStartDateChange}
-                                className='text-input'
+                                className={`w-full p-3 border rounded-lg shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 bg-white text-black border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600`}
                             />
-
                         </div>
-                        <div className='input-container w-[250px]'>
-                            <label>
-                                To
-                            </label>
+                        <div className="w-[250px]">
+                            <label className={`text-sm mr-1 font-medium dark:text-gray-200 text-gray-700`}>To</label>
                             <DatePicker
                                 selected={endDate}
                                 onChange={handleEndDateChange}
                                 filterDate={date => date >= startDate}
-                                className='text-input'
+                                className={`w-full p-3 border rounded-lg shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 bg-white text-black border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600`}
                             />
                         </div>
-                        <button className='btn-purple' onClick={fetchData}>Get Data</button>
-
+                        <button
+                            className={`px-6 py-3 dark:bg-indigo-800 bg-indigo-600 text-white rounded-lg shadow-lg hover:bg-indigo-700  transition-all duration-300`}
+                            onClick={fetchData}
+                        >
+                            Get Data
+                        </button>
                     </div>
-                </div>
-                <div className='h-[400px] w-full my-10'>
-                    {topCustomers?.length > 0 ? (
-                        <Bar data={chartData} options={options} />
-                    ) : (
-                        <p>No Spenders found.</p>
-                    )}
-                </div>
-            </div>}
-        </>
-
+                    <div className="h-96 w-full">
+                        {topCustomers.length > 0 ? (
+                            <Bar data={chartData} options={options} />
+                        ) : (
+                            <p className="text-center text-gray-500 dark:text-gray-400">No spenders found.</p>
+                        )}
+                    </div>
+                </>
+            )}
+        </div>
     );
 };
 

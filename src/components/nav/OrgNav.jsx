@@ -10,10 +10,11 @@ import Image from "next/image";
 import logo from "@/../../public/logo1.png"
 import AuthContext from "@/contexts/AuthContext.mjs";
 const OrgNav = ({ activeOrg }) => {
+    const { theme, toggleTheme } = useTheme();
     const { currentUser } = useContext(AuthContext);
     const [activeOrgId, setActiveOrgId] = useState(activeOrg);
     const [visible, setVisible] = useState(true);
-    const { theme } = useTheme();
+
     const [lastScrollY, setLastScrollY] = useState(0);
     const [menuOpen, setMenuOpen] = useState(false);
     const handleScroll = () => {
@@ -55,16 +56,17 @@ const OrgNav = ({ activeOrg }) => {
                     Invoices
                 </NavLink>
             </li>}
-            {/* {activeOrgId && <li>
-                <NavLink activeClasses={"text-[#00e76f]"} href={`/${activeOrgId}/payments-received`} aria-label="Payment Received Page">
-                    Payments Received
-                </NavLink>
-            </li>}
+    
             {activeOrgId && <li>
                 <NavLink activeClasses={"text-[#00e76f]"} href={`/${activeOrgId}/expenses`} aria-label="Expenses Page">
                     Expenses
                 </NavLink>
-            </li>} */}
+            </li>}
+            <li>
+                <span onClick={toggleTheme} className="px-3 py-1 text-sm cursor-pointer font-medium duration-300">
+                    {theme === "dark" ? "Light" : "Dark"}
+                </span>
+            </li>
             {currentUser && <li>
                 <button className="px-3 py-1 text-sm font-medium duration-300" onClick={async () => {
                     await logOut();
