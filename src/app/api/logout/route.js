@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 export const GET = async () => {
   try {
     cookies().delete(COOKIE_NAME);
+    cookies().delete('active-org');
     return NextResponse.json({ status: 200, message: "Logout success." });
   } catch {
     return NextResponse.json({ status: 500, message: "Server Error." });
