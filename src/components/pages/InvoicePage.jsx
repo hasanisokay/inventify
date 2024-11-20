@@ -138,6 +138,7 @@ const InvoicePage = ({ invoices: i }) => {
             {loading && <Loading loading={loading} />}
             <h1 className="text-2xl font-semibold mb-4">Invoices</h1>
             <SearchBar placeholder={"Search with items or customer name"}/>
+<p className="h-[40px]"></p>
             <table className="item-table item-table-large-first-child duration-300">
                 <thead className="bg-gray-200">
                     <tr>

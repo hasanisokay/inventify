@@ -94,12 +94,13 @@ const ExpensesPage = ({ e }) => {
         }
 
     }
-    console.log(e)
+
     return (
         <div className="py-6">
             <h1 className="text-2xl font-semibold mb-4">Expenses</h1>
             <div className="overflow-x-auto">
                 <SearchBar placeholder={'Search with category, reference or customer'} />
+                <p className="h-[40px]"></p>
                 <table className="item-table">
                     <thead className="">
                         <tr>

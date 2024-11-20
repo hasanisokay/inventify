@@ -53,7 +53,7 @@ export const GET = async (req) => {
       ];
     }
     const defaultUser = {
-      _id: new ObjectId('673b0dca95e2c44a6c32d4a5'),
+      _id: new ObjectId('673e36b073f2016df8694fd9'),
       firstName:"Default",
       lastName: "Customer",
     };
