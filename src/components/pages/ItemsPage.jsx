@@ -96,6 +96,7 @@ const ItemsPage = ({ i, actOrg, keyword }) => {
             })();
 
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
