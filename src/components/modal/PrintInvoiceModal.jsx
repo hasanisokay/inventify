@@ -15,11 +15,11 @@ const PrintInvoiceModal = ({ resetStates, openModal, setOpenModal, invoiceNumber
         const printWindow = window.open('', '', 'height=600,width=800');
         printWindow.document.write(`<html><head><title>${invoiceNumber}</title>`);
 
-        printWindow.document.write('<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">');
+        // printWindow.document.write('<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">');
         // printWindow.document.write('<link href="./tailwind.min.css" rel="stylesheet">');
         // printWindow.document.write('<link href="./../../../public/css/tailwind.min.css" rel="stylesheet">');
         // printWindow.document.write('<link href="/public/css/tailwind.min.css" rel="stylesheet">');
-        printWindow.document.write('<link href="./../../app/globals.css" rel="stylesheet">');
+        // printWindow.document.write('<link href="./../../app/globals.css" rel="stylesheet">');
 
         printWindow.document.write('</head><body>');
         printWindow.document.write(printContent.innerHTML);
@@ -75,19 +75,31 @@ const PrintInvoiceModal = ({ resetStates, openModal, setOpenModal, invoiceNumber
     const renderPreview = () => {
         if (!selectedPreview) return null;
         const orgInformation = <>
-            <div className="flex items-start flex-col mb-4">
+            <div style={{ display: "flex", alignItems: "flex-start", flexDirection: "column", marginBottom: "1rem" }}>
                 <div>
-                    <img src={orgInfo?.logoUrl} alt="Organization Logo" style={{ height: '90px', width: '100px' }} />
+                    <img src={orgInfo?.logoUrl} alt="Organization Logo" style={{ height: "90px", width: "100px" }} />
                 </div>
-                <div className='space-y-2'>
-                    <h1 className="text-xl font-semibold">{orgInfo?.name}</h1>
-                    <p className="text-sm text-gray-500 w-[200px] whitespace-break-spaces">{getFullAddress(orgInfo?.address)}</p>
-                    {selectedPreview === 'Invoice' && <p className='text-sm text-gray-500'>{orgInfo?.phone}</p>}
-                    {selectedPreview === 'Invoice' && <p className='text-sm text-gray-500'>{orgInfo?.email}</p>}
-                    {selectedPreview === 'Invoice' && <p className='text-sm text-gray-500'>{orgInfo?.website}</p>}
-
+                <div style={{ marginTop: "0.5rem" }}>
+                    <h1 style={{ fontSize: "1.25rem", fontWeight: 600, marginBottom: "0.5rem" }}>{orgInfo?.name}</h1>
+                    <p style={{
+                        fontSize: "0.875rem",
+                        color: "#6b7280",
+                        width: "200px",
+                        whiteSpace: "break-spaces",
+                        marginBottom: "0.5rem"
+                    }}>
+                        {getFullAddress(orgInfo?.address)}
+                    </p>
+                    {selectedPreview === 'Invoice' && (
+                        <>
+                            <p style={{ fontSize: "0.875rem", color: "#6b7280", marginBottom: "0.5rem" }}>{orgInfo?.phone}</p>
+                            <p style={{ fontSize: "0.875rem", color: "#6b7280", marginBottom: "0.5rem" }}>{orgInfo?.email}</p>
+                            <p style={{ fontSize: "0.875rem", color: "#6b7280" }}>{orgInfo?.website}</p>
+                        </>
+                    )}
                 </div>
             </div>
+
         </>
 
         const thStyle = {
@@ -117,25 +129,39 @@ const PrintInvoiceModal = ({ resetStates, openModal, setOpenModal, invoiceNumber
         }
         const spanStyle = { width: '120px', textAlign: 'left' }
         return (
-            <div className="p-4 bg-white">
+            <div style={{ padding: "1rem", backgroundColor: "white" }}>
+
                 {selectedPreview === 'Invoice' && (
                     <>
-                        <div className='flex justify-between'>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}>
+
                             {
                                 orgInformation
                             }
-                            <div className='flex flex-col justify-around'>
+                            <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-around" }}>
                                 <div>
-                                    <h3 className="text-2xl font-medium leading-6 mb-2">INVOICE</h3>
-                                    <p className='text-gray-500 mb-1 text-sm font-medium'>#{invoiceNumber}</p>
-                                    <p className="text-sm">Date: {formatDate(invoiceDate)}</p>
+                                    <h3 style={{ fontSize: "1.5rem", fontWeight: 500, lineHeight: "1.5rem", marginBottom: "0.5rem" }}>INVOICE</h3>
+                                    <p style={{ color: "#6b7280", marginBottom: "0.25rem", fontSize: "0.875rem", fontWeight: 500 }}>#{invoiceNumber}</p>
+                                    <p style={{ fontSize: "0.875rem" }}>Date: {formatDate(invoiceDate)}</p>
                                 </div>
-                                <div className='space-y-2 text-sm'>
-                                    <h4 className="">Bill To:</h4>
-                                    <p className=' max-w-[200px] whitespace-break-spaces font-semibold'>{`${customerInfo?.firstName || "Another"} ${customerInfo?.lastName || "Customer"}`}</p>
-                                    <p className='w-[200px]'>{customerInfo?.billingAddress || ""}</p>
+
+
+                                <div style={{ marginBottom: "0.5rem", fontSize: "0.875rem" }}>
+                                    <h4 style={{ marginBottom: "0.5rem" }}>Bill To:</h4>
+                                    <p style={{
+                                        maxWidth: "200px",
+                                        whiteSpace: "break-spaces",
+                                        fontWeight: 500,
+                                        marginBottom: "0.5rem"
+                                    }}>
+                                        {`${customerInfo?.firstName || "Another"} ${customerInfo?.lastName || "Customer"}`}
+                                    </p>
+                                    <p style={{ width: "200px", marginBottom: "0.5rem" }}>
+                                        {customerInfo?.billingAddress || ""}
+                                    </p>
                                     <p>{customerInfo?.phone || ""}</p>
                                 </div>
+
                             </div>
                         </div>
                         <table style={tableStyle}>
@@ -232,31 +258,43 @@ const PrintInvoiceModal = ({ resetStates, openModal, setOpenModal, invoiceNumber
 
                 {selectedPreview === 'Delivery Note' && (
                     <>
-                        <div className='flex justify-between'>
-
-                            <div className='flex flex-col justify-around'>
-                                <div className="flex flex-col justify-around h-full">
-                                    <div className='space-y-2'>
-                                        <h3 className="text-2xl font-medium mb-2">DELIVERY NOTE</h3>
-                                        <p className='text-gray-500 text-sm font-medium'>#{invoiceNumber}</p>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}>
+                            <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-around" }}>
+                                <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-around", height: "100%" }}>
+                                    <div style={{ marginBottom: "0.5rem" }}>
+                                        <h3 style={{ fontSize: "1.5rem", fontWeight: 500, marginBottom: "0.5rem" }}>DELIVERY NOTE</h3>
+                                        <p style={{ color: "#6b7280", fontSize: "0.875rem", fontWeight: 500 }}>#{invoiceNumber}</p>
                                     </div>
-                                    <div className='text-sm font-semibold'>
+                                    <div style={{ fontSize: "0.875rem", fontWeight: 600 }}>
                                         <p>Balance Due</p>
                                         <p>{currency} {total - paidAmount}</p>
                                     </div>
                                 </div>
-                                <p className="text-sm mb-4">Date: {formatDate(invoiceDate)}</p>
+
+
+                                <p style={{ fontSize: "0.875rem", marginBottom: "1rem" }}>Date: {formatDate(invoiceDate)}</p>
+
                             </div>
                             <div>
                                 {
                                     orgInformation
                                 }
-                                <div className='space-y-2 text-sm'>
-                                    <h4 className=" mb-2">Bill To:</h4>
-                                    <p className=' max-w-[200px] font-semibold whitespace-break-spaces font-semibold'>{`${customerInfo?.firstName || "Another"} ${customerInfo?.lastName || "Customer"}`}</p>
-                                    <p className='w-[200px]'>{customerInfo?.billingAddress || ""}</p>
+                                <div style={{ fontSize: "0.875rem" }}>
+                                    <h4 style={{ marginBottom: "0.5rem" }}>Bill To:</h4>
+                                    <p
+                                        style={{
+                                            maxWidth: "200px",
+                                            fontWeight: 500,
+                                            whiteSpace: "break-spaces",
+                                            marginBottom: "0.5rem"
+                                        }}
+                                    >
+                                        {`${customerInfo?.firstName || "Another"} ${customerInfo?.lastName || "Customer"}`}
+                                    </p>
+                                    <p style={{ width: "200px", marginBottom: "0.5rem" }}>{customerInfo?.billingAddress || ""}</p>
                                     <p>{customerInfo?.phone || ""}</p>
                                 </div>
+
                             </div>
                         </div>
                         <table style={tableStyle}>
@@ -285,13 +323,14 @@ const PrintInvoiceModal = ({ resetStates, openModal, setOpenModal, invoiceNumber
                             paddingTop: '0.5rem',
                             paddingBottom: '1rem'
                         }}>
-                            <strong className='text-gray-500'>Notes:</strong> {note}
+                            <strong style={{ color: "#6b7280" }}>Notes:</strong> {note}
                         </p>
 
 
-                        <div className="mt-4">
-                            <p className="font-semibold text-gray-500">Authorized Signature: ______________________</p>
+                        <div style={{ marginTop: "1rem" }}>
+                            <p style={{ fontWeight: 600, color: "#6b7280" }}>Authorized Signature: ______________________</p>
                         </div>
+
                     </>
                 )
                 }
@@ -299,27 +338,26 @@ const PrintInvoiceModal = ({ resetStates, openModal, setOpenModal, invoiceNumber
                 {
                     selectedPreview === 'Packaging Slip' && (
                         <>
-                            <div className='flex justify-between'>
-
-                                <div className='flex flex-col justify-around'>
-                                    <div className="flex flex-col justify-around h-full">
-                                        <div className='space-y-2'>
-                                            <h3 className="text-2xl font-medium mb-2">PACKING SLIP</h3>
-                                            <p className='text-gray-500 text-sm font-medium'>#{invoiceNumber}</p>
+                            <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-around" }}>
+                                    <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-around", height: "100%" }}>
+                                        <div style={{ marginBottom: "0.5rem" }}>
+                                            <h3 style={{ fontSize: "1.5rem", fontWeight: 500, marginBottom: "0.5rem" }}>PACKING SLIP</h3>
+                                            <p style={{ color: "#6b7280", fontSize: "0.875rem", fontWeight: 500 }}>#{invoiceNumber}</p>
                                         </div>
-                                        <div className='text-sm font-semibold'>
+                                        <div style={{ fontSize: "0.875rem", fontWeight: 600 }}>
                                             <p>Balance Due</p>
                                             <p>{currency} {total - paidAmount}</p>
                                         </div>
                                     </div>
-                                    <p className="text-sm mb-4">Date: {formatDate(invoiceDate)}</p>
+                                    <p style={{ fontSize: "0.875rem", marginBottom: "1rem" }}>Date: {formatDate(invoiceDate)}</p>
                                 </div>
                                 <div>
-                                    {
-                                        orgInformation
-                                    }
+                                    {orgInformation}
                                 </div>
                             </div>
+
+
                             <table style={tableStyle}>
                                 <thead>
                                     <tr>
@@ -345,7 +383,8 @@ const PrintInvoiceModal = ({ resetStates, openModal, setOpenModal, invoiceNumber
                                 paddingTop: '0.5rem',
                                 color: '#4a5568',
                             }}>
-                                <strong className='text-gray-500'>Notes:</strong> {note}
+                                <strong style={{ color: "#6b7280" }}>Notes:</strong> {note}
+
                             </p>
                         </>
                     )
