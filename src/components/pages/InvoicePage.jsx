@@ -20,7 +20,7 @@ const InvoicePage = ({ invoices: i }) => {
     const [hasMounted, setHasMounted] = useState(false);
     const [openInvoiceModal, setOpenInvoiceModal] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
-    const [invoices, setItems] = useState(i);
+    const [invoices, setInvoices] = useState(i);
     const [loading, setLoading] = useState(false);
     const [activeOrg, setActiveOrg] = useState()
     const { activeOrganization } = useContext(AuthContext);
@@ -40,7 +40,7 @@ const InvoicePage = ({ invoices: i }) => {
     }, [])
 
     useEffect(() => {
-        setItems(i);
+        setInvoices(i);
     }, [i]);
     const handleDelete = async (id) => {
         const res = await fetch("/api/deletes/delete-invoice", {
@@ -54,7 +54,7 @@ const InvoicePage = ({ invoices: i }) => {
         const data = await res.json();
         if (data.status === 200) {
             toast.success(data.message)
-            setItems((prev) => {
+            setInvoices((prev) => {
                 const filteredItems = prev.filter((i) => i._id !== id)
                 return filteredItems
             })
@@ -137,8 +137,8 @@ const InvoicePage = ({ invoices: i }) => {
         <div className="w-full">
             {loading && <Loading loading={loading} />}
             <h1 className="text-2xl font-semibold mb-4">Invoices</h1>
-            <SearchBar placeholder={"Search with items or customer name"}/>
-<p className="h-[40px]"></p>
+            <SearchBar placeholder={"Search with items or customer name"} />
+            <p className="h-[40px]"></p>
             <table className="item-table item-table-large-first-child duration-300">
                 <thead className="bg-gray-200">
                     <tr>
@@ -205,7 +205,7 @@ const InvoicePage = ({ invoices: i }) => {
                             </div>
                         </th>
                         <th className="border border-gray-300 p-2 text-left">
-                        <div className="flex items-center justify-start gap-2">
+                            <div className="flex items-center justify-start gap-2">
                                 Due
                                 <div className="flex flex-col cursor-pointer text-gray-500">
                                     <svg
