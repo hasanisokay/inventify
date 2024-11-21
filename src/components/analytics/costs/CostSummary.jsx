@@ -1,17 +1,10 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Pie } from 'react-chartjs-2';
-import ChartDataLabels from 'chartjs-plugin-datalabels';
-import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement } from 'chart.js';
 import Spinner from '@/components/loader/Spinner';
 import RangeDatepicker from '@/components/datepickers/RangeDatepicker';
 
-ChartJS.register(Title, Tooltip, Legend, ArcElement, ChartDataLabels);
-
 const CostSummary = () => {
-    const [totalDue, setTotalDue] = useState(undefined);
-    const [totalPaid, setTotalPaid] = useState(undefined);
-    const [totalExpenses, setTotalExpenses] = useState(undefined);
+    const [mergedData, setMergedData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [startDate, setStartDate] = useState(new Date(new Date().setMonth(new Date().getMonth() - 1)));
     const [endDate, setEndDate] = useState(new Date());
@@ -23,53 +16,82 @@ const CostSummary = () => {
                 credentials: 'include'
             });
             const data = await res.json();
-            setTotalDue(data.totalDue);
-            setTotalPaid(data.totalPaid);
-            setTotalExpenses(data.totalExpenses);
+            console.log(data)
+            if (data.success) {
+                mergeData(data.invoiceData, data.expenseData);
+            } else {
+                console.error("Error fetching data:", data.message);
+            }
         } catch (err) {
             console.log(err);
-
         } finally {
             setLoading(false);
         }
     };
 
+    const mergeData = (invoiceData, expenseData) => {
+        const merged = [];
+        const expenseMap = new Map();
+
+   
+        expenseData.forEach((expense) => {
+            expenseMap.set(expense._id, expense.totalExpenses);
+        });
+
+
+        invoiceData.forEach((invoice) => {
+            const expense = expenseMap.get(invoice._id) || 0; 
+            merged.push({
+                timePeriod: formatTimePeriod(invoice._id),
+                totalDue: invoice.totalDue,
+                totalPaid: invoice.totalPaid,
+                totalExpenses: expense,
+            });
+        });
+
+        setMergedData(merged);
+    };
+
+    const formatTimePeriod = (period) => {
+        if(typeof(period)==='number') return period
+        if (period?.includes("W")) {
+            const [year, week] = period.split("-W");
+            return formatWeekToDateRange(year, week);
+        } else if (period?.includes("-")) {
+            const [year, month] = period.split("-");
+            const monthNames = [
+                "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
+            ];
+            return `${monthNames[parseInt(month, 10) - 1]} ${year}`;
+        }
+        return period;  
+    };
+
+    const formatWeekToDateRange = (year, week) => {
+
+        const firstDayOfWeek = getDateOfISOWeek(year, week); 
+        const lastDayOfWeek = new Date(firstDayOfWeek);
+        lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 6); 
+
+        const options = { year: 'numeric', month: 'short', day: 'numeric' };
+        const startDateFormatted = firstDayOfWeek.toLocaleDateString('en-US', options);
+        const endDateFormatted = lastDayOfWeek.toLocaleDateString('en-US', options);
+
+        return `${startDateFormatted} - ${endDateFormatted}`;
+    };
+
+    const getDateOfISOWeek = (year, week) => {
+        const date = new Date(year, 0, 1);
+        const dayOfWeek = date.getDay();
+        const diff = (dayOfWeek <= 4 ? 1 - dayOfWeek : 8 - dayOfWeek) + (week - 1) * 7;
+        date.setDate(date.getDate() + diff);
+
+        return date;
+    };
+
     useEffect(() => {
         fetchData();
     }, []);
-
-    const chartData = {
-        labels: ['Total Due', 'Total Paid', 'Total Expenses'],
-        datasets: [{
-            data: [totalDue, totalPaid, totalExpenses],
-            backgroundColor: ['#e72d2d', '#308853', '#f39c12'],  // Colors for Pie chart segments
-            hoverBackgroundColor: ['#ff0f10', '#1c6c47', '#e67e22'],
-        }],
-    };
-
-    const options = {
-        plugins: {
-            legend: {
-                position: 'bottom',
-                labels: {
-                    fontSize: 14,
-                    boxWidth: 20,
-                    padding: 10,
-                    fontColor: '#333', // Default text color for light mode
-                },
-            },
-            datalabels: {
-                color: '#fff',
-                font: {
-                    weight: 'bold',
-                    size: 16,
-                },
-                formatter: (value) => {
-                    return value > 0 ? `${value.toLocaleString()} BDT` : '';
-                },
-            },
-        },
-    };
 
     const handleStartDateChange = (date) => {
         if (date <= endDate) {
@@ -105,34 +127,47 @@ const CostSummary = () => {
                         <h3 className="text-lg text-gray-600 dark:text-gray-300">Select a Date Range for Cost Summary</h3>
                     </div>
 
-                  
-                    <RangeDatepicker endDate={endDate} startDate={startDate} fetchData={fetchData} handleEndDateChange={handleEndDateChange} handleStartDateChange={handleStartDateChange} />
+                    <RangeDatepicker 
+                        endDate={endDate} 
+                        startDate={startDate} 
+                        fetchData={fetchData} 
+                        handleEndDateChange={handleEndDateChange} 
+                        handleStartDateChange={handleStartDateChange} 
+                    />
 
-                    <div className="flex justify-between gap-12 items-center flex-wrap">
-                        <div className="text-lg font-medium text-gray-800 dark:text-gray-300 space-y-4">
-                            {totalPaid !== undefined && (
-                                <p><span className="font-semibold">Received:</span> {totalPaid.toLocaleString()} BDT</p>
-                            )}
-                            {totalDue !== undefined && (
-                                <p><span className="font-semibold">Due From Invoice:</span> {totalDue.toLocaleString()} BDT</p>
-                            )}
-                            {totalExpenses !== undefined && (
-                                <p><span className="font-semibold">Expenses:</span> {totalExpenses.toLocaleString()} BDT</p>
-                            )}
-                        </div>
-
-                        <div className="h-[400px] w-[400px]">
-                            {totalDue > 0 || totalPaid > 0 || totalExpenses > 0 ? (
-                                <Pie data={chartData} options={options} />
-                            ) : (
-                                <p className="text-center text-gray-600 dark:text-gray-400">No data available for the selected range.</p>
-                            )}
-                        </div>
+                    <div className="mt-6">
+                        <table className="min-w-full table-auto mb-8 border-collapse">
+                            <thead>
+                                <tr>
+                                    <th className="px-4 py-2 text-left text-lg font-medium text-gray-700 dark:text-gray-300">Time Period</th>
+                                    <th className="px-4 py-2 text-left text-lg font-medium text-gray-700 dark:text-gray-300">Due</th>
+                                    <th className="px-4 py-2 text-left text-lg font-medium text-gray-700 dark:text-gray-300">Received</th>
+                                    <th className="px-4 py-2 text-left text-lg font-medium text-gray-700 dark:text-gray-300">Expenses</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {mergedData.length > 0 ? (
+                                    mergedData.map((item, index) => (
+                                        <tr key={index} className="border-b">
+                                            <td className="px-4 py-2 text-gray-700 dark:text-gray-300">{item.timePeriod}</td>
+                                            <td className="px-4 py-2 text-gray-700 dark:text-gray-300">{item.totalDue.toLocaleString()} BDT</td>
+                                            <td className="px-4 py-2 text-gray-700 dark:text-gray-300">{item.totalPaid.toLocaleString()} BDT</td>
+                                            <td className="px-4 py-2 text-gray-700 dark:text-gray-300">{item.totalExpenses.toLocaleString()} BDT</td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="4" className="px-4 py-2 text-center text-gray-600 dark:text-gray-400">
+                                            No data available for the selected range.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
                     </div>
                 </>
             )}
         </div>
-
     );
 };
 

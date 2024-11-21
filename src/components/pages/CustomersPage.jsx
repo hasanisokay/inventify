@@ -97,7 +97,7 @@ const CustomersPage = ({ c, page: p }) => {
 
     return (
         <div className="w-full">
-            <h1 className="text-2xl font-semibold mb-4">Customers</h1>
+            <h1 className="text-2xl font-semibold mb-4 text-center">Customers</h1>
             <SearchBar placeholder={"Search with name, phone, address, email, fbId"} />
             <div className="h-[40px]">
                 {selectedCustomers.length > 0 && (

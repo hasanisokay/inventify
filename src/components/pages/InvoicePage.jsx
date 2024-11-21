@@ -136,7 +136,7 @@ const InvoicePage = ({ invoices: i }) => {
     return (
         <div className="w-full">
             {loading && <Loading loading={loading} />}
-            <h1 className="text-2xl font-semibold mb-4">Invoices</h1>
+            <h1 className="text-2xl font-semibold mb-4 text-center">Invoices</h1>
             <SearchBar placeholder={"Search with items or customer name"} />
             <p className="h-[40px]"></p>
             <table className="item-table item-table-large-first-child duration-300">

@@ -18,8 +18,69 @@ export const GET = async (req) => {
     }
 
     const db = await dbConnect();
+    const timeDiff = (endDate - startDate) / (1000 * 3600 * 24 * 30); 
+    let groupBy;
+    let groupByForExpenses;
+    let projectFields;
 
-    // Fetch data from invoices with aggregation
+    if (timeDiff < 2) {
+      groupBy = {
+        $concat: [
+          { $toString: { $year: "$invoiceDate" } },
+          "-W",
+          { $toString: { $isoWeek: "$invoiceDate" } },
+        ], 
+      };
+      groupByForExpenses = {
+        $concat: [
+          { $toString: { $year: "$date" } },
+          "-W",
+          { $toString: { $isoWeek: "$date" } },
+        ], 
+      };
+      projectFields = {
+        week: 1,
+        totalDue: 1,
+        totalPaid: 1,
+      };
+    } else if (timeDiff < 12) {
+
+      groupBy = {
+        $concat: [
+          { $toString: { $year: "$invoiceDate" } },
+          "-",
+          { $toString: { $month: "$invoiceDate" } },
+        ], 
+      };
+      groupByForExpenses = {
+        $concat: [
+          { $toString: { $year: "$date" } },
+          "-",
+          { $toString: { $month: "$date" } },
+        ],
+      };
+      projectFields = {
+        month: 1,
+        totalDue: 1,
+        totalPaid: 1,
+      };
+    } else {
+  
+      groupBy = { $year: "$invoiceDate" };
+      projectFields = {
+        year: 1,
+        totalDue: 1,
+        totalPaid: 1,
+      };
+      groupByForExpenses = { $year: "$date" }; 
+      projectFields = {
+        year: 1,
+        totalDue: 1,
+        totalPaid: 1,
+      };
+    }
+
+
     const invoiceCollection = await db.collection("invoices");
     const invoiceResults = await invoiceCollection
       .aggregate([
@@ -34,15 +95,18 @@ export const GET = async (req) => {
         },
         {
           $group: {
-            _id: null,
+            _id: groupBy,
             totalDue: { $sum: "$dueAmount" },
             totalPaid: { $sum: "$paidAmount" },
           },
         },
+        {
+          $project: projectFields, 
+        },
       ])
       .toArray();
 
-    // Fetch total expenses using aggregation
+
     const expenseCollection = await db.collection("expenses");
     const expenseResults = await expenseCollection
       .aggregate([
@@ -57,8 +121,14 @@ export const GET = async (req) => {
         },
         {
           $group: {
-            _id: null,
+            _id: groupByForExpenses,
             totalExpenses: { $sum: "$total" },
+          },
+        },
+        {
+          $project: {
+            _id:1,
+            totalExpenses: 1,
           },
         },
       ])
@@ -67,9 +137,8 @@ export const GET = async (req) => {
 
     const response = {
       success: true,
-      totalDue: invoiceResults.length > 0 ? invoiceResults[0].totalDue : 0,
-      totalPaid: invoiceResults.length > 0 ? invoiceResults[0].totalPaid : 0,
-      totalExpenses: expenseResults.length > 0 ? expenseResults[0].totalExpenses : 0,
+      invoiceData: invoiceResults,
+      expenseData: expenseResults,
     };
 
     return NextResponse.json(response);

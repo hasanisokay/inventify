@@ -1,7 +1,7 @@
 import React from 'react';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-const RangeDatepicker = ({ handleStartDateChange,handleEndDateChange, startDate, endDate, fetchData}) => {
+const RangeDatepicker = ({ handleStartDateChange, handleEndDateChange, startDate, endDate, fetchData }) => {
     return (
         <div className="flex gap-8 justify-center mb-8 flex-wrap">
             <div className="w-[250px]">
@@ -9,6 +9,7 @@ const RangeDatepicker = ({ handleStartDateChange,handleEndDateChange, startDate,
                 <DatePicker
                     selected={startDate}
                     onChange={handleStartDateChange}
+                    dateFormat="dd/MM/yyyy"
                     className={`w-full p-3 border rounded-lg shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 bg-white text-black border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600`}
                 />
             </div>
@@ -17,6 +18,7 @@ const RangeDatepicker = ({ handleStartDateChange,handleEndDateChange, startDate,
                 <DatePicker
                     selected={endDate}
                     onChange={handleEndDateChange}
+                    dateFormat="dd/MM/yyyy"
                     filterDate={date => date >= startDate}
                     className={`w-full p-3 border rounded-lg shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 bg-white text-black border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600`}
                 />

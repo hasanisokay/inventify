@@ -26,7 +26,7 @@ const ItemsPage = ({ i, actOrg, keyword }) => {
     const [selectedItems, setSelectedItems] = useState([]);
     const [startDate, setStartDate] = useState(new Date(new Date().setMonth(new Date().getMonth() - 1)));
     const [endDate, setEndDate] = useState(new Date());
-const {currentUser} = useContext(AuthContext);
+    const { currentUser } = useContext(AuthContext);
     const handleSelectItem = (id) => {
         setSelectedItems((prev) => {
             if (prev.includes(id)) {
@@ -162,13 +162,13 @@ const {currentUser} = useContext(AuthContext);
 
     return (
         <div>
-            <h1 className="text-2xl font-semibold mb-4">Items</h1>
+            <h1 className="text-2xl font-semibold mb-4 text-center">Items</h1>
             <h3 className="text-lg text-gray-600 dark:text-gray-300 text-center mb-2">Select a Date Range for Sell Data</h3>
             <RangeDatepicker endDate={endDate} startDate={startDate} fetchData={fetchData} handleEndDateChange={handleEndDateChange} handleStartDateChange={handleStartDateChange} />
             <SearchBar placeholder={'Search with name or description'} />
             <p className="text-center mt-2"><button className="btn-ghost" onClick={downloadFullReport}>See Full Report </button></p>
             {loading && <Loading loading={loading} />}
-       
+
 
             <div className="h-[40px]">
                 {selectedItems?.length > 0 && <div className="flex gap-4 mb-4">
@@ -211,7 +211,7 @@ const {currentUser} = useContext(AuthContext);
                         <th className="border border-gray-300 p-2 text-left">Unit</th>
                         <th className="border border-gray-300 p-2 text-left">Total Sold</th>
                         <th className="border border-gray-300 p-2 text-left">Status</th>
-                        <th className="border border-gray-300 p-2 text-left">Actions</th> {/* Add action column */}
+                        <th className="border border-gray-300 p-2 text-left">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -242,9 +242,9 @@ const {currentUser} = useContext(AuthContext);
                                     <button
                                         className="text-blue-500 hover:underline"
                                         onClick={(e) => {
-                                            e.stopPropagation(); // Prevent row click from triggering modal
+                                            e.stopPropagation();
                                             setSelectedItem(i);
-                                            setOpenModal(true); // Open the modal
+                                            setOpenModal(true);
                                         }}
                                         title="See details"
                                     >
@@ -280,12 +280,12 @@ const {currentUser} = useContext(AuthContext);
                 openItemReportDownloadModal && <ItemReportDownloadModal
                     setOpenModal={setOpenItemReportDownloadModal}
                     openModal={openItemReportDownloadModal}
-                    items={itemsForReport} 
+                    items={itemsForReport}
                     endDate={endDate}
                     startDate={startDate}
                     companyName={currentUser?.name || "Sukkarshop"}
                     keyword={keyword}
-                    />
+                />
             }
             {selectedItem && (
                 <ItemModal
