@@ -13,7 +13,7 @@ const PrintInvoiceModal = ({ resetStates, openModal, setOpenModal, invoiceNumber
     const handlePrint = () => {
         const printContent = document.getElementById('printable-area');
         const printWindow = window.open('', '', 'height=600,width=800');
-        printWindow.document.write('<html><head><title>Print</title>');
+        printWindow.document.write(`<html><head><title>${invoiceNumber}</title>`);
 
         // printWindow.document.write('<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">');
         // printWindow.document.write('<link href="/public/css/tailwind.min.css" rel="stylesheet">');
