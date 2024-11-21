@@ -11,12 +11,16 @@ const page = async ({ searchParams }) => {
   const page = parseInt(searchParams?.page) || 1;
   const limit = parseInt(searchParams?.limit) || 100;
   const sort = searchParams?.sort || "highest";
+  
+  const now = new Date(); 
+  const endDate = searchParams?.endDate || now.toISOString(); 
+  const startDate = searchParams?.startDate || new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString(); 
+
   const keyword = searchParams?.keyword || "";
   const orgId = await getActiveOrg();
-
   let items;
   try {
-    items = await getItems(page, limit, sort, keyword,"", orgId);
+    items = await getItems(page, limit, sort, keyword,"", orgId, startDate, endDate);
   } catch (error) {
     items = null;
   }
@@ -35,7 +39,7 @@ const page = async ({ searchParams }) => {
   return (
     <div className="page-container">
       <BarInItems limit={limit} page={page} sort={sort}selectId ={generateUniqueIds(2)} />
-      <ItemsPage i={items?.items} />
+      <ItemsPage i={items?.items} actOrg={orgId} keyword={keyword} />
       {totalCount > limit && (
         <PaginationDefault p={page} totalPages={totalPages} />
       )}

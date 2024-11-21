@@ -10,16 +10,49 @@ const PrintInvoiceModal = ({ resetStates, openModal, setOpenModal, invoiceNumber
         setSelectedPreview(type);
     };
 
+    // const handlePrint = () => {
+    //     const printContent = document.getElementById('printable-area');
+    //     const printWindow = window.open('', '', 'height=600,width=800');
+    //     printWindow.document.write(`<html><head><title>${invoiceNumber}</title>`);
+    //     printWindow.document.write('</head><body>');
+    //     printWindow.document.write(printContent.innerHTML);
+    //     printWindow.document.write('</body></html>');
+    //     printWindow.document.close();
+    //     printWindow.print();
+    // };
     const handlePrint = () => {
-        const printContent = document.getElementById('printable-area');
-        const printWindow = window.open('', '', 'height=600,width=800');
-        printWindow.document.write(`<html><head><title>${invoiceNumber}</title>`);
-        printWindow.document.write('</head><body>');
-        printWindow.document.write(printContent.innerHTML);
-        printWindow.document.write('</body></html>');
-        printWindow.document.close();
-        printWindow.print();
-    };
+        const printContent = document.getElementById('printable-area').innerHTML;
+        
+        // Create an iframe
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'absolute';
+        iframe.style.width = '0';
+        iframe.style.height = '0';
+        iframe.style.border = 'none';
+        document.body.appendChild(iframe);
+      
+        const doc = iframe.contentWindow.document.open();
+        doc.write(`
+          <html>
+            <head>
+              <title>${invoiceNumber}</title>
+            </head>
+            <body style="font-family: Arial, sans-serif; margin: 20px;">
+              ${printContent}
+            </body>
+          </html>
+        `);
+        doc.close();
+      
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+        
+        // Remove the iframe after printing
+        setTimeout(() => {
+          document.body.removeChild(iframe);
+        }, 1000);
+      };
+      
 
     const pdfOptions = {
         filename: `${invoiceNumber}.pdf`,

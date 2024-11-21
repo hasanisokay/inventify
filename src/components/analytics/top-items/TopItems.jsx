@@ -1,11 +1,12 @@
 'use client';
 import { useEffect, useState } from 'react';
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+
+
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, Tooltip, CategoryScale, LinearScale, BarElement, Title } from 'chart.js';
 import Spinner from '@/components/loader/Spinner';
 import useTheme from '@/hooks/useTheme.mjs';
+import RangeDatepicker from '@/components/datepickers/RangeDatepicker';
 
 // Register required chart.js components
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip);
@@ -163,32 +164,7 @@ const TopItems = () => {
                         <h2 className={`text-3xl font-semibold ${theme === "dark" ? "text-white" : "text-gray-800"} mb-2`}>Top 10 Items</h2>
                         <h3 className={`text-lg ${theme === "dark" ? "text-gray-300" : "text-gray-600"} mb-4`}>Select Date Range for Top 10 Items</h3>
                     </div>
-
-                    <div className="flex gap-8 justify-center mb-8 flex-wrap">
-                        <div className="w-[250px]">
-                            <label className={`text-sm mr-1 font-medium dark:text-gray-200 text-gray-700`}>From</label>
-                            <DatePicker
-                                selected={startDate}
-                                onChange={handleStartDateChange}
-                                className={`w-full p-3 border rounded-lg shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 bg-white text-black border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600`}
-                            />
-                        </div>
-                        <div className="w-[250px]">
-                            <label className={`text-sm mr-1 font-medium dark:text-gray-200 text-gray-700`}>To</label>
-                            <DatePicker
-                                selected={endDate}
-                                onChange={handleEndDateChange}
-                                filterDate={date => date >= startDate}
-                                className={`w-full p-3 border rounded-lg shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 bg-white text-black border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600`}
-                            />
-                        </div>
-                        <button
-                            className={`px-6 py-3 dark:bg-indigo-800 bg-indigo-600 text-white rounded-lg shadow-lg hover:bg-indigo-700  transition-all duration-300`}
-                            onClick={fetchData}
-                        >
-                            Get Data
-                        </button>
-                    </div>
+                    <RangeDatepicker endDate={endDate} startDate={startDate} fetchData={fetchData} handleEndDateChange={handleEndDateChange} handleStartDateChange={handleStartDateChange} />
                     <div className="h-[400px] my-8">
                         {topItems?.length > 0 ? (
                             <Bar data={chartData} options={options} />

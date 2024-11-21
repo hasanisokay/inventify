@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import ItemModal from "../modal/ItemModal";
 import getActiveOrg from "@/utils/getActiveOrg.mjs";
@@ -8,20 +8,25 @@ import EditSVG from "../svg/EditSVG";
 import DeleteSVG from "../svg/DeleteSVG";
 import SearchBar from "../SearchBar/SearchBar";
 import NotebookSVG from "../svg/NotebookSVG";
+import RangeDatepicker from "../datepickers/RangeDatepicker";
+import getItems from "@/utils/getItems.mjs";
+import ItemReportDownloadModal from "../modal/ItemReportDownloadModal";
+import Loading from "../loader/Loading";
+import AuthContext from "@/contexts/AuthContext.mjs";
 
-const ItemsPage = ({ i }) => {
+const ItemsPage = ({ i, actOrg, keyword }) => {
     const router = useRouter();
     const [openModal, setOpenModal] = useState(false);
+    const [openItemReportDownloadModal, setOpenItemReportDownloadModal] = useState(false);
+    const [itemsForReport, setItemsForReport] = useState([]);
+    const [loading, setLoading] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
     const [items, setItems] = useState(i);
-    const [activeOrg, setActiveOrg] = useState();
+    const [activeOrg, setActiveOrg] = useState(actOrg);
     const [selectedItems, setSelectedItems] = useState([]);
-
-    const handleRowClick = (item) => {
-        setSelectedItem(item);
-        setOpenModal(true);
-    };
-
+    const [startDate, setStartDate] = useState(new Date(new Date().setMonth(new Date().getMonth() - 1)));
+    const [endDate, setEndDate] = useState(new Date());
+const {currentUser} = useContext(AuthContext);
     const handleSelectItem = (id) => {
         setSelectedItems((prev) => {
             if (prev.includes(id)) {
@@ -83,10 +88,14 @@ const ItemsPage = ({ i }) => {
     };
 
     useEffect(() => {
-        (async () => {
-            const a = await getActiveOrg();
-            setActiveOrg(a);
-        })();
+
+        if (!actOrg) {
+            (async () => {
+                const a = await getActiveOrg();
+                setActiveOrg(a);
+            })();
+
+        }
     }, []);
 
     useEffect(() => {
@@ -120,12 +129,47 @@ const ItemsPage = ({ i }) => {
         }
     }, [openModal]);
 
+    const handleStartDateChange = (date) => {
+        if (date <= endDate) {
+            setStartDate(date);
+        } else {
+            setStartDate(date);
+            setEndDate(date);
+        }
+    };
+
+    const handleEndDateChange = (date) => {
+        if (date >= startDate) {
+            setEndDate(date);
+        } else {
+            setEndDate(date);
+            setStartDate(date);
+        }
+    };
+    const fetchData = async () => {
+        const query = new URLSearchParams(window.location.search);
+        query.set('startDate', startDate.toISOString());
+        query.set('endDate', endDate.toISOString());
+        router.replace(`${window.location.pathname}?${query.toString()}`, { scroll: false });
+    };
+    const downloadFullReport = async () => {
+        setLoading(true)
+        const allItems = await getItems(1, 100000000, "highest", keyword || "", "", activeOrg, startDate, endDate, true);
+        setItemsForReport(allItems.items)
+        setLoading(false)
+        setOpenItemReportDownloadModal(true);
+    }
+
     return (
         <div>
             <h1 className="text-2xl font-semibold mb-4">Items</h1>
+            <h3 className="text-lg text-gray-600 dark:text-gray-300 text-center mb-2">Select a Date Range for Sell Data</h3>
+            <RangeDatepicker endDate={endDate} startDate={startDate} fetchData={fetchData} handleEndDateChange={handleEndDateChange} handleStartDateChange={handleStartDateChange} />
             <SearchBar placeholder={'Search with name or description'} />
+            <p className="text-center mt-2"><button className="btn-ghost" onClick={downloadFullReport}>See Full Report </button></p>
+            {loading && <Loading loading={loading} />}
+       
 
-            {/* Bulk Actions */}
             <div className="h-[40px]">
                 {selectedItems?.length > 0 && <div className="flex gap-4 mb-4">
                     <button
@@ -157,7 +201,7 @@ const ItemsPage = ({ i }) => {
                         <th className="border w-5 border-gray-300 p-2 text-left">
                             <input
                                 type="checkbox"
-                                checked={selectedItems.length === items.length}
+                                checked={selectedItems?.length === items?.length}
                                 onChange={handleSelectAll}
                                 className="m-0"
                             />
@@ -192,10 +236,9 @@ const ItemsPage = ({ i }) => {
                                     {i?.status}
                                 </span>
                             </td>
-                            {/* Action Buttons Column */}
                             <td className="border border-gray-300 p-2">
                                 <div className="flex gap-4 justify-start">
-                         
+
                                     <button
                                         className="text-blue-500 hover:underline"
                                         onClick={(e) => {
@@ -209,7 +252,7 @@ const ItemsPage = ({ i }) => {
                                     </button>
                                     <button onClick={(e) => {
                                         e.stopPropagation();
-                                        router.push(`/${activeOrg}/items/new?id=${i._id }`)
+                                        router.push(`/${activeOrg}/items/new?id=${i._id}`)
                                     }} >
                                         <EditSVG />
                                     </button>
@@ -233,7 +276,17 @@ const ItemsPage = ({ i }) => {
                 </tbody>
             </table>
 
-
+            {
+                openItemReportDownloadModal && <ItemReportDownloadModal
+                    setOpenModal={setOpenItemReportDownloadModal}
+                    openModal={openItemReportDownloadModal}
+                    items={itemsForReport} 
+                    endDate={endDate}
+                    startDate={startDate}
+                    companyName={currentUser?.name || "Sukkarshop"}
+                    keyword={keyword}
+                    />
+            }
             {selectedItem && (
                 <ItemModal
                     setOpenModal={setOpenModal}
