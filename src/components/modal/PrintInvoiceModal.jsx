@@ -128,6 +128,7 @@ const PrintInvoiceModal = ({ resetStates, openModal, setOpenModal, invoiceNumber
             color: '#4a5568'
         }
         const spanStyle = { width: '120px', textAlign: 'left' }
+
         return (
             <div style={{ padding: "1rem", backgroundColor: "white" }}>
 
@@ -142,7 +143,7 @@ const PrintInvoiceModal = ({ resetStates, openModal, setOpenModal, invoiceNumber
                                 <div>
                                     <h3 style={{ fontSize: "1.5rem", fontWeight: 500, lineHeight: "1.5rem", marginBottom: "0.5rem" }}>INVOICE</h3>
                                     <p style={{ color: "#6b7280", marginBottom: "0.25rem", fontSize: "0.875rem", fontWeight: 500 }}>#{invoiceNumber}</p>
-                                    <p style={{ fontSize: "0.875rem" }}>Date: {formatDate(invoiceDate)}</p>
+                                    <p style={{ fontSize: "0.875rem" }}>Date: {formatDate(new Date(invoiceDate))}</p>
                                 </div>
 
 
@@ -272,7 +273,7 @@ const PrintInvoiceModal = ({ resetStates, openModal, setOpenModal, invoiceNumber
                                 </div>
 
 
-                                <p style={{ fontSize: "0.875rem", marginBottom: "1rem" }}>Date: {formatDate(invoiceDate)}</p>
+                                <p style={{ fontSize: "0.875rem", marginBottom: "1rem" }}>Date: {formatDate(new Date(invoiceDate))}</p>
 
                             </div>
                             <div>
@@ -350,7 +351,7 @@ const PrintInvoiceModal = ({ resetStates, openModal, setOpenModal, invoiceNumber
                                             <p>{currency} {total - paidAmount}</p>
                                         </div>
                                     </div>
-                                    <p style={{ fontSize: "0.875rem", marginBottom: "1rem" }}>Date: {formatDate(invoiceDate)}</p>
+                                    <p style={{ fontSize: "0.875rem", marginBottom: "1rem" }}>Date: {formatDate(new Date(invoiceDate))}</p>
                                 </div>
                                 <div>
                                     {orgInformation}
