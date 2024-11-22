@@ -174,7 +174,7 @@ const NewInvoice = ({ activeOrg, id }) => {
     (async () => {
       if (selectedCustomer) {
         const c = await getCustomerDetails(selectedCustomer?.value)
- 
+
         setCustomerDetails(c);
       }
     })()
@@ -242,13 +242,13 @@ const NewInvoice = ({ activeOrg, id }) => {
   useEffect(() => {
     if (paidAmount === total) {
       setDueAmount(0)
-    }else if(paidAmount===0){
+    } else if (paidAmount === 0) {
       setDueAmount(total)
     }
-     else {
+    else {
       setDueAmount(total - paidAmount)
     }
-  }, [paidAmount,items, total])
+  }, [paidAmount, items, total])
 
   const paymentOptions = [
     { label: "Not Paid", value: "not-paid" },
@@ -442,7 +442,7 @@ const NewInvoice = ({ activeOrg, id }) => {
           id="invoiceDate"
           selected={invoiceDate}
           onChange={(date) => setInvoiceDate(date)}
-          dateFormat="do MMM yyyy"
+          dateFormat="dd MMM yyyy"
           className="text-input2 focus:outline-none outline-none border-none"
         />
       </div>
@@ -463,26 +463,29 @@ const NewInvoice = ({ activeOrg, id }) => {
           <tbody>
             {items?.map((item, index) => (
               <tr key={index}
-                draggable
-                onDragStart={() => handleDragStart(index)}
-                onDragOver={() => handleDragOver(index)}
-                onDragEnd={handleDragEnd}
                 className={draggingIndex === index ? "bg-gray-400" : ""}
               >
 
                 <td className="w-[400px] ">
                   <>
-                    <div className="relative">
+                    <div className="relative"
+                      draggable
+                      onDragStart={() => handleDragStart(index)}
+                      onDragOver={() => handleDragOver(index)}
+                      onDragEnd={handleDragEnd}
+
+                    >
                       <span
-                        className="cursor-move absolute top-0 -left-8 w-[24px] block text-gray-400 "
-                        draggable
-                        onDragStart={() => handleDragStart(index)}
+                        className="cursor-move absolute -left-[5%] w-[24px] block text-gray-800 "
+                      // draggable
+                      // onDragStart={() => handleDragStart(index)}
                       >
-                        <DragSVG />
+                        <DragSVG
+                        />
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span>{item.name}</span>
+                      <span className="pl-2">{item.name}</span>
                       <button
                         className=" w-[40px]"
                         onClick={(e) => {
@@ -579,8 +582,8 @@ const NewInvoice = ({ activeOrg, id }) => {
                     borderRadius: '0px',
                     zIndex: 40,
                   }),
-                  option: (provided )=>({
-...provided, color:"black"
+                  option: (provided) => ({
+                    ...provided, color: "black"
                   })
                   ,
                   indicatorsContainer: (provided) => ({
@@ -618,7 +621,7 @@ const NewInvoice = ({ activeOrg, id }) => {
                 onChange={(e) => {
                   const value = parseFloat(e.target.value);
                   if (!isNaN(value) && value >= 0) {
-          
+
                     setShippingCharge(value);
                   }
                 }}
