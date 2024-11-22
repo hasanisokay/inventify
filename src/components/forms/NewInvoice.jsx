@@ -30,7 +30,7 @@ const NewInvoice = ({ activeOrg, id }) => {
   const [openCustomerModal, setOpenCustomerModal] = useState(false);
   const [invoiceNumber, setInvoiceNumber] = useState(generateInvoiceNumber());
   const [invoiceDate, setInvoiceDate] = useState(new Date());
-  const [items, setItems] = useState([]);
+  const [selectedItems, setSelectedItems] = useState([]);
   const [openItemModal, setOpenItemModal] = useState(false);
   const [subtotal, setSubtotal] = useState(0);
   const [discount, setDiscount] = useState(0);
@@ -40,14 +40,16 @@ const NewInvoice = ({ activeOrg, id }) => {
   const [draggingIndex, setDraggingIndex] = useState(null);
   const [totalTax, setTotalTax] = useState(0);
   const [dueAmount, setDueAmount] = useState(0);
-  const [paidAmount, setPaidAmount] = useState(0);
   const [total, setTotal] = useState(0)
-  const [paymentMethod, setPaymentMethod] = useState("");
+  const [paidAmount, setPaidAmount] = useState(total);
+  const [paymentMethod, setPaymentMethod] = useState("cash");
   const [trxId, setTrxId] = useState('');
   const [paymentFromNumber, setPaymentFromNumber] = useState("");
   const [openPrintInvoiceModal, setOpenPrintInvoiceModal] = useState(false)
   const [sameAddress, setSameAddress] = useState(true)
   const { activeOrganization, currentUser } = useContext(AuthContext);
+  const [isPaidChecked, setIsPaidChecked] = useState(true);
+  const [dynamicOptions, setDynamicOptions] = useState([]);
   const handleDragStart = (index) => {
     setDraggingIndex(index);
   };
@@ -55,11 +57,11 @@ const NewInvoice = ({ activeOrg, id }) => {
   // Handle drag over
   const handleDragOver = (index) => {
     if (index !== draggingIndex) {
-      const reorderedItems = [...items];
+      const reorderedItems = [...selectedItems];
       const draggedItem = reorderedItems[draggingIndex];
       reorderedItems.splice(draggingIndex, 1);
       reorderedItems.splice(index, 0, draggedItem);
-      setItems(reorderedItems);
+      setSelectedItems(reorderedItems);
       setDraggingIndex(index);
     }
   };
@@ -116,7 +118,7 @@ const NewInvoice = ({ activeOrg, id }) => {
                 sellingPrice: foundItem ? foundItem.sellingPrice : 0
               };
             });
-          setItems(itemsWithDetails);
+          setSelectedItems(itemsWithDetails);
           setCurrency(data?.currency || "BDT");
           setNote(data.note);
           setSubtotal(data.subtotal)
@@ -145,6 +147,13 @@ const NewInvoice = ({ activeOrg, id }) => {
       setSavedCustomers(c);
       const i = await getItems(1, 10000, "newest", "", true, activeOrg)
       setSavedItems(i);
+      setDynamicOptions([
+        { label: "Add New Item", value: "add-new-item" },
+        ...i?.map((item) => ({
+          label: item.name,
+          value: item._id,
+        })),
+      ])
       setLoading(false)
     })()
   }, [])
@@ -157,7 +166,7 @@ const NewInvoice = ({ activeOrg, id }) => {
 
       if (percentage < 1) return amount;
       if (percentage > 0) {
-        const matchedItem = items.find(i => i._id === item._id);
+        const matchedItem = selectedItems.find(i => i._id === item._id);
         const quantity = matchedItem.quantity;
         const sellingPrice = matchedItem.sellingPrice;
         const tax = quantity * sellingPrice * (percentage / 100);
@@ -189,55 +198,29 @@ const NewInvoice = ({ activeOrg, id }) => {
     }
   };
 
-  // Handle item selection or addition
-  const handleItemChange = (option) => {
-    if (option.value === "add-new-item") {
-      setOpenItemModal(true);
-    } else {
-      setSelectedItemOnchangeHolder(option)
-      const isPreviouslyAdded = items.find(i => i._id === option.value)
-      if (isPreviouslyAdded) {
-
-        setItems((prev) => items.map((item, index) => item._id === option.value ? { ...item, quantity: item.quantity + 1 } : item))
-      } else {
-        const selectedItem = savedItems.find((item) => item._id === option.value);
-        const { taxes, ...itemsWithoutTaxes } = selectedItem;
-        setItems((prevItems) => {
-          const modifiedItem = [
-            ...prevItems,
-            {
-              ...itemsWithoutTaxes, quantity: 1,
-              tax: calculateTax(selectedItem),
-              sellingPrice: parseFloat(selectedItem?.sellingPrice?.split(" ")[1]) || 0,
-            },
-          ]
-          return modifiedItem
-
-        });
-      }
-      // setSelectedItemOnchangeHolder(null)
-      setTimeout(() => {
-        setSelectedItemOnchangeHolder(null)
-      }, 300);
-    }
-  };
   const handleAddItemFromModal = (item) => {
-    setItems((prevItems) => [
+    setSelectedItems((prevItems) => [
       ...prevItems,
       { ...item, quantity: 1 },
     ]);
   }
   useEffect(() => {
-    const total = items.reduce((sum, item) => sum + item.quantity * item.sellingPrice, 0);
-    const tax = items.reduce((sum, item) => sum + item.tax, 0);
+    const total = selectedItems.reduce((sum, item) => sum + item.quantity * item.sellingPrice, 0);
+    const tax = selectedItems.reduce((sum, item) => sum + item.tax, 0);
     setSubtotal(total + totalTax || 0);
     setTotal(total + totalTax + shippingCharge - discount || 0);
+    if (isPaidChecked) {
+      setPaidAmount(total + totalTax + shippingCharge - discount || 0)
+    }
     setTotalTax(tax)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [items, totalTax]);
+  }, [selectedItems, totalTax]);
 
   useEffect(() => {
     setTotal(subtotal + shippingCharge - discount)
+    if (isPaidChecked) {
+      setPaidAmount(subtotal + shippingCharge - discount)
+    }
   }, [shippingCharge, discount])
   useEffect(() => {
     if (paidAmount === total) {
@@ -248,7 +231,7 @@ const NewInvoice = ({ activeOrg, id }) => {
     else {
       setDueAmount(total - paidAmount)
     }
-  }, [paidAmount, items, total])
+  }, [paidAmount, selectedItems, total])
 
   const paymentOptions = [
     { label: "Not Paid", value: "not-paid" },
@@ -291,7 +274,7 @@ const NewInvoice = ({ activeOrg, id }) => {
     setSelectedCustomer(null);
     setInvoiceNumber(generateInvoiceNumber());
     setInvoiceDate(new Date());
-    setItems([]);
+    setSelectedItems([]);
     setSubtotal(0);
     setDiscount(0);
     setNote("");
@@ -302,39 +285,89 @@ const NewInvoice = ({ activeOrg, id }) => {
     setPaymentFromNumber("");
     setSameAddress(true);
     setUpdateable(false);
-    setShippingCharge(0)
   };
 
   const handleSave = async (createPdf = false) => {
     if (!customerDetails._id) return toast.error("No Customer Found.")
-    const invoiceData = {
-      invoiceNumber,
-      invoiceDate,
-      customerId: customerDetails._id,
-      items: items.map(item => ({
-        itemId: item?._id,
-        name: item?.name,
-        quantity: item?.quantity,
-        unit: item?.unit,
-        sellingPrice: item.sellingPrice,
-        tax: item.tax,
-      })),
-      subtotal,
-      shippingCharge,
-      total,
-      discount,
-      totalTax,
-      dueAmount,
-      paidAmount,
-      paymentMethod,
-      trxId,
-      paymentFromNumber,
-      note,
-      ownerUsername: currentUser?.username,
-      orgId: activeOrg,
-    };
-
     try {
+      let selectedItemsUpdated = selectedItems;
+      const newItems = selectedItems
+        .filter((item) => item.isNew)
+        .map((item) => ({
+          type: "goods",
+          name: item.name,
+          unit: item.unit,
+          category: item.name,
+          sellingPrice: `BDT ${item?.sellingPrice}`,
+          description: "",
+          taxes: [],
+          status: "Active",
+          ownerUsername: currentUser?.username,
+          orgId: activeOrg,
+          source: "invoice",
+          tax: item.tax,
+          quantity: item.quantity,
+        }));
+      if (newItems.length > 0) {
+        const res = await fetch('/api/adds/items-from-invoice', {
+          method: 'POST',
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ items: newItems }),
+        });
+
+        const data = await res.json();
+        if (data.status !== 200 && data.status !== 201) {
+          toast.error(data.message || "Failed to save new items.");
+          return;
+        }
+        // setSavedItems(prev=> ...prev, ...da)
+        const savedItemsWithIds = data.savedItems;
+        setSavedItems(prev => [...prev, ...data.savedItems]);
+
+        selectedItemsUpdated = selectedItems.map((item) => {
+          if (item.isNew) {
+            const savedItem = savedItemsWithIds.find(
+              (saved) => saved.name === item.name
+            );
+            return {
+              ...item,
+              _id: savedItem._id,
+              isNew: false,
+            };
+          }
+          return item;
+        });
+      }
+
+
+      const invoiceData = {
+        invoiceNumber,
+        invoiceDate,
+        customerId: customerDetails._id,
+        items: selectedItemsUpdated.map(item => ({
+          itemId: item?._id,
+          name: item?.name,
+          quantity: item?.quantity,
+          unit: item?.unit,
+          sellingPrice: typeof (item.sellingPrice) === "number" ? item.sellingPrice : parseInt(i?.sellingPrice?.split(" ")[1]),
+          tax: item.tax,
+        })),
+        subtotal,
+        shippingCharge,
+        total,
+        discount,
+        totalTax,
+        dueAmount,
+        paidAmount,
+        paymentMethod,
+        trxId,
+        paymentFromNumber,
+        note,
+        ownerUsername: currentUser?.username,
+        orgId: activeOrg,
+      };
       let apiUrl = '/api/adds/new-invoice';
       let method = 'POST'
       if (updateable) {
@@ -349,6 +382,7 @@ const NewInvoice = ({ activeOrg, id }) => {
         body: JSON.stringify(invoiceData)
       })
       const data = await res.json()
+
       if (data.status === 200 || data.status === 201) {
         toast.success(data.message);
         if (createPdf) {
@@ -367,6 +401,90 @@ const NewInvoice = ({ activeOrg, id }) => {
     }
   };
 
+
+  const handleItemChange = (option) => {
+    if (option.isNew) {
+      const newItem = { name: option.label.split("Add")[1].trim(), _id: option.value, isNew: true };
+
+      const isPreviouslyAdded = selectedItems.find(i => i._id === option.value)
+      if (isPreviouslyAdded) {
+        return setSelectedItems((prev) => selectedItems.map((item, index) => item._id === option.value ? { ...item, quantity: item.quantity + 1 } : item))
+      }
+
+      setSelectedItems((prevItems) => [
+        ...prevItems,
+        {
+
+          ...newItem,
+          unit: "kg",
+          tax: 0,
+          quantity: 1,
+          sellingPrice: 0,
+
+
+
+        },
+      ]);
+      setDynamicOptions([
+        { label: "Add New Item", value: "add-new-item" },
+        ...savedItems.map((item) => ({
+          label: item.name,
+          value: item._id,
+        })),
+      ]);
+
+      setSelectedItemOnchangeHolder(newItem);
+      setTimeout(() => {
+        setSelectedItemOnchangeHolder(null);
+      }, 300);
+    } else if (option.value === "add-new-item") {
+      setOpenItemModal(true);
+    } else {
+      setSelectedItemOnchangeHolder(option)
+      const isPreviouslyAdded = selectedItems.find(i => i._id === option.value)
+      if (isPreviouslyAdded) {
+        setSelectedItems((prev) => selectedItems.map((item, index) => item._id === option.value ? { ...item, quantity: item.quantity + 1 } : item))
+      } else {
+        const selectedItem = savedItems.find((item) => item._id === option.value);
+        const { taxes, ...itemsWithoutTaxes } = selectedItem;
+        setSelectedItems((prevItems) => {
+          const modifiedItem = [
+            ...prevItems,
+            {
+              ...itemsWithoutTaxes, quantity: 1,
+              tax: calculateTax(selectedItem),
+              sellingPrice: parseFloat(selectedItem?.sellingPrice?.split(" ")[1]) || 0,
+            },
+          ]
+          return modifiedItem
+
+        });
+      }
+      // setSelectedItemOnchangeHolder(null)
+      setTimeout(() => {
+        setSelectedItemOnchangeHolder(null)
+      }, 300);
+    }
+  };
+
+  const handleInputChange = (value) => {
+
+    const isExistingOption = dynamicOptions.some(
+      (option) => option.label.toLowerCase() === value.toLowerCase()
+    );
+
+    if (value && !isExistingOption) {
+      setDynamicOptions(prev => [...prev, { label: `Add ${value}`, value, isNew: true }]);
+    } else {
+      setDynamicOptions([
+        { label: "Add New Item", value: "add-new-item" },
+        ...savedItems.map((item) => ({
+          label: item.name,
+          value: item._id,
+        })),
+      ]);
+    }
+  };
   return (
     <div className="invoice-form p-2 mt-10">
       {loading && <Loading loading={loading} />}
@@ -461,11 +579,10 @@ const NewInvoice = ({ activeOrg, id }) => {
             </tr>
           </thead>
           <tbody>
-            {items?.map((item, index) => (
+            {selectedItems?.map((item, index) => (
               <tr key={index}
                 className={draggingIndex === index ? "bg-gray-400" : ""}
               >
-
                 <td className="w-[400px] ">
                   <>
                     <div className="relative"
@@ -473,12 +590,9 @@ const NewInvoice = ({ activeOrg, id }) => {
                       onDragStart={() => handleDragStart(index)}
                       onDragOver={() => handleDragOver(index)}
                       onDragEnd={handleDragEnd}
-
                     >
                       <span
                         className="cursor-move absolute -left-[5%] w-[24px] block text-gray-800 "
-                      // draggable
-                      // onDragStart={() => handleDragStart(index)}
                       >
                         <DragSVG
                         />
@@ -490,7 +604,7 @@ const NewInvoice = ({ activeOrg, id }) => {
                         className=" w-[40px]"
                         onClick={(e) => {
                           e.stopPropagation();
-                          setItems((prev) => prev.filter((i) => i._id !== item?._id));
+                          setSelectedItems((prev) => prev.filter((i) => i._id !== item?._id));
                         }}
                       >
                         <CrossSVG />
@@ -507,7 +621,7 @@ const NewInvoice = ({ activeOrg, id }) => {
                     min={1}
                     minLength={0.1}
                     onChange={(e) =>
-                      setItems((prevItems) =>
+                      setSelectedItems((prevItems) =>
                         prevItems.map((it, i) =>
                           i === index ? { ...it, quantity: parseFloat(e.target.value) || 0 } : it
                         )
@@ -523,7 +637,7 @@ const NewInvoice = ({ activeOrg, id }) => {
                     className="rounded bg-inherit focus:outline-blue-600 focus:outline-offset-4 font-semibold w-[100px] px-1"
                     value={item.unit}
                     onChange={(e) =>
-                      setItems((prevItems) =>
+                      setSelectedItems((prevItems) =>
                         prevItems.map((it, i) =>
                           i === index ? { ...it, unit: e.target.value || "" } : it
                         )
@@ -535,7 +649,7 @@ const NewInvoice = ({ activeOrg, id }) => {
                   <input
                     type="number"
                     className="rounded bg-inherit focus:outline-blue-600 focus:outline-offset-4 font-semibold w-[100px] px-1"
-                    onChange={(e) => setItems(prev => prev.map((it, i) => i === index ? { ...it, sellingPrice: parseFloat(e.target.value) || 0 } : it))}
+                    onChange={(e) => setSelectedItems(prev => prev.map((it, i) => i === index ? { ...it, sellingPrice: parseFloat(e.target.value) || 0 } : it))}
 
                     value={item.sellingPrice}
                   />
@@ -545,7 +659,7 @@ const NewInvoice = ({ activeOrg, id }) => {
                   <input
                     type="number"
                     className="rounded bg-inherit focus:outline-blue-600 focus:outline-offset-4 font-semibold w-[100px] px-1"
-                    onChange={(e) => setItems(prev => prev.map((it, i) => i === index ? { ...it, tax: parseFloat(e.target.value) || 0 } : it))}
+                    onChange={(e) => setSelectedItems(prev => prev.map((it, i) => i === index ? { ...it, tax: parseFloat(e.target.value) || 0 } : it))}
 
                     value={item.tax}
                   />
@@ -556,18 +670,10 @@ const NewInvoice = ({ activeOrg, id }) => {
               </tr>
             ))}
             <tr className="w-[400px]">
-
               <Select
                 className="w-[400px]"
                 id="item"
-                options={[
-                  { label: "Add New Item", value: "add-new-item" },
-                  ...savedItems?.map((item) => ({
-                    label: item.name,
-                    value: item._id,
-                  })),
-
-                ]}
+                options={dynamicOptions}
                 value={selectedItemOnchangeHolder}
                 menuPortalTarget={document.body}
                 styles={{
@@ -595,13 +701,14 @@ const NewInvoice = ({ activeOrg, id }) => {
                   }),
                   input: (provided) => ({
                     ...provided,
-                    padding: '10px',
+                    paddingTop: "10px",
+                    paddingBottom: "10px"
                   }),
                 }}
                 placeholder={loading ? "Loading Items..." : "Select or Search Item"}
                 onChange={handleItemChange}
+                onInputChange={handleInputChange}
               />
-
             </tr>
           </tbody>
         </table>}
@@ -649,13 +756,23 @@ const NewInvoice = ({ activeOrg, id }) => {
               <Select
                 id="paymentMethod"
                 options={paymentOptions}
-                selected={paymentMethod}
+                value={paymentOptions.find(o => o.value === paymentMethod)}
                 placeholder="Select"
                 onChange={(option) => setPaymentMethod(option.value)}
                 className="min-w-[200px] select-react"
               />
             </div>
 
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="paidCheck"
+                checked={isPaidChecked}
+                onChange={(e) => setIsPaidChecked(e.target.checked)}
+                className="mr-2"
+              />
+              <label htmlFor="paidCheck" className="form-label">Paid</label>
+            </div>
             <div className="mb-4 input-container flex-wrap flex justify-between">
               <label htmlFor="paidAmount" className="form-label">Paid Amount</label>
               <input
@@ -704,10 +821,6 @@ const NewInvoice = ({ activeOrg, id }) => {
               <p className="w-[200px] font-bold text-xl px-[8px]">{total}</p>
             </div>
 
-
-
-
-
           </div>
         </div>
       </div>
@@ -752,7 +865,7 @@ const NewInvoice = ({ activeOrg, id }) => {
         paidAmount={paidAmount}
         total={total}
         shippingCharge={shippingCharge}
-        items={items}
+        items={selectedItems}
         note={note}
         subtotal={subtotal}
         discount={discount}

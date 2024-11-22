@@ -41,6 +41,7 @@ export const GET = async (req) => {
       matchStage.$or = [
         { description: { $regex: keyword, $options: "i" } },
         { name: { $regex: keyword, $options: "i" } },
+        { category: { $regex: keyword, $options: "i" } },
       ];
     }
 
