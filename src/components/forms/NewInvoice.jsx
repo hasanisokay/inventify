@@ -20,8 +20,11 @@ import PrintInvoiceModal from "../modal/PrintInvoiceModal";
 import Loading from "../loader/Loading";
 const NewInvoice = ({ activeOrg, id }) => {
   const [openCustomerDetailsModal, setOpenCustomerDetailsModal] = useState(false);
+  const [orderNumber, setOrderNumber] = useState("")
   const [shippingCharge, setShippingCharge] = useState(0)
   const [currency, setCurrency] = useState("BDT")
+  const [adjustmentDescription, setAdjustmentDescription] = useState("")
+  const [adjustmentAmount, setAdjustmentAmount] = useState(null)
   const [loading, setLoading] = useState(false);
   const [selectedItemOnchangeHolder, setSelectedItemOnchangeHolder] = useState(null);
   const [updateable, setUpdateable] = useState(false);
@@ -121,18 +124,21 @@ const NewInvoice = ({ activeOrg, id }) => {
           setSelectedItems(itemsWithDetails);
           setCurrency(data?.currency || "BDT");
           setNote(data.note);
-          setSubtotal(data.subtotal)
-          setTotal(data.total)
-          setShippingCharge(data.shippingCharge);
-          setPaidAmount(data.paidAmount);
-          setDueAmount(data.dueAmount);
-          setDiscount(data.discount)
-          setPaymentFromNumber(data.paymentFromNumber);
-          setPaymentMethod(data.paymentMethod);
-          setInvoiceDate(new Date(data.invoiceDate));
-          setInvoiceNumber(data.invoiceNumber);
-          setTotalTax(data.totalTax);
-          setTrxId(data.trxId);
+          setOrderNumber(data?.orderNumber || "")
+          setSubtotal(data?.subtotal)
+          setTotal(data?.total)
+          setShippingCharge(data?.shippingCharge);
+          setPaidAmount(data?.paidAmount);
+          setDueAmount(data?.dueAmount);
+          setDiscount(data?.discount)
+          setPaymentFromNumber(data?.paymentFromNumber);
+          setPaymentMethod(data?.paymentMethod);
+          setInvoiceDate(new Date(data?.invoiceDate));
+          setInvoiceNumber(data?.invoiceNumber);
+          setTotalTax(data?.totalTax);
+          setTrxId(data?.trxId);
+          setAdjustmentAmount(data?.adjustmentAmount || null)
+          setAdjustmentDescription(data?.adjustmentDescription || '')
           setUpdateable(true);
         }
         setLoading(false);
@@ -318,7 +324,7 @@ const NewInvoice = ({ activeOrg, id }) => {
         });
 
         const data = await res.json();
-        if (data.status !== 200 && data.status !== 201) {
+        if (data?.status !== 200 && data.status !== 201) {
           toast.error(data.message || "Failed to save new items.");
           return;
         }
@@ -345,6 +351,7 @@ const NewInvoice = ({ activeOrg, id }) => {
       const invoiceData = {
         invoiceNumber,
         invoiceDate,
+        orderNumber,
         customerId: customerDetails._id,
         items: selectedItemsUpdated.map(item => ({
           itemId: item?._id,
@@ -365,6 +372,8 @@ const NewInvoice = ({ activeOrg, id }) => {
         trxId,
         paymentFromNumber,
         note,
+        adjustmentDescription,
+        adjustmentAmount: adjustmentAmount === null ? 0 : adjustmentAmount,
         ownerUsername: currentUser?.username,
         orgId: activeOrg,
       };
@@ -466,6 +475,9 @@ const NewInvoice = ({ activeOrg, id }) => {
       }, 300);
     }
   };
+  useEffect(() => {
+    setTotal((prev) => prev + adjustmentAmount)
+  }, [adjustmentAmount])
 
   const handleInputChange = (value) => {
 
@@ -553,6 +565,16 @@ const NewInvoice = ({ activeOrg, id }) => {
           className="text-input2"
         />
       </div>
+   `   <div className="input-container">
+        <label htmlFor="orderNumber" className="form-label2">Order Number: </label>
+        <input
+          type="text"
+          id="orderNumber"
+          value={orderNumber}
+          onChange={(e) => setOrderNumber(e.target.value)}
+          className="text-input2"
+        />
+      </div>`
 
       <div className="input-container pt-4">
         <label htmlFor="invoiceDate" className="form-label2">Invoice Date: </label>
@@ -815,6 +837,24 @@ const NewInvoice = ({ activeOrg, id }) => {
                 />
               </div>
             )}
+            <div className="mb-4 input-container flex-wrap flex justify-between">
+              <input
+                type="text"
+                id="adjustmentDescription"
+                value={adjustmentDescription}
+                placeholder="Any Adjustment"
+                onChange={(e) => setAdjustmentDescription(e.target.value)}
+                className="text-input3"
+              />
+              <input
+                type="number"
+                id="adjustmentAmount"
+                placeholder="Adjustment Amount"
+                value={adjustmentAmount}
+                onChange={(e) => setAdjustmentAmount(e.target.value)}
+                className="text-input3"
+              />
+            </div>
             <hr className="border-t border-gray-400 my-4" />
             <div className="flex justify-between flex-wrap">
               <h3 className="font-bold text-xl">Total ({currency})</h3>

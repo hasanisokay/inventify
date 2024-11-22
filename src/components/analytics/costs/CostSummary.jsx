@@ -95,21 +95,11 @@ const CostSummary = () => {
     }, []);
 
     const handleStartDateChange = (date) => {
-        if (date <= endDate) {
-            setStartDate(date);
-        } else {
-            setStartDate(date);
-            setEndDate(date);
-        }
+        setStartDate(date);
     };
 
     const handleEndDateChange = (date) => {
-        if (date >= startDate) {
-            setEndDate(date);
-        } else {
-            setEndDate(date);
-            setStartDate(date);
-        }
+        setEndDate(date);
     };
 
     return (

@@ -101,8 +101,13 @@ const TopSpenders = () => {
         },
     };
 
-    const handleStartDateChange = (date) => setStartDate(date <= endDate ? date : endDate);
-    const handleEndDateChange = (date) => setEndDate(date >= startDate ? date : startDate);
+    const handleStartDateChange = (date) => {
+        setStartDate(date);
+    };
+
+    const handleEndDateChange = (date) => {
+        setEndDate(date);
+    };
 
     return (
         <div className='container min-h-[658px] mx-auto p-6 bg-white dark:bg-gray-900 shadow-xl rounded-lg relative'>

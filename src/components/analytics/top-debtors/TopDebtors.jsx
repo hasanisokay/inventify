@@ -103,22 +103,13 @@ const TopDebtors = () => {
             },
         },
     };
+
     const handleStartDateChange = (date) => {
-        if (date <= endDate) {
-            setStartDate(date);
-        } else {
-            setStartDate(date);
-            setEndDate(date);
-        }
+        setStartDate(date);
     };
 
     const handleEndDateChange = (date) => {
-        if (date >= startDate) {
-            setEndDate(date);
-        } else {
-            setEndDate(date);
-            setStartDate(date);
-        }
+        setEndDate(date);
     };
     return (
         <div className='container min-h-[594px] mx-auto p-6 bg-white dark:bg-gray-900 shadow-xl rounded-lg relative'>
