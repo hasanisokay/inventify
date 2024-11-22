@@ -71,6 +71,7 @@ export const GET = async (req) => {
             { 'items.name': { $regex: keyword, $options: "i" } },
             { 'customer.firstName': { $regex: keyword, $options: "i" } },
             { 'customer.lastName': { $regex: keyword, $options: "i" } },
+            { 'orderNumber': { $regex: keyword, $options: "i" } },
           ],
         },
       });
