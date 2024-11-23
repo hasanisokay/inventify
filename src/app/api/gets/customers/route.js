@@ -24,12 +24,17 @@ export const GET = async (req) => {
         ? "totalPaid"
         : sort === "debtors"
         ? "totalDue"
+        : sort === "name_asc"
+        ? "firstName"
+        : sort === "name_dsc"
+        ? "firstName"
         : "lastModifiedTime";
 
     let sortOrder = -1;
-    //         { value: 'spenders', label: 'Highest Spenders' },
-    // { value: 'debtors', label: 'Highest Debtors' },
-
+    if (sort === "name_dsc") {
+      sortOrder = 1;
+    }
+console.log({sort, sortOrder})
     const page = parseInt(searchParams.get("page"));
     const limit = parseInt(searchParams.get("limit")) || 10;
     const skip = (page - 1) * limit;
@@ -53,14 +58,20 @@ export const GET = async (req) => {
       ];
     }
     const defaultUser = {
-      _id: new ObjectId('673e36b073f2016df8694fd9'),
-      firstName:"Default",
+      _id: new ObjectId("673e36b073f2016df8694fd9"),
+      firstName: "Default",
       lastName: "Customer",
     };
 
     if (nameOnly) {
       const res = await customerCollection
-        .find({...matchStage,$nor: [{ firstName: "Default", lastName: "Customer" }] },  { projection: { _id: 1, firstName: 1, lastName: 1 } })
+        .find(
+          {
+            ...matchStage,
+            $nor: [{ firstName: "Default", lastName: "Customer" }],
+          },
+          { projection: { _id: 1, firstName: 1, lastName: 1 } }
+        )
         .toArray();
       const data = [defaultUser, ...res];
       return NextResponse.json(dataFoundResponse(data));

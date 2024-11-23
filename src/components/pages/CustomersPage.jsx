@@ -17,7 +17,8 @@ const CustomersPage = ({ c, page: p }) => {
     const [selectedCustomer, setSelectedCustomer] = useState(null);
     const [customers, setCustomers] = useState(c);
     const [selectedCustomers, setSelectedCustomers] = useState([]);
-
+    const [selectedSort, setSelectedSort] = useState("");
+    const [hasMounted, setHasMounted] = useState(false);
     useEffect(() => {
         (async () => {
             const a = await getActiveOrg();
@@ -94,22 +95,31 @@ const CustomersPage = ({ c, page: p }) => {
             setSelectedCustomer(null);
         }
     }, [openModal]);
-
+    useEffect(() => {
+        if (hasMounted) {
+            const query = new URLSearchParams(window.location.search);
+            query.set('sort', selectedSort);
+            router.replace(`${window.location.pathname}?${query.toString()}`, { scroll: false });
+        } else {
+            setHasMounted(true)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedSort]);
     return (
         <div className="w-full">
             <h1 className="text-2xl font-semibold mb-4 text-center">Customers</h1>
             <SearchBar placeholder={"Search with name, phone, address, email, fbId"} />
             <div className="h-[40px]">
                 {selectedCustomers.length > 0 && (
-                   <div className="flex gap-4 mb-4">
-                   <button
-                       className=" btn-ghost"
-                       onClick={handleDeleteBulk}
-                       disabled={selectedCustomers.length === 0}
-                   >
-                       Delete Selected
-                   </button>
-               </div>
+                    <div className="flex gap-4 mb-4">
+                        <button
+                            className=" btn-ghost"
+                            onClick={handleDeleteBulk}
+                            disabled={selectedCustomers.length === 0}
+                        >
+                            Delete Selected
+                        </button>
+                    </div>
                 )}
             </div>
 
@@ -124,7 +134,33 @@ const CustomersPage = ({ c, page: p }) => {
                                 className="m-0"
                             />
                         </th>
-                        <th className="border border-gray-300 p-2 text-left">Name</th>
+                        <th className="border border-gray-300 p-2 text-left flex items-center gap-2">
+                            Name
+                            <div className="flex flex-col cursor-pointer text-gray-500">
+                                <svg
+                                    onClick={() => setSelectedSort(prev => prev === "name_asc" ? "name_dsc" : "name_asc")}
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className={`w-[8px] h-[8px] ${selectedSort === "name_asc" && "text-gray-800"}`}
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth="5"
+                                >
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+                                </svg>
+                                <svg
+                                    onClick={() => setSelectedSort(prev => prev === "name_dsc" ? "name_asc" : "name_dsc")}
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className={`w-[8px] h-[8px] ${selectedSort === "name_dsc" && "text-gray-800"}`}
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth="5"
+                                >
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </th>
                         <th className="border border-gray-300 p-2 text-left">Phone</th>
                         <th className="border border-gray-300 p-2 text-left">Company</th>
                         <th className="border border-gray-300 p-2 text-left">Total Order</th>
@@ -166,7 +202,7 @@ const CustomersPage = ({ c, page: p }) => {
                                     </button>
                                     <button title="Edit this customer" onClick={(e) => {
                                         e.stopPropagation();
-                                        router.push(`/${activeOrg}/customers/new?id=${c._id }`)
+                                        router.push(`/${activeOrg}/customers/new?id=${c._id}`)
                                     }} >
                                         <EditSVG />
                                     </button>
