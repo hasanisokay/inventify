@@ -291,6 +291,8 @@ const NewInvoice = ({ activeOrg, id }) => {
     setPaymentFromNumber("");
     setSameAddress(true);
     setUpdateable(false);
+    setSelectedCustomer(null)
+    setCustomerDetails([])
   };
 
   const handleSave = async (createPdf = false) => {
@@ -513,6 +515,7 @@ const NewInvoice = ({ activeOrg, id }) => {
               value: c._id,
             })),
           ]}
+          value={selectedCustomer}
           placeholder={loading ? "Loading Customers..." : "Select or Add Customer"}
           onChange={handleCustomerChange}
         />
@@ -565,7 +568,7 @@ const NewInvoice = ({ activeOrg, id }) => {
           className="text-input2"
         />
       </div>
-   `   <div className="input-container">
+      `   <div className="input-container">
         <label htmlFor="orderNumber" className="form-label2">Order Number: </label>
         <input
           type="text"
@@ -692,45 +695,47 @@ const NewInvoice = ({ activeOrg, id }) => {
               </tr>
             ))}
             <tr className="w-[400px]">
-              <Select
-                className="w-[400px]"
-                id="item"
-                options={dynamicOptions}
-                value={selectedItemOnchangeHolder}
-                menuPortalTarget={document.body}
-                styles={{
-                  menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                  control: (provided, state) => ({
-                    ...provided,
-                    padding: '10px',
-                    minHeight: '50px',
-                    backgroundColor: '#fefefe',
-                    border: 'none',
-                    width: "100%",
-                    borderRadius: '0px',
-                    zIndex: 40,
-                  }),
-                  option: (provided) => ({
-                    ...provided, color: "black"
-                  })
-                  ,
-                  indicatorsContainer: (provided) => ({
-                    display: 'none',
-                  }),
-                  singleValue: (provided) => ({
-                    ...provided,
-                    padding: '10px',
-                  }),
-                  input: (provided) => ({
-                    ...provided,
-                    paddingTop: "10px",
-                    paddingBottom: "10px"
-                  }),
-                }}
-                placeholder={loading ? "Loading Items..." : "Select or Search Item"}
-                onChange={handleItemChange}
-                onInputChange={handleInputChange}
-              />
+              <td className="no-padding">
+                <Select
+                  className="w-[400px]"
+                  id="item"
+                  options={dynamicOptions}
+                  value={selectedItemOnchangeHolder}
+                  menuPortalTarget={document.body}
+                  styles={{
+                    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                    control: (provided, state) => ({
+                      ...provided,
+                      padding: '10px',
+                      minHeight: '50px',
+                      backgroundColor: '#fefefe',
+                      border: 'none',
+                      width: "100%",
+                      borderRadius: '0px',
+                      zIndex: 40,
+                    }),
+                    option: (provided) => ({
+                      ...provided, color: "black"
+                    })
+                    ,
+                    indicatorsContainer: (provided) => ({
+                      display: 'none',
+                    }),
+                    singleValue: (provided) => ({
+                      ...provided,
+                      padding: '10px',
+                    }),
+                    input: (provided) => ({
+                      ...provided,
+                      paddingTop: "10px",
+                      paddingBottom: "10px"
+                    }),
+                  }}
+                  placeholder={loading ? "Loading Items..." : "Select or Search Item"}
+                  onChange={handleItemChange}
+                  onInputChange={handleInputChange}
+                />
+              </td>
             </tr>
           </tbody>
         </table>}

@@ -1,12 +1,18 @@
 'use client';
 
-const NewExpenseCategoryModal = ({ openModal, setOpenModal, setCategory, category }) => {
+const NewExpenseCategoryModal = ({ openModal, onExitModal, setOpenModal, setCategory, category }) => {
 
 
     return (
         <div className="mx-auto flex w-auto items-center justify-center">
             <div
-                onClick={() => setOpenModal(false)}
+                onClick={() => {
+                    setOpenModal(false)
+                    if (onExitModal) {
+                        onExitModal(prev => [...prev, category])
+                    }
+                }
+                }
                 className={`fixed z-[100] flex items-center justify-center ${openModal ? 'opacity-1 visible' : 'invisible opacity-0'} inset-0 h-full w-full bg-black/20 backdrop-blur-sm duration-100`}
             >
                 <div
@@ -26,6 +32,9 @@ const NewExpenseCategoryModal = ({ openModal, setOpenModal, setCategory, categor
                         <form onSubmit={(e) => {
                             e.preventDefault()
                             setOpenModal(false)
+                            if (onExitModal) {
+                                onExitModal(prev => [...prev, category])
+                            }
                         }}>
                             <input
                                 type="text"

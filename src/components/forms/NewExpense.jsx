@@ -11,6 +11,7 @@ import NewExpenseCategoryModal from "../modal/NewExpenseCategoryModal";
 import toast from "react-hot-toast";
 import calculateTax from "@/utils/calculateTax.mjs";
 import AuthContext from "@/contexts/AuthContext.mjs";
+import CopySVG from "../svg/CopySVG";
 
 
 const NewExpense = ({ activeOrg, id, uniqueIds }) => {
@@ -106,8 +107,11 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
       orgId: activeOrg,
     };
 
-    const newItemizedExpense = itemizedExpenses.map(i => ({ ...i, amount: parseFloat(i.amount) || 0, tax: parseFloat(i.tax) || 0 }))
+    const newItemizedExpense = itemizedExpenses
+    .filter(i => i.category !== "")  // Filter out items where category is an empty string
+    .map(i => ({ ...i, amount: parseFloat(i.amount) || 0, tax: parseFloat(i.tax) || 0 }));
     const totalExpense = newItemizedExpense.reduce((accumulator, currentValue) => parseFloat(accumulator) + parseFloat(currentValue.amount) + parseFloat(currentValue.tax), 0);
+
 
     const itemizedFormData = {
       date: expenseDate,
@@ -181,7 +185,17 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
     const updatedItemized = [...itemizedExpenses];
     updatedItemized[index][field] = value;
     setItemizedExpenses(updatedItemized);
+    if (itemizedExpenses.length >= index && field === "category" && itemizedExpenses.length === index + 1) {
+      handleAddItemizedRow()
+    }
+//     if(field==="category" && !availableCategories.includes(category)){
+//       const isExisted = itemizedExpenses.filter(i=>i.category===value);
+//       console.log(isExisted);
+// if(isExisted){
+// }
+//     }
   };
+
 
 
   const fetchCategories = async () => {
@@ -210,11 +224,20 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
   };
 
 
+  const handleCloneItemizedRow = (index) => {
+    setItemizedExpenses((prev) => {
 
-  const handleBeforeUnload = (e) => {
-    e.preventDefault();
-    e.returnValue = "You have unsaved changes. Are you sure you want to leave?";
-  };
+      const itemToClone = prev[index];
+      const clonedItem = { ...itemToClone };
+
+      return [
+        ...prev.slice(0, index + 1),  
+        clonedItem,                   
+        ...prev.slice(index + 1)   
+      ];
+    });
+  }
+  
 
   const resetForm = () => {
     setCategory(null);
@@ -229,6 +252,9 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
     setCustomer(null);
     setShowItemized(false);
     setItemizedExpenses([]);
+    setSelectedCustomer(null)
+    setOpenNewCategoryModal(false);
+    setOpenNewCategoryModal(false);
   };
 
   const handleItemizedCheckboxChange = () => {
@@ -293,7 +319,6 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
             options={[{ value: "add-new-category", label: "Add New" }, ...availableCategories.map(cat => ({ value: cat, label: cat }))]}
             instanceId={uniqueIds[0]}
             id={uniqueIds[0]}
-            // ...availableCategories?.map((cat) => ({ value: cat, label: cat }))
             onChange={(selectedOption) => {
               if (selectedOption.value === "add-new-category") {
                 return setOpenNewCategoryModal(true);
@@ -306,6 +331,7 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
             setCategory={setCategory}
             category={category}
             setOpenModal={setOpenNewCategoryModal}
+            onExitModal={setAvailableCategories}
           />
         </div>
 
@@ -412,6 +438,7 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
                         setCategory={(newCategory) => handleItemizedChange(index, 'category', newCategory)}
                         category={itemizedExpenses[index].category}
                         setOpenModal={() => setCurrentCategoryIndex(null)}
+                        onExitModal={setAvailableCategories}
                       />
                     </td>
                     <td className="">
@@ -448,6 +475,7 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
                         placeholder="Tax"
                       />
                       <span className="text-red-500 absolute text-lg cursor-pointer" onClick={() => handleRemoveItemizedRow(index)}>&#10008;</span>
+                      <span title="Clone this item" className="text-red-500 absolute -left-6 text-lg cursor-pointer opacity-50 hover:opacity-100" onClick={() => handleCloneItemizedRow(index)}><CopySVG width={'24px'} height={'24px'} /></span>
                     </td>
 
                   </tr>
@@ -481,14 +509,14 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
       <div className="flex items-center justify-center gap-10">
         <button
           type="button"
-          onClick={()=>handleSave(false)}
+          onClick={() => handleSave(false)}
           className="btn btn-ghost bg-green-500 text-white hover:bg-green-600 rounded-lg shadow-md transition ease-in-out duration-200"
         >
           Save
         </button>
         <button
           type="button"
-          onClick={()=>handleSave(true)}
+          onClick={() => handleSave(true)}
           className="btn btn-ghost bg-yellow-500 text-slate-800 hover:bg-yellow-600 rounded-lg shadow-md transition ease-in-out duration-200"
         >
           Save & New

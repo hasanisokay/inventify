@@ -141,6 +141,10 @@ body {
   width: 20px; 
 }
 
+.no-padding{
+  padding: 0 !important;
+}
+
 .item-table th,
 .item-table td {
   border: 1px solid #dcdcdc; /* Softer gray for light theme */
