@@ -24,7 +24,7 @@ export const GET = async (req) => {
     const orgId = searchParams.get("orgId");
     const nameOnly = searchParams.get("titleOnly");
     const sort = searchParams.get("sort");
-    const sortOrder = sort === "highest" ? -1 : 1;
+
     const page = parseInt(searchParams.get("page"));
     const limit = parseInt(searchParams.get("limit")) || 10;
     const skip = (page - 1) * limit;
@@ -33,6 +33,22 @@ export const GET = async (req) => {
     if (!orgId) return NextResponse.json(unauthorizedResponse);
     const itemCollection = await db.collection("items");
     const matchStage = { orgId };
+
+    const sortField =
+    sort === "highest" || sort === "lowest"
+      ? "totalOrder" // Sort by totalOrder for both highest and lowest
+      : sort === "name_asc" || sort === "name_dsc"
+      ? "name" // Sort by name for ascending and descending
+      : sort === "price_high" || sort === "price_low"
+      ? (report === "true" ? "sellingPrice" : "numericSellingPrice") // Conditional sorting for price
+      : "lastModifiedTime"; // Default sort field
+  
+
+  let sortOrder = -1;
+  if (sort === "name_dsc" || sort === "lowest" || sort === "price_low" ) {
+    sortOrder = 1;
+  }
+
 
     if (category) {
       matchStage.category = category;
@@ -134,9 +150,7 @@ export const GET = async (req) => {
               totalAmount: 1,
             },
           },
-          {
-            $sort: { totalOrder: sortOrder },
-          },
+          { $sort: { [sortField]: sortOrder } },
           { $skip: skip },
           { $limit: limit },
         ])
@@ -199,8 +213,19 @@ export const GET = async (req) => {
             },
           },
           {
-            $sort: { totalOrder: sortOrder },
+            $addFields: {
+              numericSellingPrice: {
+                $toDouble: {
+                  $trim: {
+                    input: {
+                      $substrBytes: ["$sellingPrice", 4, { $strLenBytes: "$sellingPrice" }],
+                    },
+                  },
+                },
+              },
+            },
           },
+          { $sort: { [sortField]: sortOrder } },
           { $skip: skip },
           { $limit: limit },
         ])

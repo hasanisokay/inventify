@@ -1,9 +1,6 @@
 "use client"
 import { useContext, useEffect, useState } from "react";
-import { parse } from "csv-parse/browser/esm";
 import * as XLSX from "xlsx";
-import decodeName from "@/utils/decodeName.mjs";
-import excelSerialToDate from "@/utils/excelSerialToDate.mjs";
 import toast from "react-hot-toast";
 import AuthContext from "@/contexts/AuthContext.mjs";
 import getActiveOrg from "@/utils/getActiveOrg.mjs";
@@ -52,31 +49,13 @@ const ImportInvoicePage = () => {
         if (savedItems?.length < 1) return;
 
         const fileType = uploadedFile.type;
-        if (fileType.includes("csv")) {
-            handleCSV(uploadedFile);
-        } else if (fileType.includes("spreadsheet") || fileType.includes("excel")) {
+        if (fileType.includes("spreadsheet") || fileType.includes("excel")) {
             handleExcel(uploadedFile);
-        } else if (fileType.includes("json")) {
-            handleJSON(uploadedFile);
         } else {
-            console.error("Unsupported file type");
+            toast.error("Unsupported file type");
         }
     };
 
-    const handleCSV = (file) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-            parse(reader.result, { columns: true }, (err, output) => {
-                if (err) {
-                    console.error("Error parsing CSV:", err);
-                } else {
-                    const formattedItems = output.map((row) => mapRowToItem(row, "CSV"));
-                    setInvoices(formattedItems);
-                }
-            });
-        };
-        reader.readAsText(file);
-    };
 
     const handleExcel = (file) => {
         const reader = new FileReader();
@@ -112,23 +91,11 @@ const ImportInvoicePage = () => {
         };
         reader.readAsArrayBuffer(file);
     };
-    const handleJSON = (file) => {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            try {
-                const jsonData = JSON.parse(event.target.result);
-                const formattedItems = jsonData.map((row) => mapRowToItem(row, "JSON"));
-                setInvoices(formattedItems);
-            } catch (error) {
-                console.error("Error parsing JSON:", error);
-            }
-        };
-        reader.readAsText(file);
-    };
 
     const mapRowToItem = (row, source) => {
+        const defaultCustomer = savedCustomers.find(c=> c.name==="Default Customer");
         const customer = savedCustomers.find(customer => customer.name === row["Customer Name"]);
-        const customerId = customer ? customer?._id : null;
+        const customerId = customer ? customer?._id : defaultCustomer._id;
         const item = {
             itemId: savedItems.find(item => item.name === row["Item Name"])?._id,
             name: row["Item Name"],
@@ -139,7 +106,7 @@ const ImportInvoicePage = () => {
         };
         return {
             invoiceNumber: row["Invoice Number"] || generateInvoiceNumber(),
-            invoiceDate: excelSerialToDate(row["Invoice Date"]) || "",
+            invoiceDate: parseDateInput(row["Invoice Date"]) || "",
             customerId: customerId,
             items: [item],
             subtotal: row["SubTotal"] || "",
@@ -160,13 +127,43 @@ const ImportInvoicePage = () => {
             ownerUsername: currentUser?.username,
         };
     };
-    function excelSerialToDate(serial) {
-        const startDate = new Date(1900, 0, 1); // Excel starts counting from January 1, 1900
-        const daysInMs = serial * 24 * 60 * 60 * 1000; // Convert days to milliseconds
-        const excelDate = new Date(startDate.getTime() + daysInMs);
-        return excelDate;
+    function parseDateInput(input) {
+        // Check if the input is a number (likely an Excel serial date)
+        if (typeof input === 'number') {
+            return excelSerialToDate(input);
+        }
+        
+        // Check if the input is a valid MM/DD/YYYY string
+        if (typeof input === 'string' && /^[0-1]?\d\/[0-3]?\d\/\d{4}$/.test(input)) {
+            return parseDate(input);
+        }
+    
+        throw new Error("Invalid input format. Please provide either a valid Excel serial number or MM/DD/YYYY date string.");
     }
-    const handleSave = async () => {
+    
+    // Function to convert Excel serial date to JavaScript Date
+    function excelSerialToDate(serial) {
+        const startDate = new Date(1900, 0, 1); // Excel starts from January 1, 1900
+        // Excel has a leap year bug for the year 1900, so adjust the serial number if necessary
+        if (serial > 60) {
+            serial--; // Fix for Excel's incorrect leap year in 1900
+        }
+        const daysInMs = serial * 24 * 60 * 60 * 1000; // Convert days to milliseconds
+        return new Date(startDate.getTime() + daysInMs);
+    }
+    
+    // Function to convert MM/DD/YYYY date string to JavaScript Date
+    function parseDate(dateString) {
+        const [month, day, year] = dateString.split('/').map(Number);
+        if (
+            isNaN(month) || month < 1 || month > 12 || 
+            isNaN(day) || day < 1 || day > 31 || 
+            isNaN(year) || year < 1000 || year > 9999
+        ) {
+            throw new Error("Invalid date format");
+        }
+        return new Date(year, month - 1, day); // JavaScript months are 0-based
+    }    const handleSave = async () => {
         if (!activeOrg) return toast.error("active org not found")
         if (!currentUser.username) return toast.error("No user")
         setLoading(true)
@@ -206,11 +203,11 @@ const ImportInvoicePage = () => {
             </div>
             <p>
                 Supported file formats:{" "}
-                <span className="font-semibold">xlsx, csv, json</span>
+                <span className="font-semibold">xlsx</span>
             </p>
             <input
                 type="file"
-                accept=".csv, .xlsx, .xls, .json"
+                accept=".xlsx, .xls,"
                 onChange={handleFileUpload}
                 className="block mb-4"
             />

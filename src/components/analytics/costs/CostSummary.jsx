@@ -18,6 +18,7 @@ const CostSummary = () => {
             const data = await res.json();
  
             if (data.success) {
+                console.log(data)
                 mergeData(data.invoiceData, data.expenseData);
             } else {
                 console.error("Error fetching data:", data.message);
@@ -31,27 +32,44 @@ const CostSummary = () => {
 
     const mergeData = (invoiceData, expenseData) => {
         const merged = [];
+        const invoiceMap = new Map();
         const expenseMap = new Map();
-
-   
+    
+        // Map expenses by period
         expenseData.forEach((expense) => {
             expenseMap.set(expense._id, expense.totalExpenses);
         });
-
-
+    
+        // Map invoices by period
         invoiceData.forEach((invoice) => {
-            const expense = expenseMap.get(invoice._id) || 0; 
+            invoiceMap.set(invoice._id, {
+                totalDue: invoice.totalDue,
+                totalPaid: invoice.totalPaid,
+            });
+        });
+    
+        // Merge all unique periods from invoices and expenses
+        const uniquePeriods = new Set([
+            ...invoiceMap.keys(),
+            ...expenseMap.keys(),
+        ]);
+    
+        uniquePeriods.forEach((period) => {
+            const invoice = invoiceMap.get(period) || { totalDue: 0, totalPaid: 0 };
+            const expense = expenseMap.get(period) || 0;
+    
             merged.push({
-                timePeriod: formatTimePeriod(invoice._id),
+                timePeriod: formatTimePeriod(period),
                 totalDue: invoice.totalDue,
                 totalPaid: invoice.totalPaid,
                 totalExpenses: expense,
             });
         });
-
+    
         setMergedData(merged);
     };
-
+    
+    
     const formatTimePeriod = (period) => {
         if(typeof(period)==='number') return period
         if (period?.includes("W")) {

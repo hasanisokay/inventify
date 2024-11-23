@@ -4,21 +4,15 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import Select from 'react-select';
 
-const BarInCustomers = ({ sort, limit, selectId,}) => {
+const BarInCustomers = ({ sort, limit, selectId, }) => {
     const router = useRouter();
     const [hasMounted, setHasMounted] = useState(false);
-    const [selectedSort, setSelectedSort] = useState({ value: sort, label: (sort === 'spenders' && 'Highest Spenders' || sort === 'debtors' && 'Highest Debtors') });
     const [selectedLimit, setSelectedLimit] = useState({ value: limit, label: `${limit} items per page` });
-    const sortOptions = [
-        { value: 'spenders', label: 'Highest Spenders' },
-        { value: 'debtors', label: 'Highest Debtors' },
-    ];
 
 
     useEffect(() => {
         if (hasMounted) {
             const query = new URLSearchParams(window.location.search);
-            query.set('sort', selectedSort.value);
             query.set('limit', selectedLimit.value);
             if (limit !== selectedLimit.value) {
                 query.set("page", 1)
@@ -28,17 +22,11 @@ const BarInCustomers = ({ sort, limit, selectId,}) => {
             setHasMounted(true)
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedSort, selectedLimit]);
+    }, [selectedLimit]);
 
     return (
         <div className='flex mb-4 text-black gap-2'>
-            <Select
-                defaultValue={selectedSort}
-                options={sortOptions}
-                onChange={(e) => setSelectedSort(e)}
-                className='select-react'
-                instanceId={selectId[0]}
-            />
+
             <Select
                 defaultValue={selectedLimit}
                 options={limitOptions}

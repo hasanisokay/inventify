@@ -145,6 +145,7 @@ body {
   padding: 0 !important;
 }
 
+
 .item-table th,
 .item-table td {
   border: 1px solid #dcdcdc; /* Softer gray for light theme */
@@ -342,4 +343,10 @@ color: black;
 .item-table2 th {
   background-color: #f7f7f7; /* Light gray background */
   font-weight: bold;
+}
+
+.fixed-width{
+  width: 300px !important;
+height: auto !important;
+white-space: nowrap;
 }

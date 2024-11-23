@@ -14,6 +14,7 @@ import CheckSVG from "./CheckSVG";
 import Loading from "../loader/Loading";
 import { useRouter } from "next/navigation";
 import SearchBar from "../SearchBar/SearchBar";
+import NameSort from "../sort/NameSort";
 
 const InvoicePage = ({ invoices: i }) => {
     const router = useRouter();
@@ -139,99 +140,25 @@ const InvoicePage = ({ invoices: i }) => {
             <h1 className="text-2xl font-semibold mb-4 text-center">Invoices</h1>
             <SearchBar placeholder={"Search with items, customer or order number"} />
             <p className="h-[40px]"></p>
-            <table className="item-table item-table-large-first-child duration-300">
+            <table className="item-table  item-table-large-first-child duration-300">
                 <thead className="bg-gray-200">
                     <tr>
-                        <th className="border border-gray-300 p-2 text-left">Customer</th>
+                        <th className="border border-gray-300 p-2 text-left">
+
+                            <NameSort name={"Customer"} topValue={"name_dsc"} lowValue={"name_asc"} />
+                        </th>
                         <th className="border border-gray-300 p-2 text-left">Invoice</th>
                         <th className="border border-gray-300 p-2 text-left">
-                            <div className="flex items-center gap-2">
-                                Date
-                                <div className="flex flex-col cursor-pointer text-gray-500">
-                                    <svg
-                                        onClick={() => handleDateSort("newest")}
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className={`w-[8px] h-[8px] ${selectedSort === "newest" && "text-gray-800"}`}
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                        strokeWidth="5"
-                                    >
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
-                                    </svg>
-                                    <svg
-                                        onClick={() => handleDateSort("oldest")}
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className={`w-[8px] h-[8px] ${selectedSort === "oldest" && "text-gray-800"}`}
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                        strokeWidth="5"
-                                    >
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </div>
-                            </div>
+                            <NameSort name={'Date'} topValue={"newest"} lowValue={"oldest"} />
                         </th>
                         <th className="border border-gray-300 p-2 text-left">Tax</th>
                         <th className="border border-gray-300 p-2 text-left">
+                            <NameSort name={'Paid'} topValue={"top-paid"} lowValue={"top-due"} />
 
-                            <div className="flex items-center justify-start gap-2">
-                                Paid
-                                <div className="flex flex-col cursor-pointer text-gray-500">
-                                    <svg
-                                        onClick={() => handleAmountSort("top-paid")}
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className={`w-[8px] h-[8px] ${selectedSort === "top-paid" && "text-gray-800"}`}
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                        strokeWidth="5"
-                                    >
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
-                                    </svg>
-                                    <svg
-                                        onClick={() => handleAmountSort("top-due")}
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className={`w-[8px] h-[8px] ${selectedSort === "top-due" && "text-gray-800"}`}
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                        strokeWidth="5"
-                                    >
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </div>
-                            </div>
                         </th>
                         <th className="border border-gray-300 p-2 text-left">
-                            <div className="flex items-center justify-start gap-2">
-                                Due
-                                <div className="flex flex-col cursor-pointer text-gray-500">
-                                    <svg
-                                        onClick={() => handleAmountSort("top-due")}
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className={`w-[8px] h-[8px] ${selectedSort === "top-due" && "text-gray-800"}`}
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                        strokeWidth="5"
-                                    >
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
-                                    </svg>
-                                    <svg
-                                        onClick={() => handleAmountSort("top-paid")}
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className={`w-[8px] h-[8px] ${selectedSort === "top-paid" && "text-gray-800"}`}
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                        strokeWidth="5"
-                                    >
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </div>
-                            </div>
+                            <NameSort name={'Due'} topValue={"top-due"} lowValue={"top-paid"} />
+
                         </th>
                         <th className="border border-gray-300 p-2 text-left">Total</th>
                     </tr>

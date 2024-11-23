@@ -101,6 +101,9 @@ export const GET = async (req) => {
           },
         },
         {
+          $sort: { _id: 1 }, 
+        },
+        {
           $project: projectFields, 
         },
       ])
@@ -124,6 +127,9 @@ export const GET = async (req) => {
             _id: groupByForExpenses,
             totalExpenses: { $sum: "$total" },
           },
+        },
+        {
+          $sort: { _id: 1 }, 
         },
         {
           $project: {

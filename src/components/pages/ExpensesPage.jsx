@@ -1,74 +1,17 @@
-'use client';
+'use client'
 
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import ExpenseModal from "../modal/ExpenseModal";
 import SearchBar from "../SearchBar/SearchBar";
 import DeleteSVG from "../svg/DeleteSVG";
 import toast from "react-hot-toast";
+import NameSort from "../sort/NameSort";
+
 
 const ExpensesPage = ({ e }) => {
-    const [expenses, setExpenses] = useState(e)
 
-    const [hasMounted, setHasMounted] = useState(false);
-    const [selectedSort, setSelectedSort] = useState("newest");
     const [openExpenseModal, setOpenExpenseModal] = useState(false);
     const [selectedExpense, setSelectedExpense] = useState(null);
-
-    const router = useRouter();
-    const sortOptions = [
-        { value: 'newest', label: 'Newest' },
-        { value: 'oldest', label: 'Oldest' },
-        { value: 'highest_expense', label: 'Highest' },
-        { value: 'lowest_expense', label: 'Lowest' },
-    ];
-    const handleDateSort = (s) => {
-        if (s === "newest") {
-            if (selectedSort === "newest") {
-                setSelectedSort('lowest')
-            }
-            else {
-                setSelectedSort('newest')
-            }
-        }
-        if (s === "oldest") {
-            if (selectedSort === "oldest") {
-                setSelectedSort('newest')
-            } else {
-                setSelectedSort('oldest')
-            }
-        }
-    }
-    const handleAmountSort = (s) => {
-        if (s === "lowest_expense") {
-            if (selectedSort === "lowest_expense") {
-                setSelectedSort('highest_expense')
-            }
-            else {
-                setSelectedSort("lowest_expense")
-            }
-        }
-        if (s === "highest_expense") {
-            if (selectedSort === "highest_expense") {
-                setSelectedSort('lowest_expense')
-            }
-            else {
-                setSelectedSort("highest_expense")
-            }
-        }
-    }
-
-    useEffect(() => {
-        if (hasMounted) {
-            const query = new URLSearchParams(window.location.search);
-            query.set('sort', selectedSort);
-            router.replace(`${window.location.pathname}?${query.toString()}`, { scroll: false });
-        } else {
-            setHasMounted(true)
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedSort]);
-
     const handleRowClick = (item) => {
         setSelectedExpense(item);
         setOpenExpenseModal(true);
@@ -85,10 +28,11 @@ const ExpensesPage = ({ e }) => {
         const data = await res.json();
         if (data.status === 200) {
             toast.success(data.message)
-            setExpenses((prev) => {
-                const filteredItems = prev.filter((i) => i._id !== id)
-                return filteredItems
-            })
+            e = e.filter((i) => i._id !== id);
+            // setExpenses((prev) => {
+            //     const filteredItems = prev.filter((i) => i._id !== id)
+            //     return filteredItems
+            // })
         } else {
             toast.error(data.message)
         }
@@ -101,75 +45,25 @@ const ExpensesPage = ({ e }) => {
             <div className="overflow-x-auto">
                 <SearchBar placeholder={'Search with category, reference or customer'} />
                 <p className="h-[40px]"></p>
-                <table className="item-table">
+                <table className="item-table table-fixed">
                     <thead className="">
                         <tr>
                             <th className="text-left px-6 py-3 font-semibold">
-                                <div className="flex items-center gap-2">
-                                    Date
-                                    <div className="flex flex-col cursor-pointer text-gray-500">
-                                        <svg
-                                            onClick={() => handleDateSort("newest")}
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            className={`w-[8px] h-[8px] ${selectedSort === "newest" && "text-gray-800"}`}
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                            strokeWidth="5"
-                                        >
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
-                                        </svg>
-                                        <svg
-                                            onClick={() => handleDateSort("oldest")}
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            className={`w-[8px] h-[8px] ${selectedSort === "oldest" && "text-gray-800"}`}
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                            strokeWidth="5"
-                                        >
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                                        </svg>
-                                    </div>
-                                </div>
+                                <NameSort name={"Date"} topValue={"newest"} lowValue={"oldest"} />
                             </th>
 
-                            <th className="text-left px-6 py-3 font-semibold ">Reference</th>
-                            <th className="text-left px-6 py-3 font-semibold ">Customer</th>
+                            <th className="text-left px-6 py-3 font-semibold max-w-[200px] whitespace-nowrap h-auto max-h-[200px] ">Reference</th>
+                            <th className="text-left px-6 py-3 font-semibold ">
+                                <NameSort name={"Customer"} topValue={"name_dsc"} lowValue={"name_asc"} />
+                            </th>
                             <th className="text-right px-6 py-3 font-semibold ">
-                                <div className="flex items-center justify-start gap-2">
-                                    Amount
-                                    <div className="flex flex-col cursor-pointer text-gray-500">
-                                        <svg
-                                            onClick={() => handleAmountSort("highest_expense")}
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            className={`w-[8px] h-[8px] ${selectedSort === "highest_expense" && "text-gray-800"}`}
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                            strokeWidth="5"
-                                        >
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
-                                        </svg>
-                                        <svg
-                                            onClick={() => handleAmountSort("lowest_expense")}
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            className={`w-[8px] h-[8px] ${selectedSort === "lowest_expense" && "text-gray-800"}`}
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                            strokeWidth="5"
-                                        >
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                                        </svg>
-                                    </div>
-                                </div>
+                                <NameSort name={"Amount"} topValue={"highest_expense"} lowValue={"lowest_expense"} />
                             </th>
                             <th className="text-left px-6 py-3 font-semibold ">Category</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {expenses?.map((item) => (
+                        {e?.map((item) => (
                             <tr onClick={() => handleRowClick(item)} key={item._id} className="border-b cursor-pointer group dark:text-white text-gray-800 border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-slate-500">
                                 <td className="px-6 py-4 ">
 
@@ -195,8 +89,8 @@ const ExpensesPage = ({ e }) => {
                                         </button>
                                     </div>
                                 </td>
-                                <td className="px-6 py-4 ">{item.reference}</td>
-                                <td className="px-6 py-4 ">
+                                <td className="px-6 py-4 max-w-[200px]  whitespace-nowrap overflow-hidden text-ellipsis max-h-[200px] ">{item.reference}</td>
+                                <td className="px-6 py-4  whitespace-nowrap overflow-hidden text-ellipsis">
                                     {item.customer.firstName} {item.customer.lastName}
                                 </td>
                                 <td className="px-6 py-4 text-right ">{item.total} BDT</td>

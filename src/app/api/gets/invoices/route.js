@@ -35,13 +35,17 @@ export const GET = async (req) => {
 
     let sorting = {};
     if (sort === "top-paid") {
-      sorting.paidAmount = -1;
+      sorting.paidAmount = -1; 
     } else if (sort === "top-due") {
       sorting.dueAmount = -1;
     } else if (sort === "oldest") {
-      sorting.invoiceDate = 1;
+      sorting.invoiceDate = 1; 
+    } else if (sort === "name_asc") {
+      sorting["customer.firstName"] = 1; 
+    } else if (sort === "name_dsc") {
+      sorting["customer.firstName"] = -1; 
     } else {
-      sorting.invoiceDate = -1;
+      sorting.invoiceDate = -1; 
     }
 
     // Start with the aggregation pipeline

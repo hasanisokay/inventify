@@ -8,6 +8,7 @@ import EditSVG from "../svg/EditSVG";
 import DeleteSVG from "../svg/DeleteSVG";
 import SearchBar from "../SearchBar/SearchBar";
 import NotebookSVG from "../svg/NotebookSVG";
+import NameSort from "../sort/NameSort";
 
 const CustomersPage = ({ c, page: p }) => {
     const [page, setPage] = useState(p);
@@ -17,8 +18,6 @@ const CustomersPage = ({ c, page: p }) => {
     const [selectedCustomer, setSelectedCustomer] = useState(null);
     const [customers, setCustomers] = useState(c);
     const [selectedCustomers, setSelectedCustomers] = useState([]);
-    const [selectedSort, setSelectedSort] = useState("");
-    const [hasMounted, setHasMounted] = useState(false);
     useEffect(() => {
         (async () => {
             const a = await getActiveOrg();
@@ -95,16 +94,7 @@ const CustomersPage = ({ c, page: p }) => {
             setSelectedCustomer(null);
         }
     }, [openModal]);
-    useEffect(() => {
-        if (hasMounted) {
-            const query = new URLSearchParams(window.location.search);
-            query.set('sort', selectedSort);
-            router.replace(`${window.location.pathname}?${query.toString()}`, { scroll: false });
-        } else {
-            setHasMounted(true)
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedSort]);
+
     return (
         <div className="w-full">
             <h1 className="text-2xl font-semibold mb-4 text-center">Customers</h1>
@@ -123,7 +113,7 @@ const CustomersPage = ({ c, page: p }) => {
                 )}
             </div>
 
-            <table className="item-table item-table-small-first-child">
+            <table className="item-table table-fixed item-table-small-first-child">
                 <thead className="bg-gray-200">
                     <tr>
                         <th className="border border-gray-300 p-2 text-left">
@@ -134,38 +124,20 @@ const CustomersPage = ({ c, page: p }) => {
                                 className="m-0"
                             />
                         </th>
-                        <th className="border border-gray-300 p-2 text-left flex items-center gap-2">
-                            Name
-                            <div className="flex flex-col cursor-pointer text-gray-500">
-                                <svg
-                                    onClick={() => setSelectedSort(prev => prev === "name_asc" ? "name_dsc" : "name_asc")}
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className={`w-[8px] h-[8px] ${selectedSort === "name_asc" && "text-gray-800"}`}
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    strokeWidth="5"
-                                >
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
-                                </svg>
-                                <svg
-                                    onClick={() => setSelectedSort(prev => prev === "name_dsc" ? "name_asc" : "name_dsc")}
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className={`w-[8px] h-[8px] ${selectedSort === "name_dsc" && "text-gray-800"}`}
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    strokeWidth="5"
-                                >
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </div>
+                        <th className="border border-gray-300 p-2 text-left ">
+                            <NameSort name={"Name"} topValue={"name_dsc"} lowValue={"name_asc"} />
                         </th>
                         <th className="border border-gray-300 p-2 text-left">Phone</th>
                         <th className="border border-gray-300 p-2 text-left">Company</th>
-                        <th className="border border-gray-300 p-2 text-left">Total Order</th>
-                        <th className="border border-gray-300 p-2 text-left">Due</th>
-                        <th className="border border-gray-300 p-2 text-left">Paid</th>
+                        <th className="border border-gray-300 p-2 text-left">
+                            <NameSort name={"Total Order"} topValue={"high_order"} lowValue={"low_order"} />
+                        </th>
+                        <th className="border border-gray-300 p-2 text-left">
+                            <NameSort name={"Due"} topValue={"highest_debtors"} lowValue={"lowest_debtors"} />
+                        </th>
+                        <th className="border border-gray-300 p-2 text-left">
+                            <NameSort name={"Paid"} topValue={"highest_spenders"} lowValue={"lowest_spenders"} />
+                        </th>
                         <th className="border border-gray-300 p-2 text-left">Actions</th>
                     </tr>
                 </thead>
@@ -180,9 +152,9 @@ const CustomersPage = ({ c, page: p }) => {
                                     className="m-0"
                                 />
                             </td>
-                            <td className="border border-gray-300 p-2">{c.firstName + " " + c.lastName}</td>
+                            <td className="border border-gray-300 p-2  whitespace-nowrap overflow-hidden text-ellipsis">{c.firstName + " " + c.lastName}</td>
                             <td className="border border-gray-300 p-2">{c?.phone}</td>
-                            <td className="border border-gray-300 p-2">{c?.companyName}</td>
+                            <td className="border border-gray-300 p-2  whitespace-nowrap overflow-hidden text-ellipsis">{c?.companyName}</td>
                             <td className="border border-gray-300 p-2">{c?.totalOrder}</td>
                             <td className="border border-gray-300 p-2">{c?.currency || "BDT "} {c?.totalDue}</td>
                             <td className="border border-gray-300 p-2">{c?.currency || "BDT "} {c?.totalPaid}</td>

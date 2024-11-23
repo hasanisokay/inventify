@@ -20,21 +20,29 @@ export const GET = async (req) => {
     const sort = searchParams.get("sort");
 
     const sortField =
-      sort === "spenders"
+      sort === "highest_spenders"
         ? "totalPaid"
-        : sort === "debtors"
+        : sort === "lowest_spenders"
+        ? "totalPaid"
+        : sort === "highest_debtors"
+        ? "totalDue"
+        : sort === "lowest_debtors"
         ? "totalDue"
         : sort === "name_asc"
         ? "firstName"
         : sort === "name_dsc"
         ? "firstName"
-        : "lastModifiedTime";
+        : sort === "low_order"
+        ? "firstName"
+        : sort === "high_order"
+        ? "firstName"
+        : "totalOrder";
 
     let sortOrder = -1;
-    if (sort === "name_dsc") {
+    if (sort === "name_dsc" || sort === "lowest_debtors"||sort === "lowest_spenders" || sort === "low_order" ) {
       sortOrder = 1;
     }
-console.log({sort, sortOrder})
+
     const page = parseInt(searchParams.get("page"));
     const limit = parseInt(searchParams.get("limit")) || 10;
     const skip = (page - 1) * limit;

@@ -13,6 +13,7 @@ import getItems from "@/utils/getItems.mjs";
 import ItemReportDownloadModal from "../modal/ItemReportDownloadModal";
 import Loading from "../loader/Loading";
 import AuthContext from "@/contexts/AuthContext.mjs";
+import NameSort from "../sort/NameSort";
 
 const ItemsPage = ({ i, actOrg, keyword }) => {
     const router = useRouter();
@@ -187,7 +188,7 @@ const ItemsPage = ({ i, actOrg, keyword }) => {
                     </button>
                 </div>}
             </div>
-            <table className="item-table item-table-small-first-child">
+            <table className="item-table table-fixed item-table-small-first-child">
                 <thead>
                     <tr>
                         <th className="border w-5 border-gray-300 p-2 text-left">
@@ -198,10 +199,18 @@ const ItemsPage = ({ i, actOrg, keyword }) => {
                                 className="m-0"
                             />
                         </th>
-                        <th className="border border-gray-300 p-2 text-left">Name</th>
-                        <th className="border border-gray-300 p-2 text-left">Price</th>
+                        <th className="border border-gray-300 p-2 text-left">
+                        <NameSort name={"Name"} topValue={"name_dsc"} lowValue={"name_asc"}/>
+                        </th>
+                        <th className="border border-gray-300 p-2 text-left">
+
+                        <NameSort  name={'Price'} topValue={"price_high"} lowValue={"price_low"}/>
+                        </th>
                         <th className="border border-gray-300 p-2 text-left">Unit</th>
-                        <th className="border border-gray-300 p-2 text-left">Total Sold</th>
+                        <th className="border border-gray-300 p-2 text-left">
+
+                        <NameSort  name={'Total Sold'} topValue={"highest"} lowValue={"lowest"}/>
+                        </th>
                         <th className="border border-gray-300 p-2 text-left">Status</th>
                         <th className="border border-gray-300 p-2 text-left">Actions</th>
                     </tr>
@@ -217,7 +226,7 @@ const ItemsPage = ({ i, actOrg, keyword }) => {
                                     className="m-0"
                                 />
                             </td>
-                            <td className="border border-gray-300 p-2">{i.name}</td>
+                            <td className="border border-gray-300 p-2  whitespace-nowrap overflow-hidden text-ellipsis">{i.name}</td>
                             <td className="border border-gray-300 p-2">{i?.sellingPrice?.split(" ")[1] || 0}</td>
                             <td className="border border-gray-300 p-2">{i?.unit}</td>
                             <td className="border border-gray-300 p-2">{i?.totalOrder}</td>

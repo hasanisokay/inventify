@@ -30,23 +30,26 @@ export const GET = async (req) => {
 
     if (category) {
       matchStage.$or = [
-        { category: category }, 
+        { category: category },
         { "itemizedExpenses.category": category },
       ];
     }
 
-    let sorting = {};
 
-    if (sort === "highest_expense") {
-      sorting.total = -1;
-    } else if (sort === "lowest_expense") {
-      sorting.total = 1;
-    } else if (sort === "oldest") {
-      sorting.date = 1;
-    } else {
-      sorting.date = -1;
+    const sortField =
+      sort === "newest" || sort === "oldest"
+        ? "date"
+        : sort === "name_asc" || sort === "name_dsc"
+        ? "customer.firstName"
+        : sort === "highest_expense" || sort === "lowest_expense"
+        ? "total"
+        : "date";
+
+    let sortOrder = -1;
+    if (sort === "name_dsc" || sort === "oldest" || sort === "lowest_expense") {
+      sortOrder = 1;
     }
-
+console.log({sortField, sortOrder})
     const result = await expenseCollection
       .aggregate([
         { $match: matchStage },
@@ -72,8 +75,15 @@ export const GET = async (req) => {
                   { reference: { $regex: keyword, $options: "i" } },
                   { category: { $regex: keyword, $options: "i" } },
                   { note: { $regex: keyword, $options: "i" } },
-                  { "itemizedExpenses.category": { $regex: keyword, $options: "i" } },
-                  { "itemizedExpenses.note": { $regex: keyword, $options: "i" } },
+                  {
+                    "itemizedExpenses.category": {
+                      $regex: keyword,
+                      $options: "i",
+                    },
+                  },
+                  {
+                    "itemizedExpenses.note": { $regex: keyword, $options: "i" },
+                  },
                   { "customer.firstName": { $regex: keyword, $options: "i" } },
                   { "customer.lastName": { $regex: keyword, $options: "i" } },
                 ],
@@ -101,7 +111,7 @@ export const GET = async (req) => {
             },
           },
         },
-        { $sort: sorting },
+        { $sort: { [sortField]: sortOrder } },
         { $skip: skip },
         { $limit: limit },
       ])

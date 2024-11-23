@@ -4,7 +4,7 @@ import { websiteName } from "@/constants/constantsName.mjs";
 const page = () => {
   return (
     <>
-<ImportExpensesPage />
+      <ImportExpensesPage />
     </>
   );
 };

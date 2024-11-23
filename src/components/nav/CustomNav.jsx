@@ -27,7 +27,7 @@ const CustomNav = ({ items = null, customer = null, invoice = null, expenses = n
                 <li>
                     <NavLink activeClasses={`bg-blue-600 hover:bg-blue-400 rounded-lg`} inactiveClasses={"rounded-lg hover:bg-slate-500 bg-slate-700"} href={`/${activeOrgId}/${url}/new`}> Add New <span className='font-bold'>+</span> </NavLink>
                 </li>
-                {(path.includes("/customers") || path.includes("/items") || path.includes("/invoice" || path.includes("/expense"))) && <li>
+                {(path.includes("/customers") || path.includes("/items") || path.includes("/invoice") || path.includes("/expenses")) && <li>
                     <NavLink activeClasses={`bg-blue-600 hover:bg-blue-400 rounded-lg`} inactiveClasses={"rounded-lg hover:bg-slate-500 bg-slate-700"} href={`/${activeOrgId}/${url}/import`}> Import <span className='font-bold'>+</span> </NavLink>
                 </li>}
             </ul>
