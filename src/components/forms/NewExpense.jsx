@@ -19,23 +19,22 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
   const [loadingCustomer, setLoadingCustomer] = useState(false);
   const [availableCategories, setAvailableCategories] = useState([]);
   const [category, setCategory] = useState(null);
-  const [newCategory, setNewCategory] = useState("");
-  const [customers, setCustomers] = useState([]);
   const [expenseDate, setExpenseDate] = useState(new Date());
   const [amount, setAmount] = useState("");
   const [currency, setCurrency] = useState("BDT");
   const [reference, setReference] = useState("");
   const [note, setNote] = useState("");
   const [taxes, setTaxes] = useState([]);
+  const router = useRouter();
   const [totalTax, setTotalTax] = useState(0);
   const [selectedTaxes, setSelectedTaxes] = useState([]);
   const [taxValues, setTaxValues] = useState({ percentage: '', amount: '' });
-  const [customer, setCustomer] = useState(null);
-  const [customerDetails, setCustomerDetails] = useState([]);
+
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [openCustomerModal, setOpenCustomerModal] = useState(false);
   const [showItemized, setShowItemized] = useState(false);
   const { currentUser } = useContext(AuthContext);
+  const [updateable, setUpdateable] = useState(false);
   const [itemizedExpenses, setItemizedExpenses] = useState([{
     "category": "",
     "amount": "",
@@ -44,13 +43,55 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
   }]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [openNewCategoryModal, setOpenNewCategoryModal] = useState(false)
-  const [savedCustomers, setSavedCustomers] = useState([]);
-  const router = useRouter();
 
+  const [savedCustomers, setSavedCustomers] = useState([]);
+  const onSaveCustomer = (n) => {
+    setSelectedCustomer({ value: n._id, label: n.firstName + " " + n.lastName })
+    setSavedCustomers(prev => [...prev, n])
+  }
+
+  useEffect(() => {
+    if (savedCustomers.length === 0) return;
+    (async () => {
+      if (id) {
+        setLoading(true)
+        const res = await fetch(`/api/gets/expense?id=${id}`)
+        const d = await res.json()
+        const data = d.data;
+        setLoading(false)
+
+        if (d?.status === 200) {
+          setUpdateable(true);
+          setCategory(data?.category || "");
+          setExpenseDate(data?.date);
+          setAmount(data?.amount || 0);
+          setCurrency(data?.amount || "BDT");
+          setReference(data?.reference);
+          setNote(data?.note || "");
+          setTaxes([]);
+          setTotalTax(data?.tax || 0)
+          setSelectedTaxes([]);
+          setTaxValues({ amount: data?.tax || 0 });
+          const customer = savedCustomers.find(i => i._id == data.customerId);
+          setSelectedCustomer({ label: customer?.firstName + " " + customer?.lastName, value: data.customerId })
+          setShowItemized(data?.itemized);
+          setItemizedExpenses(data?.itemizedExpenses || [{
+            "category": "",
+            "amount": "",
+            "note": "",
+            "tax": ""
+          }]);
+          setOpenNewCategoryModal(false);
+        }
+      }
+    })();
+  }, [id, savedCustomers]);
+  
 
   const [currentCategoryIndex, setCurrentCategoryIndex] = useState(null);
 
   const handleCustomerChange = (option) => {
+
     if (option.value === "add-new-customer") {
       setOpenCustomerModal(true);
     } else {
@@ -108,9 +149,9 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
     };
 
     const newItemizedExpense = itemizedExpenses
-    .filter(i => i.category !== "")  // Filter out items where category is an empty string
-    .map(i => ({ ...i, amount: parseFloat(i.amount) || 0, tax: parseFloat(i.tax) || 0 }));
-    const totalExpense = newItemizedExpense.reduce((accumulator, currentValue) => parseFloat(accumulator) + parseFloat(currentValue.amount) + parseFloat(currentValue.tax), 0);
+      ?.filter(i => i.category !== "")
+      ?.map(i => ({ ...i, amount: parseFloat(i.amount) || 0, tax: parseFloat(i.tax) || 0 }));
+    const totalExpense = newItemizedExpense?.reduce((accumulator, currentValue) => parseFloat(accumulator) + parseFloat(currentValue.amount) + parseFloat(currentValue.tax), 0);
 
 
     const itemizedFormData = {
@@ -124,9 +165,7 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
       orgId: activeOrg,
     };
 
-    // Updated checkEmptyFields function
     const checkEmptyFields = (formData) => {
-      // Check for fields in non-itemized data
       for (const key in formData) {
         if (
           key !== "reference" &&
@@ -137,7 +176,6 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
         }
       }
 
-      // If itemized expenses are present, check each item in the array for missing categories
       if (formData.itemizedExpenses && formData.itemizedExpenses.length > 0) {
         for (let i = 0; i < formData.itemizedExpenses.length; i++) {
           const item = formData.itemizedExpenses[i];
@@ -156,21 +194,35 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
     const formData = showItemized ? itemizedFormData : nonItemizedFormData;
 
     const emptyField = checkEmptyFields(formData);
-
     if (emptyField) {
       return toast.error(`${emptyField} is required`);
     }
+    let apiPath = "/api/adds/expense";
+    let method = "POST";
 
-    const res = await fetch("/api/adds/expense", {
-      method: "POST",
+    if (updateable) {
+      apiPath = `/api/updates/expense`
+      method = "PUT"
+      formData.id = id
+    }
+
+    const res = await fetch(apiPath, {
+      method: method,
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(formData),
+      credentials: 'include'
     });
     const data = await res.json();
 
     if (data?.status === 200 || data?.status === 201) {
+      if (updateable && reset) {
+        router.replace(`/${activeOrg}/expenses/new`)
+      } else if (updateable && !reset) {
+        router.replace(`/${activeOrg}/expenses`)
+      }
+
       if (reset) {
         resetForm();
       }
@@ -188,12 +240,6 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
     if (itemizedExpenses.length >= index && field === "category" && itemizedExpenses.length === index + 1) {
       handleAddItemizedRow()
     }
-//     if(field==="category" && !availableCategories.includes(category)){
-//       const isExisted = itemizedExpenses.filter(i=>i.category===value);
-//       console.log(isExisted);
-// if(isExisted){
-// }
-//     }
   };
 
 
@@ -231,19 +277,19 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
       const clonedItem = { ...itemToClone };
 
       return [
-        ...prev.slice(0, index + 1),  
-        clonedItem,                   
-        ...prev.slice(index + 1)   
+        ...prev.slice(0, index + 1),
+        clonedItem,
+        ...prev.slice(index + 1)
       ];
     });
   }
-  
+
 
   const resetForm = () => {
     setCategory(null);
     setExpenseDate(new Date());
     setAmount("");
-    setCurrency("USD");
+    setCurrency("BDT");
     setReference("");
     setNote("");
     setTaxes([]);
@@ -266,7 +312,7 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
   };
 
   return (
-    <div className="p-4 max-w-3xl mx-auto">
+    <div className={` p-4 max-w-3xl mx-auto ${loading || loadingCustomer ? "form-disabled" : ""} `}>
       <h1 className="text-2xl mb-6">New Expense</h1>
       <div className="mt-20 pb-10 border-t-2 pt-10 border-gray-500 input-container ">
         <label htmlFor="customer" className="form-label2">Select Customer</label>
@@ -512,14 +558,14 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
           onClick={() => handleSave(false)}
           className="btn btn-ghost bg-green-500 text-white hover:bg-green-600 rounded-lg shadow-md transition ease-in-out duration-200"
         >
-          Save
+          {updateable ? "Update" : "Save"}
         </button>
         <button
           type="button"
           onClick={() => handleSave(true)}
           className="btn btn-ghost bg-yellow-500 text-slate-800 hover:bg-yellow-600 rounded-lg shadow-md transition ease-in-out duration-200"
         >
-          Save & New
+          {updateable ? "Update" : "Save"} & New
         </button>
       </div>
 
@@ -532,7 +578,7 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
       <NewCustomerModal
         openModal={openCustomerModal}
         setOpenModal={setOpenCustomerModal}
-        onSaveCustomer={setCustomerDetails}
+        onSaveCustomer={onSaveCustomer}
       />
     </div>
   );

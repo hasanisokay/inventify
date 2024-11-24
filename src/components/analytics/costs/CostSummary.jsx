@@ -18,7 +18,6 @@ const CostSummary = () => {
             const data = await res.json();
  
             if (data.success) {
-                console.log(data)
                 mergeData(data.invoiceData, data.expenseData);
             } else {
                 console.error("Error fetching data:", data.message);

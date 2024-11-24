@@ -1,12 +1,12 @@
 
-const EditSVG = () => {
+const EditSVG = ({width,height}) => {
     return (
         <svg
             xmlns="http://www.w3.org/2000/svg"
             xmlSpace="preserve"
             id="Capa_1"
-            width="24"
-            height="24"
+            width={width||"24"}
+            height={height||"24"}
             fill="#000"
             version="1.1"
             viewBox="0 0 494.936 494.936"

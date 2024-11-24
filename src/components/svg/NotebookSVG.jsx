@@ -1,13 +1,13 @@
 import React from 'react';
 
-const NotebookSVG = () => {
+const NotebookSVG = ({width, height}) => {
     return (
         <svg
             xmlns="http://www.w3.org/2000/svg"
             xmlSpace="preserve"
             id="Capa_1"
-            width="24"
-            height="24"
+            width={width ||"24"}
+            height={height || "24"}
             fill="#000"
             version="1.1"
             viewBox="0 0 380.832 380.832"

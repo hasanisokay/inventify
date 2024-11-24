@@ -1,7 +1,7 @@
 import NotFound from "@/components/not-found/NotFound";
 import ExpensesPage from "@/components/pages/ExpensesPage";
 import PaginationDefault from "@/components/pagination/PaginationDefault";
-import BarInExpenses from "@/components/selects/BarInExpenses";
+import LimitSelect from "@/components/selects/LimitSelect";
 import { websiteName } from "@/constants/constantsName.mjs";
 import generateUniqueIds from "@/utils/generateUniqueIds.mjs";
 import getActiveOrg from "@/utils/getActiveOrg.mjs";
@@ -32,8 +32,8 @@ const expensesPage = async ({ searchParams }) => {
   const totalPages = Math.ceil(totalCount / limit);
   return (
     <div className="page-container">
-      <BarInExpenses limit={limit} page={page} sort={sort}selectId ={generateUniqueIds(2)} />
-      <ExpensesPage e={expenses.expenses} />
+      <LimitSelect limit={limit} page={page} sort={sort} selectId={generateUniqueIds(2)} />
+      <ExpensesPage e={expenses.expenses} activeOrg={orgId} />
       {totalCount > limit && (
         <PaginationDefault p={page} totalPages={totalPages} />
       )}

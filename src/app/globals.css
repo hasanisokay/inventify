@@ -136,6 +136,10 @@ body {
 .item-table-large-first-child td:first-child {
   width: 400px; 
 }
+.item-table-large-second-child td:nth-child(2),
+.item-table-large-second-child td:nth-child(2) {
+  width: 350px; 
+}
 .item-table-small-first-child th:first-child,
 .item-table-small-first-child td:first-child {
   width: 20px; 

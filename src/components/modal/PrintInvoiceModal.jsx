@@ -224,7 +224,7 @@ const PrintInvoiceModal = ({ resetStates, openModal, setOpenModal, invoiceNumber
                         }}>
                             <p style={pStyle}>
                                 <span style={spanStyle}>Subtotal:</span>
-                                <span>{subtotal.toFixed(2)}</span>
+                                <span>{subtotal?.toFixed(2)}</span>
                             </p>
                             {totalTax > 0 && (
                                 <p style={pStyle}>

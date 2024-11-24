@@ -1,10 +1,10 @@
 'use client'
-import { limitOptions } from '@/constants/options.mjs';
-import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
 import Select from 'react-select';
+import { useEffect, useState } from "react";
+import { useRouter } from 'next/navigation';
+import { limitOptions } from '@/constants/options.mjs';
 
-const BarInItems = ({ sort, limit, selectId }) => {
+const LimitSelect = ({ limit, selectId }) => {
     const router = useRouter();
     const [hasMounted, setHasMounted] = useState(false)
     const [selectedLimit, setSelectedLimit] = useState({ value: limit, label: `${limit} items per page` });
@@ -34,5 +34,4 @@ const BarInItems = ({ sort, limit, selectId }) => {
     );
 };
 
-export default BarInItems;
-
+export default LimitSelect;

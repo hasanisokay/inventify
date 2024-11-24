@@ -43,13 +43,14 @@ export const GET = async (req) => {
         ? "customer.firstName"
         : sort === "highest_expense" || sort === "lowest_expense"
         ? "total"
+        : sort === "category_asc" || sort === "category_dsc"
+        ? "category"
         : "date";
 
     let sortOrder = -1;
-    if (sort === "name_dsc" || sort === "oldest" || sort === "lowest_expense") {
+    if (sort === "name_dsc" || sort === "oldest" || sort === "lowest_expense" || sort==="category_dsc") {
       sortOrder = 1;
     }
-console.log({sortField, sortOrder})
     const result = await expenseCollection
       .aggregate([
         { $match: matchStage },
@@ -111,7 +112,12 @@ console.log({sortField, sortOrder})
             },
           },
         },
-        { $sort: { [sortField]: sortOrder } },
+        // { $sort: { [sortField]: sortOrder } },
+        {
+          $sort: sortField === "category_asc" || sortField === "category_dsc"
+            ? { category: sortOrder, "itemizedExpenses.category": sortOrder } // Apply sort to both fields
+            : { [sortField]: sortOrder },
+        },
         { $skip: skip },
         { $limit: limit },
       ])

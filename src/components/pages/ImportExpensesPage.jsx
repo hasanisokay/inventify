@@ -195,7 +195,6 @@ const ImportExpensesPage = () => {
 
         return item;
     };
-    console.log(expenses)
     function excelSerialToDate(serial) {
         const startDate = new Date(1900, 0, 1); // Excel starts counting from January 1, 1900
         const daysInMs = serial * 24 * 60 * 60 * 1000; // Convert days to milliseconds

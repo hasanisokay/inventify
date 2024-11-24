@@ -53,6 +53,8 @@ const CustomersPage = ({ c, page: p }) => {
     };
 
     const handleDeleteBulk = async () => {
+        const confirmed = window.confirm("Sure to delete?")
+        if(!confirmed) return;
         const res = await fetch("/api/deletes/delete-customers", {
             method: "DELETE",
             headers: {
@@ -113,7 +115,7 @@ const CustomersPage = ({ c, page: p }) => {
                 )}
             </div>
 
-            <table className="item-table table-fixed item-table-small-first-child">
+            <table className="item-table  item-table-small-first-child item-table-large-second-child">
                 <thead className="bg-gray-200">
                     <tr>
                         <th className="border border-gray-300 p-2 text-left">
@@ -127,8 +129,7 @@ const CustomersPage = ({ c, page: p }) => {
                         <th className="border border-gray-300 p-2 text-left ">
                             <NameSort name={"Name"} topValue={"name_dsc"} lowValue={"name_asc"} />
                         </th>
-                        <th className="border border-gray-300 p-2 text-left">Phone</th>
-                        <th className="border border-gray-300 p-2 text-left">Company</th>
+                  
                         <th className="border border-gray-300 p-2 text-left">
                             <NameSort name={"Total Order"} topValue={"high_order"} lowValue={"low_order"} />
                         </th>
@@ -138,6 +139,8 @@ const CustomersPage = ({ c, page: p }) => {
                         <th className="border border-gray-300 p-2 text-left">
                             <NameSort name={"Paid"} topValue={"highest_spenders"} lowValue={"lowest_spenders"} />
                         </th>
+                        <th className="border border-gray-300 p-2 text-left">Phone</th>
+                        <th className="border border-gray-300 p-2 text-left">Company</th>
                         <th className="border border-gray-300 p-2 text-left">Actions</th>
                     </tr>
                 </thead>
@@ -153,11 +156,12 @@ const CustomersPage = ({ c, page: p }) => {
                                 />
                             </td>
                             <td className="border border-gray-300 p-2  whitespace-nowrap overflow-hidden text-ellipsis">{c.firstName + " " + c.lastName}</td>
-                            <td className="border border-gray-300 p-2">{c?.phone}</td>
+ 
+                            <td className="border border-gray-300 p-2 whitespace-nowrap overflow-hidden text-ellipsis">{c?.totalOrder}</td>
+                            <td className="border border-gray-300 p-2 whitespace-nowrap overflow-hidden text-ellipsis">{c?.currency || "BDT "} {c?.totalDue}</td>
+                            <td className="border border-gray-300 p-2 whitespace-nowrap overflow-hidden text-ellipsis">{c?.currency || "BDT "} {c?.totalPaid}</td>
+                            <td className="border border-gray-300 p-2 whitespace-nowrap overflow-hidden text-ellipsis">{c?.phone}</td>
                             <td className="border border-gray-300 p-2  whitespace-nowrap overflow-hidden text-ellipsis">{c?.companyName}</td>
-                            <td className="border border-gray-300 p-2">{c?.totalOrder}</td>
-                            <td className="border border-gray-300 p-2">{c?.currency || "BDT "} {c?.totalDue}</td>
-                            <td className="border border-gray-300 p-2">{c?.currency || "BDT "} {c?.totalPaid}</td>
                             <td className="border border-gray-300 p-2">
                                 <div className="flex gap-4 justify-start">
                                     {/* Edit Button */}

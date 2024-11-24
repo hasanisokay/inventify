@@ -24,12 +24,12 @@ const ItemsPage = ({ i, actOrg, keyword }) => {
     const [selectedItem, setSelectedItem] = useState(null);
     const [items, setItems] = useState(i);
     const [activeOrg, setActiveOrg] = useState(actOrg);
-    const [selectedItems, setSelectedItems] = useState([]);
+    const [markedItems, setMarkedItems] = useState([]);
     const [startDate, setStartDate] = useState(new Date(new Date().setMonth(new Date().getMonth() - 1)));
     const [endDate, setEndDate] = useState(new Date());
     const { currentUser } = useContext(AuthContext);
     const handleSelectItem = (id) => {
-        setSelectedItems((prev) => {
+        setMarkedItems((prev) => {
             if (prev.includes(id)) {
                 return prev.filter((itemId) => itemId !== id);
             } else {
@@ -39,27 +39,29 @@ const ItemsPage = ({ i, actOrg, keyword }) => {
     };
 
     const handleSelectAll = () => {
-        if (selectedItems.length === items.length) {
-            setSelectedItems([]);
+        if (markedItems.length === items.length) {
+            setMarkedItems([]);
         } else {
-            setSelectedItems(items.map((item) => item._id));
+            setMarkedItems(items.map((item) => item._id));
         }
     };
 
     const handleDeleteBulk = async () => {
+        const confirmed = window.confirm("Sure to delete?")
+        if(!confirmed) return;
         const res = await fetch("/api/deletes/delete-items", {
             method: "DELETE",
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ ids: selectedItems }),
+            body: JSON.stringify({ ids: markedItems }),
             credentials: 'include'
         });
         const data = await res.json();
         if (data.status === 200) {
             toast.success(data.message);
-            setItems((prev) => prev.filter((i) => !selectedItems.includes(i._id)));
-            setSelectedItems([]);
+            setItems((prev) => prev.filter((i) => !markedItems.includes(i._id)));
+            setMarkedItems([]);
         } else {
             toast.error(data.message);
         }
@@ -71,7 +73,7 @@ const ItemsPage = ({ i, actOrg, keyword }) => {
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ ids: selectedItems, status }),
+            body: JSON.stringify({ ids: markedItems, status }),
             credentials: 'include'
         });
         const data = await res.json();
@@ -79,10 +81,10 @@ const ItemsPage = ({ i, actOrg, keyword }) => {
             toast.success(data.message);
             setItems((prev) =>
                 prev.map((item) =>
-                    selectedItems.includes(item._id) ? { ...item, status: status } : item
+                    markedItems.includes(item._id) ? { ...item, status: status } : item
                 )
             );
-            setSelectedItems([]);
+            setMarkedItems([]);
         } else {
             toast.error(data.message);
         }
@@ -164,25 +166,25 @@ const ItemsPage = ({ i, actOrg, keyword }) => {
 
 
             <div className="h-[40px]">
-                {selectedItems?.length > 0 && <div className="flex gap-4 mb-4">
+                {markedItems?.length > 0 && <div className="flex gap-4 mb-4">
                     <button
                         className=" btn-ghost"
                         onClick={handleDeleteBulk}
-                        disabled={selectedItems.length === 0}
+                        disabled={markedItems.length === 0}
                     >
                         Delete Selected
                     </button>
                     <button
                         className=" btn-ghost"
                         onClick={() => handleMarkInactiveBulk("Inactive")}
-                        disabled={selectedItems.length === 0}
+                        disabled={markedItems.length === 0}
                     >
                         Mark as Inactive
                     </button>
                     <button
                         className=" btn-ghost"
                         onClick={() => handleMarkInactiveBulk("Active")}
-                        disabled={selectedItems.length === 0}
+                        disabled={markedItems.length === 0}
                     >
                         Mark as Active
                     </button>
@@ -194,7 +196,7 @@ const ItemsPage = ({ i, actOrg, keyword }) => {
                         <th className="border w-5 border-gray-300 p-2 text-left">
                             <input
                                 type="checkbox"
-                                checked={selectedItems?.length === items?.length}
+                                checked={markedItems?.length === items?.length}
                                 onChange={handleSelectAll}
                                 className="m-0"
                             />
@@ -221,7 +223,7 @@ const ItemsPage = ({ i, actOrg, keyword }) => {
                             <td className="border border-gray-300 p-2 w-5">
                                 <input
                                     type="checkbox"
-                                    checked={selectedItems.includes(i._id)}
+                                    checked={markedItems?.includes(i._id)}
                                     onChange={() => handleSelectItem(i._id)}
                                     className="m-0"
                                 />

@@ -12,22 +12,59 @@ import DeleteSVG from "../svg/DeleteSVG";
 import PrintSVG from "./PrintSVG";
 import CheckSVG from "./CheckSVG";
 import Loading from "../loader/Loading";
-import { useRouter } from "next/navigation";
 import SearchBar from "../SearchBar/SearchBar";
 import NameSort from "../sort/NameSort";
 
 const InvoicePage = ({ invoices: i }) => {
-    const router = useRouter();
-    const [hasMounted, setHasMounted] = useState(false);
     const [openInvoiceModal, setOpenInvoiceModal] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
     const [invoices, setInvoices] = useState(i);
     const [loading, setLoading] = useState(false);
     const [activeOrg, setActiveOrg] = useState()
     const { activeOrganization } = useContext(AuthContext);
-    const [selectedSort, setSelectedSort] = useState('newest');
-
+    const [markedItems, setMarkedItems] = useState([]);
     const [openInvoicePrintModal, setOpenInvoicePrintModal] = useState(false);
+
+
+    const handleSelectItem = (id) => {
+        setMarkedItems((prev) => {
+            if (prev.includes(id)) {
+                return prev.filter((itemId) => itemId !== id);
+            } else {
+                return [...prev, id];
+            }
+        });
+    };
+
+    const handleSelectAll = () => {
+        if (markedItems.length === invoices.length) {
+            setMarkedItems([]);
+        } else {
+            setMarkedItems(invoices.map((item) => item._id));
+        }
+    };
+
+    const handleDeleteBulk = async () => {
+        const confirmed = window.confirm("Sure to delete?")
+        if(!confirmed) return;
+        const res = await fetch("/api/deletes/delete-invoices", {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ ids: markedItems }),
+            credentials: 'include'
+        });
+        const data = await res.json();
+        if (data.status === 200) {
+            toast.success(data.message);
+            setInvoices((prev) => prev.filter((i) => !markedItems.includes(i._id)));
+            setMarkedItems([]);
+        } else {
+            toast.error(data.message);
+        }
+    };
+
     const handleRowClick = (item) => {
         setSelectedItem(item);
         setOpenInvoiceModal(true);
@@ -87,62 +124,34 @@ const InvoicePage = ({ invoices: i }) => {
         }
     }, [selectedInvoiceForPrint])
 
-    const handleDateSort = (s) => {
-        if (s === "newest") {
-            if (selectedSort === "newest") {
-                setSelectedSort('lowest')
-            }
-            else {
-                setSelectedSort('newest')
-            }
-        }
-        if (s === "oldest") {
-            if (selectedSort === "oldest") {
-                setSelectedSort('newest')
-            } else {
-                setSelectedSort('oldest')
-            }
-        }
-    }
-    const handleAmountSort = (s) => {
-        if (s === "top-due") {
-            if (selectedSort === "top-due") {
-                setSelectedSort('top-paid')
-            }
-            else {
-                setSelectedSort("top-due")
-            }
-        }
-        if (s === "top-paid") {
-            if (selectedSort === "top-paid") {
-                setSelectedSort('top-due')
-            }
-            else {
-                setSelectedSort("top-paid")
-            }
-        }
-    }
-    useEffect(() => {
-        if (hasMounted) {
-            const query = new URLSearchParams(window.location.search);
-            query.set('sort', selectedSort);
-            router.replace(`${window.location.pathname}?${query.toString()}`, { scroll: false });
-        } else {
-            setHasMounted(true)
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedSort]);
-
-
     return (
         <div className="w-full">
             {loading && <Loading loading={loading} />}
             <h1 className="text-2xl font-semibold mb-4 text-center">Invoices</h1>
             <SearchBar placeholder={"Search with items, customer or order number"} />
-            <p className="h-[40px]"></p>
-            <table className="item-table  item-table-large-first-child duration-300">
+            <div className="h-[40px]">
+                {markedItems?.length > 0 && <div className="flex gap-4 mb-4">
+                    <button
+                        className=" btn-ghost"
+                        onClick={handleDeleteBulk}
+                        disabled={markedItems.length === 0}
+                    >
+                        Delete Selected
+                    </button>
+                </div>}
+            </div>
+
+            <table className="item-table  item-table-small-first-child item-table-large-second-child  duration-300">
                 <thead className="bg-gray-200">
                     <tr>
+                        <th className="border w-5 border-gray-300 p-2 text-left">
+                            <input
+                                type="checkbox"
+                                checked={markedItems?.length === invoices?.length}
+                                onChange={handleSelectAll}
+                                className="m-0"
+                            />
+                        </th>
                         <th className="border border-gray-300 p-2 text-left">
 
                             <NameSort name={"Customer"} topValue={"name_dsc"} lowValue={"name_asc"} />
@@ -167,9 +176,17 @@ const InvoicePage = ({ invoices: i }) => {
                     {invoices?.map((i) => (
                         <tr
                             key={i._id}
-                            className="hover:bg-gray-100 cursor-pointer group"
-                            onClick={() => handleRowClick(i)}
+                            className="hover:bg-gray-100  group"
                         >
+                            <td className="border border-gray-300 p-2 w-5">
+                                <input
+                                    type="checkbox"
+                                    checked={markedItems?.includes(i._id)}
+                                    onChange={() => handleSelectItem(i._id)}
+                                    className="m-0"
+                                />
+                            </td>
+
                             <td className="border border-gray-300 px-2 py-3">
                                 {i.customer.firstName} {i.customer.lastName}
 
@@ -225,8 +242,8 @@ const InvoicePage = ({ invoices: i }) => {
                                 </div>
 
                             </td>
-                            <td className="border border-gray-300 p-2">{i.invoiceNumber}</td>
-                            <td className="border border-gray-300 p-2">{new Date(i.invoiceDate).toLocaleString("en-US", {
+                            <td   onClick={() => handleRowClick(i)} className="border border-gray-300 p-2 cursor-pointer">{i.invoiceNumber}</td>
+                            <td className="border border-gray-300 p-2 cursor-pointer">{new Date(i.invoiceDate).toLocaleString("en-US", {
                                 year: "numeric",
                                 month: "2-digit",
                                 day: "2-digit",
@@ -235,11 +252,10 @@ const InvoicePage = ({ invoices: i }) => {
                                 second: "2-digit",
                                 hour12: true,
                             })}</td>
-                            <td className="border border-gray-300 p-2">{i?.totalTax}</td>
-                            <td className="border border-gray-300 p-2 font-semibold">{i?.paidAmount}</td>
-                            <td className="border border-gray-300 font-semibold dark:text-yellow-400 text-red-500 p-2">{i?.dueAmount}</td>
-                            <td className="border border-gray-300 p-2 font-semibold">{i?.total}</td>
-                            {/* <td className="border border-gray-300 p-2">{c?.currency || "BDT "} {c?.totalPaid}</td> */}
+                            <td   onClick={() => handleRowClick(i)} className="border border-gray-300 p-2 cursor-pointer">{i?.totalTax}</td>
+                            <td   onClick={() => handleRowClick(i)} className="border border-gray-300 p-2 cursor-pointer font-semibold">{i?.paidAmount}</td>
+                            <td   onClick={() => handleRowClick(i)} className="border border-gray-300 font-semibold dark:text-yellow-400 text-red-500 p-2 cursor-pointer">{i?.dueAmount}</td>
+                            <td   onClick={() => handleRowClick(i)}  className="border border-gray-300 p-2 cursor-pointer font-semibold">{i?.total}</td>
                         </tr>
                     ))}
                 </tbody>
@@ -253,22 +269,22 @@ const InvoicePage = ({ invoices: i }) => {
                 />
             )}
             {openInvoicePrintModal && <PrintInvoiceModal
-                customerInfo={selectedInvoiceForPrint.customer}
-                paidAmount={selectedInvoiceForPrint.paidAmount}
-                total={selectedInvoiceForPrint.total}
-                shippingCharge={selectedInvoiceForPrint.shippingCharge}
-                items={selectedInvoiceForPrint.items}
-                note={selectedInvoiceForPrint.note}
-                subtotal={selectedInvoiceForPrint.subtotal}
-                discount={selectedInvoiceForPrint.discount}
-                totalTax={selectedInvoiceForPrint.totalTax}
+                customerInfo={selectedInvoiceForPrint?.customer}
+                paidAmount={selectedInvoiceForPrint?.paidAmount}
+                total={selectedInvoiceForPrint?.total}
+                shippingCharge={selectedInvoiceForPrint?.shippingCharge}
+                items={selectedInvoiceForPrint?.items}
+                note={selectedInvoiceForPrint?.note}
+                subtotal={selectedInvoiceForPrint?.subtotal}
+                discount={selectedInvoiceForPrint?.discount}
+                totalTax={selectedInvoiceForPrint?.totalTax}
                 orgInfo={activeOrganization}
                 openModal={openInvoicePrintModal}
                 setOpenModal={setOpenInvoicePrintModal}
-                currency={selectedInvoiceForPrint.currency}
-                invoiceDate={selectedInvoiceForPrint.invoiceDate}
+                currency={selectedInvoiceForPrint?.currency}
+                invoiceDate={selectedInvoiceForPrint?.invoiceDate}
                 resetStates={setSelectedInvoiceForPrint}
-                invoiceNumber={selectedInvoiceForPrint.invoiceNumber}
+                invoiceNumber={selectedInvoiceForPrint?.invoiceNumber}
             />}
         </div>
     );

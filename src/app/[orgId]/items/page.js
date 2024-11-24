@@ -1,7 +1,8 @@
 import NotFound from "@/components/not-found/NotFound";
 import ItemsPage from "@/components/pages/ItemsPage";
 import PaginationDefault from "@/components/pagination/PaginationDefault";
-import BarInItems from "@/components/selects/BarInItems";
+
+import LimitSelect from "@/components/selects/LimitSelect";
 import { websiteName } from "@/constants/constantsName.mjs";
 import generateUniqueIds from "@/utils/generateUniqueIds.mjs";
 import getActiveOrg from "@/utils/getActiveOrg.mjs";
@@ -38,7 +39,7 @@ const page = async ({ searchParams }) => {
 
   return (
     <div className="page-container">
-      <BarInItems limit={limit} page={page} sort={sort}selectId ={generateUniqueIds(2)} />
+      <LimitSelect limit={limit} page={page} sort={sort}selectId ={generateUniqueIds(2)} />
       <ItemsPage i={items?.items} actOrg={orgId} keyword={keyword} />
       {totalCount > limit && (
         <PaginationDefault p={page} totalPages={totalPages} />
