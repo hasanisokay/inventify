@@ -1,7 +1,7 @@
 import NotFound from "@/components/not-found/NotFound";
 import CustomersPage from "@/components/pages/CustomersPage";
 import PaginationDefault from "@/components/pagination/PaginationDefault";
-import BarInCustomers from "@/components/selects/BarInCustomers";
+import LimitSelect from "@/components/selects/LimitSelect";
 import { websiteName } from "@/constants/constantsName.mjs";
 import generateUniqueIds from "@/utils/generateUniqueIds.mjs";
 import getActiveOrg from "@/utils/getActiveOrg.mjs";
@@ -33,7 +33,7 @@ const page = async ({ searchParams }) => {
 
   return (
     <div className="page-container">
-       <BarInCustomers limit={limit} page={page} sort={sort} selectId ={generateUniqueIds(2)} />
+       <LimitSelect limit={limit} page={page} sort={sort} selectId ={generateUniqueIds(2)} />
       <CustomersPage c={customers?.customers} totalCount={totalCount} totalPages={totalPages} limit={limit} page={page} sort={sort} />
       {totalCount > limit && (
         <PaginationDefault p={page} totalPages={totalPages} limit={limit} />

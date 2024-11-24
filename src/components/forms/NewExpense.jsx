@@ -313,7 +313,7 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
 
   return (
     <div className={` p-4 max-w-3xl mx-auto ${loading || loadingCustomer ? "form-disabled" : ""} `}>
-      <h1 className="text-2xl mb-6">New Expense</h1>
+      <h1 className="text-2xl mb-6">{updateable ? "Edit" : "New"} Expense</h1>
       <div className="mt-20 pb-10 border-t-2 pt-10 border-gray-500 input-container ">
         <label htmlFor="customer" className="form-label2">Select Customer</label>
         <Select
