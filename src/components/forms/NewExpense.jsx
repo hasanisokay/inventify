@@ -512,7 +512,7 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
                     </td>
                     <td>
                       <input
-                        type="text"
+                        type="number"
                         value={item.tax}
                         onChange={(e) =>
                           handleItemizedChange(index, 'tax', e.target.value)
