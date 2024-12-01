@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ExpenseModal from "../modal/ExpenseModal";
 import SearchBar from "../SearchBar/SearchBar";
 import DeleteSVG from "../svg/DeleteSVG";
@@ -15,6 +15,9 @@ const ExpensesPage = ({ e, activeOrg }) => {
     const [selectedExpense, setSelectedExpense] = useState(null);
     const [expenses, setExpenses] = useState(e);
     const [markedItems, setMarkedItems] = useState([]);
+    const filteredExpenses = useMemo(() => {
+        return expenses; 
+      }, [expenses]);
 
     const handleRowClick = (item) => {
         setSelectedExpense(item);
@@ -131,7 +134,7 @@ const ExpensesPage = ({ e, activeOrg }) => {
                         </tr>
                     </thead>
                     <tbody>
-                        {expenses?.map((item) => (
+                        {filteredExpenses?.map((item) => (
                             <tr key={item._id} className="border-b  group dark:text-white text-gray-800 border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-slate-500">
 
                                 <td className="border border-gray-300 p-2 w-5">

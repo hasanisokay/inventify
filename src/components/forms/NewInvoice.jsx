@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 'use client'
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useMemo } from "react";
 import Select from "react-select";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -40,6 +40,11 @@ const NewInvoice = ({ activeOrg, id }) => {
   const [note, setNote] = useState("");
   const [savedCustomers, setSavedCustomers] = useState([]);
   const [savedItems, setSavedItems] = useState([]);
+
+  const memoizedSavedCustomers = useMemo(() => savedCustomers, [savedCustomers]);
+  const memoizedSavedItems = useMemo(() => savedItems, [savedItems]);
+
+
   const [draggingIndex, setDraggingIndex] = useState(null);
   const [totalTax, setTotalTax] = useState(0);
   const [dueAmount, setDueAmount] = useState(0);
@@ -438,7 +443,7 @@ const NewInvoice = ({ activeOrg, id }) => {
       ]);
       setDynamicOptions([
         { label: "Add New Item", value: "add-new-item" },
-        ...savedItems.map((item) => ({
+        ...memoizedSavedItems.map((item) => ({
           label: item.name,
           value: item._id,
         })),
@@ -509,7 +514,7 @@ const NewInvoice = ({ activeOrg, id }) => {
           theme={{ borderRadius: '10px' }}
           options={[
             { label: "Add New Customer", value: "add-new-customer" },
-            ...savedCustomers?.map((c) => ({
+            ...memoizedSavedCustomers?.map((c) => ({
               label: `${c.firstName} ${c.lastName}`,
               value: c._id,
             })),
