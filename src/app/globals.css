@@ -268,7 +268,10 @@ body {
   pointer-events: none;
   opacity: 0.5;
 }
-
+.date-picker-container {
+  position: relative;
+  z-index: 40; 
+}
 .secondary-nav {
   display: flex;
   align-items: center;

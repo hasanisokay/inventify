@@ -143,8 +143,8 @@ const CostSummary = () => {
                         handleStartDateChange={handleStartDateChange} 
                     />
 
-                    <div className="mt-6">
-                        <table className="min-w-full table-auto mb-8 border-collapse">
+                    <div className="mt-6 overflow-x-auto">
+                        <table className="md:min-w-full overflow-auto table-auto mb-8 border-collapse">
                             <thead>
                                 <tr>
                                     <th className="px-4 py-2 text-left text-lg font-medium text-gray-700 dark:text-gray-300">Time Period</th>
@@ -157,10 +157,10 @@ const CostSummary = () => {
                                 {mergedData.length > 0 ? (
                                     mergedData.map((item, index) => (
                                         <tr key={index} className="border-b">
-                                            <td className="px-4 py-2 text-gray-700 dark:text-gray-300">{item.timePeriod}</td>
-                                            <td className="px-4 py-2 text-gray-700 dark:text-gray-300">{item.totalDue.toLocaleString()} BDT</td>
-                                            <td className="px-4 py-2 text-gray-700 dark:text-gray-300">{item.totalPaid.toLocaleString()} BDT</td>
-                                            <td className="px-4 py-2 text-gray-700 dark:text-gray-300">{item.totalExpenses.toLocaleString()} BDT</td>
+                                            <td className="px-4 py-2 text-gray-700 dark:text-gray-300 min-w-[150px]">{item.timePeriod}</td>
+                                            <td className="px-4 py-2 text-gray-700 dark:text-gray-300 min-w-[150px]">{item.totalDue.toLocaleString()} BDT</td>
+                                            <td className="px-4 py-2 text-gray-700 dark:text-gray-300 min-w-[150px]">{item.totalPaid.toLocaleString()} BDT</td>
+                                            <td className="px-4 py-2 text-gray-700 dark:text-gray-300 min-w-[150px]">{item.totalExpenses.toLocaleString()} BDT</td>
                                         </tr>
                                     ))
                                 ) : (

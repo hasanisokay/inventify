@@ -581,13 +581,22 @@ const NewInvoice = ({ activeOrg, id }) => {
 
       <div className="input-container pt-4">
         <label htmlFor="invoiceDate" className="form-label2">Invoice Date: </label>
-        <DatePicker
+        {/* <DatePicker
           id="invoiceDate"
           selected={invoiceDate}
           onChange={(date) => setInvoiceDate(date)}
           dateFormat="dd MMM yyyy"
-          className="text-input2 focus:outline-none outline-none border-none"
-        />
+          className="text-input2 focus:outline-none  outline-none border-none"
+        /> */}
+         <div className="date-picker-container"> 
+    <DatePicker
+      id="invoiceDate"
+      selected={invoiceDate}
+      onChange={(date) => setInvoiceDate(date)}
+      dateFormat="dd MMM yyyy"
+      className="text-input2 focus:outline-none outline-none border-none"
+    />
+  </div>
       </div>
 
       <h2 className="text-center text-lg font-semibold">Items Table</h2>
@@ -703,7 +712,10 @@ const NewInvoice = ({ activeOrg, id }) => {
                   value={selectedItemOnchangeHolder}
                   menuPortalTarget={document.body}
                   styles={{
-                    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                    menuPortal: (base) => ({ ...base, 
+                      zIndex: 5 ,
+                        position: 'absolute',
+                    }),
                     control: (provided, state) => ({
                       ...provided,
                       padding: '10px',
@@ -712,7 +724,7 @@ const NewInvoice = ({ activeOrg, id }) => {
                       border: 'none',
                       width: "100%",
                       borderRadius: '0px',
-                      zIndex: 40,
+                      zIndex: 5,
                     }),
                     option: (provided) => ({
                       ...provided, color: "black"
