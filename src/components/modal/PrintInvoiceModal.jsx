@@ -154,7 +154,7 @@ const PrintInvoiceModal = ({ resetStates, openModal, setOpenModal, invoiceNumber
             color: '#4a5568'
         }
         const spanStyle = { width: '120px', textAlign: 'left' }
-
+// console.log(total)
         return (
             <div style={{ padding: "1rem", backgroundColor: "white" }}>
 
@@ -262,7 +262,7 @@ const PrintInvoiceModal = ({ resetStates, openModal, setOpenModal, invoiceNumber
                                 padding: '0.5rem 0'
                             }}>
                                 <span style={spanStyle}>Total:</span>
-                                <span>{currency} {total.toFixed(2)}</span>
+                                <span>{currency} {total ? total.toFixed(2) : 0}</span>
                             </p>
                         </div>
 

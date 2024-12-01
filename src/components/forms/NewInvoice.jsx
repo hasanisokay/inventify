@@ -24,7 +24,7 @@ const NewInvoice = ({ activeOrg, id }) => {
   const [shippingCharge, setShippingCharge] = useState(0)
   const [currency, setCurrency] = useState("BDT")
   const [adjustmentDescription, setAdjustmentDescription] = useState("")
-  const [adjustmentAmount, setAdjustmentAmount] = useState(null)
+  const [adjustmentAmount, setAdjustmentAmount] = useState(undefined)
   const [loading, setLoading] = useState(false);
   const [selectedItemOnchangeHolder, setSelectedItemOnchangeHolder] = useState(null);
   const [updateable, setUpdateable] = useState(false);
@@ -214,7 +214,7 @@ const NewInvoice = ({ activeOrg, id }) => {
     const total = selectedItems.reduce((sum, item) => sum + item.quantity * item.sellingPrice, 0);
     const tax = selectedItems.reduce((sum, item) => sum + item.tax, 0);
     setSubtotal(total + totalTax || 0);
-    setTotal(total + totalTax + shippingCharge - discount || 0);
+    setTotal(total + totalTax + ( adjustmentAmount || 0) + shippingCharge - discount || 0);
     if (isPaidChecked) {
       setPaidAmount(total + totalTax + shippingCharge - discount || 0)
     }
@@ -223,9 +223,9 @@ const NewInvoice = ({ activeOrg, id }) => {
   }, [selectedItems, totalTax]);
 
   useEffect(() => {
-    setTotal(subtotal + shippingCharge - discount)
+    setTotal(subtotal + shippingCharge - discount +  ( adjustmentAmount || 0) )
     if (isPaidChecked) {
-      setPaidAmount(subtotal + shippingCharge - discount)
+      setPaidAmount(subtotal + shippingCharge - discount +  ( adjustmentAmount || 0) )
     }
   }, [shippingCharge, discount])
   useEffect(() => {
@@ -375,7 +375,7 @@ const NewInvoice = ({ activeOrg, id }) => {
         paymentFromNumber,
         note,
         adjustmentDescription,
-        adjustmentAmount: adjustmentAmount === null ? 0 : adjustmentAmount,
+        adjustmentAmount: adjustmentAmount === undefined ? 0 : adjustmentAmount,
         ownerUsername: currentUser?.username,
         orgId: activeOrg,
       };
@@ -477,9 +477,7 @@ const NewInvoice = ({ activeOrg, id }) => {
       }, 300);
     }
   };
-  useEffect(() => {
-    setTotal((prev) => prev + adjustmentAmount)
-  }, [adjustmentAmount])
+
 
   const handleInputChange = (value) => {
 
@@ -499,6 +497,7 @@ const NewInvoice = ({ activeOrg, id }) => {
       ]);
     }
   };
+
   return (
     <div className="invoice-form p-2 mt-10">
       {loading && <Loading loading={loading} />}
@@ -581,22 +580,16 @@ const NewInvoice = ({ activeOrg, id }) => {
 
       <div className="input-container pt-4">
         <label htmlFor="invoiceDate" className="form-label2">Invoice Date: </label>
-        {/* <DatePicker
-          id="invoiceDate"
-          selected={invoiceDate}
-          onChange={(date) => setInvoiceDate(date)}
-          dateFormat="dd MMM yyyy"
-          className="text-input2 focus:outline-none  outline-none border-none"
-        /> */}
-         <div className="date-picker-container"> 
-    <DatePicker
-      id="invoiceDate"
-      selected={invoiceDate}
-      onChange={(date) => setInvoiceDate(date)}
-      dateFormat="dd MMM yyyy"
-      className="text-input2 focus:outline-none outline-none border-none"
-    />
-  </div>
+
+        <div className="date-picker-container">
+          <DatePicker
+            id="invoiceDate"
+            selected={invoiceDate}
+            onChange={(date) => setInvoiceDate(date)}
+            dateFormat="dd MMM yyyy"
+            className="text-input2 focus:outline-none outline-none border-none"
+          />
+        </div>
       </div>
 
       <h2 className="text-center text-lg font-semibold">Items Table</h2>
@@ -712,9 +705,10 @@ const NewInvoice = ({ activeOrg, id }) => {
                   value={selectedItemOnchangeHolder}
                   menuPortalTarget={document.body}
                   styles={{
-                    menuPortal: (base) => ({ ...base, 
-                      zIndex: 5 ,
-                        position: 'absolute',
+                    menuPortal: (base) => ({
+                      ...base,
+                      zIndex: 5,
+                      position: 'absolute',
                     }),
                     control: (provided, state) => ({
                       ...provided,
@@ -868,7 +862,19 @@ const NewInvoice = ({ activeOrg, id }) => {
                 id="adjustmentAmount"
                 placeholder="Adjustment Amount"
                 value={adjustmentAmount}
-                onChange={(e) => setAdjustmentAmount(e.target.value)}
+                onChange={(e) => {
+                  const value = parseFloat(e?.target?.value || 0);
+                  setAdjustmentAmount(value);
+                
+                  setTotal(prevTotal => {
+                    if (adjustmentAmount > 0) {
+                      return prevTotal + value - adjustmentAmount;
+                    } else {
+                      return prevTotal + value;
+                    }
+                  });
+                }}
+                
                 className="text-input3"
               />
             </div>
