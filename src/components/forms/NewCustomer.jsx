@@ -211,7 +211,6 @@ const NewCustomer = ({ id = null, actOrg, setOpenModal = undefined, onSaveCustom
             <label className="font-semibold mr-2 w-32">Last Name:</label>
             <input
               type="text"
-              required
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
               className="text-input"
@@ -275,7 +274,6 @@ const NewCustomer = ({ id = null, actOrg, setOpenModal = undefined, onSaveCustom
             <label className="font-semibold mr-2 w-32">Address:</label>
             <input
               type="text"
-              required
               value={billingAddress}
               onChange={(e) => setBillingAddress(e.target.value)}
               className="text-input"
@@ -296,7 +294,6 @@ const NewCustomer = ({ id = null, actOrg, setOpenModal = undefined, onSaveCustom
             <label className="font-semibold mr-2 w-32">City:</label>
             <input
               type="text"
-              required
               value={billingCity}
               onChange={(e) => setBillingCity(e.target.value)}
               className="text-input"

@@ -23,8 +23,8 @@ const NewInvoice = ({ activeOrg, id }) => {
   const [orderNumber, setOrderNumber] = useState("")
   const [shippingCharge, setShippingCharge] = useState(0)
   const [currency, setCurrency] = useState("BDT")
-  const [adjustmentDescription, setAdjustmentDescription] = useState("")
-  const [adjustmentAmount, setAdjustmentAmount] = useState(undefined)
+  const [adjustmentDescription, setAdjustmentDescription] = useState("bKash")
+  const [adjustmentAmount, setAdjustmentAmount] = useState(10)
   const [loading, setLoading] = useState(false);
   const [selectedItemOnchangeHolder, setSelectedItemOnchangeHolder] = useState(null);
   const [updateable, setUpdateable] = useState(false);
@@ -221,7 +221,7 @@ const NewInvoice = ({ activeOrg, id }) => {
     setSubtotal(total + totalTax || 0);
     setTotal(total + totalTax + ( adjustmentAmount || 0) + shippingCharge - discount || 0);
     if (isPaidChecked) {
-      setPaidAmount(total + totalTax + shippingCharge - discount || 0)
+      setPaidAmount(total + totalTax + shippingCharge + adjustmentAmount - discount || 0)
     }
     setTotalTax(tax)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -297,7 +297,7 @@ const NewInvoice = ({ activeOrg, id }) => {
     setSameAddress(true);
     setUpdateable(false);
     setSelectedCustomer(null)
-    setCustomerDetails([])
+    setCustomerDetails([]);
   };
 
   const handleSave = async (createPdf = false) => {
@@ -666,7 +666,7 @@ const NewInvoice = ({ activeOrg, id }) => {
 
                   <input
                     type="text"
-                    className="rounded bg-inherit focus:outline-blue-600 focus:outline-offset-4 font-semibold w-[100px] px-1"
+                    className="rounded bg-inherit focus:outline-blue-600 focus:outline-offset-4 font-semibold min-w-[100px] px-1"
                     value={item.unit}
                     onChange={(e) =>
                       setSelectedItems((prevItems) =>
@@ -680,7 +680,7 @@ const NewInvoice = ({ activeOrg, id }) => {
                 <td className="w-[150px]">
                   <input
                     type="number"
-                    className="rounded bg-inherit focus:outline-blue-600 focus:outline-offset-4 font-semibold w-[100px] px-1"
+                    className="rounded bg-inherit focus:outline-blue-600 focus:outline-offset-4 font-semibold min-w-[100px] px-1"
                     onChange={(e) => setSelectedItems(prev => prev.map((it, i) => i === index ? { ...it, sellingPrice: parseFloat(e.target.value) || 0 } : it))}
 
                     value={item.sellingPrice}
@@ -690,7 +690,7 @@ const NewInvoice = ({ activeOrg, id }) => {
                 <td className="w-[150px]">
                   <input
                     type="number"
-                    className="rounded bg-inherit focus:outline-blue-600 focus:outline-offset-4 font-semibold w-[100px] px-1"
+                    className="rounded bg-inherit focus:outline-blue-600 focus:outline-offset-4 font-semibold min-w-[100px] px-1"
                     onChange={(e) => setSelectedItems(prev => prev.map((it, i) => i === index ? { ...it, tax: parseFloat(e.target.value) || 0 } : it))}
 
                     value={item.tax}
@@ -698,13 +698,13 @@ const NewInvoice = ({ activeOrg, id }) => {
 
 
                 </td>
-                <td className="w-[150px]">{(item.quantity * item.sellingPrice) + item.tax}</td>
+                <td className="min-w-[150px]">{(item.quantity * item.sellingPrice) + item.tax}</td>
               </tr>
             ))}
-            <tr className="w-[400px]">
+            <tr className="md:w-[400px] w-[200px]">
               <td className="no-padding">
                 <Select
-                  className="w-[400px]"
+                  className="md:w-[400px] w-[200px]"
                   id="item"
                   options={dynamicOptions}
                   value={selectedItemOnchangeHolder}

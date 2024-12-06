@@ -225,6 +225,9 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
 
       if (reset) {
         resetForm();
+      }else{
+        window.location.href = `/${activeOrg}/expenses`;
+        // router.push(`/${activeOrg}/expenses`);
       }
       toast.success(data?.message);
     }
@@ -295,12 +298,13 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
     setTaxes([]);
     setSelectedTaxes([]);
     setTaxValues({});
-    setCustomer(null);
+    setSelectedCustomer(null);
     setShowItemized(false);
     setItemizedExpenses([]);
     setSelectedCustomer(null)
     setOpenNewCategoryModal(false);
     setOpenNewCategoryModal(false);
+    return;
   };
 
   const handleItemizedCheckboxChange = () => {
