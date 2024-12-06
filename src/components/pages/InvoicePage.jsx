@@ -157,17 +157,17 @@ const InvoicePage = ({ invoices: i }) => {
                             <NameSort name={"Customer"} topValue={"name_dsc"} lowValue={"name_asc"} />
                         </th>
                         <th className="border border-gray-300 p-2 text-left">Invoice</th>
+                        <th className="border border-gray-300 p-2 text-left">Order No</th>
                         <th className="border border-gray-300 p-2 text-left">
                             <NameSort name={'Date'} topValue={"newest"} lowValue={"oldest"} />
                         </th>
-                        <th className="border border-gray-300 p-2 text-left">Tax</th>
-                        <th className="border border-gray-300 p-2 text-left">
+                        {/* <th className="border border-gray-300 p-2 text-left">Tax</th> */}
+                        {/* <th className="border border-gray-300 p-2 text-left">
                             <NameSort name={'Paid'} topValue={"top-paid"} lowValue={"top-due"} />
 
-                        </th>
+                        </th> */}
                         <th className="border border-gray-300 p-2 text-left">
                             <NameSort name={'Due'} topValue={"top-due"} lowValue={"top-paid"} />
-
                         </th>
                         <th className="border border-gray-300 p-2 text-left">Total</th>
                     </tr>
@@ -243,6 +243,7 @@ const InvoicePage = ({ invoices: i }) => {
 
                             </td>
                             <td   onClick={() => handleRowClick(i)} className="border border-gray-300 p-2 cursor-pointer">{i.invoiceNumber}</td>
+                            <td   onClick={() => handleRowClick(i)} className="border border-gray-300 p-2 cursor-pointer">{i.orderNumber}</td>
                             <td className="border border-gray-300 p-2 cursor-pointer">{new Date(i.invoiceDate).toLocaleString("en-US", {
                                 year: "numeric",
                                 month: "2-digit",
@@ -252,10 +253,10 @@ const InvoicePage = ({ invoices: i }) => {
                                 second: "2-digit",
                                 hour12: true,
                             })}</td>
-                            <td   onClick={() => handleRowClick(i)} className="border border-gray-300 p-2 cursor-pointer">{i?.totalTax}</td>
-                            <td   onClick={() => handleRowClick(i)} className="border border-gray-300 p-2 cursor-pointer font-semibold">{i?.paidAmount}</td>
+                            {/* <td   onClick={() => handleRowClick(i)} className="border border-gray-300 p-2 cursor-pointer">{i?.totalTax}</td> */}
                             <td   onClick={() => handleRowClick(i)} className="border border-gray-300 font-semibold dark:text-yellow-400 text-red-500 p-2 cursor-pointer">{i?.dueAmount}</td>
                             <td   onClick={() => handleRowClick(i)}  className="border border-gray-300 p-2 cursor-pointer font-semibold">{i?.total}</td>
+                            {/* <td   onClick={() => handleRowClick(i)} className="border border-gray-300 p-2 cursor-pointer font-semibold">{i?.paidAmount}</td> */}
                         </tr>
                     ))}
                 </tbody>

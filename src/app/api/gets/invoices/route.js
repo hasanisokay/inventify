@@ -96,6 +96,7 @@ export const GET = async (req) => {
         invoiceDate: 1,
         invoiceNumber: 1,
         paidAmount: 1,
+        orderNumber : 1,
         dueAmount: 1,
         totalTax: 1,
         total: 1,
