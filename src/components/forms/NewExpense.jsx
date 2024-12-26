@@ -86,7 +86,7 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
       }
     })();
   }, [id, savedCustomers]);
-  
+
 
   const [currentCategoryIndex, setCurrentCategoryIndex] = useState(null);
 
@@ -225,7 +225,7 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
 
       if (reset) {
         resetForm();
-      }else{
+      } else {
         window.location.href = `/${activeOrg}/expenses`;
         // router.push(`/${activeOrg}/expenses`);
       }
@@ -300,7 +300,12 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
     setTaxValues({});
     setSelectedCustomer(null);
     setShowItemized(false);
-    setItemizedExpenses([]);
+    setItemizedExpenses([{
+      "category": "",
+      "amount": "",
+      "note": "",
+      "tax": ""
+    }]);
     setSelectedCustomer(null)
     setOpenNewCategoryModal(false);
     setOpenNewCategoryModal(false);

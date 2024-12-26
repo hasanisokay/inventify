@@ -16,7 +16,7 @@ const TopSpenders = () => {
     const [textColor, setTextColor] = useState("#000000");
     const [topCustomers, setTopCustomers] = useState([]);
     const [endDate, setEndDate] = useState(new Date());
-    const [startDate, setStartDate] = useState(new Date(new Date().setMonth(endDate.getMonth() - 1)));
+    const [startDate, setStartDate] = useState(new Date(new Date().setMonth(endDate.getMonth() - 12)));
 
     const fetchData = async () => {
         try {

@@ -16,6 +16,7 @@ import {
       const formData = {
         ...body,
         customerId: new ObjectId(body.customerId),
+        date: new Date(body.date)
       };
 
       const itemsCollection = await db.collection("expenses");

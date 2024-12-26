@@ -280,7 +280,10 @@ const NewInvoice = ({ activeOrg, id }) => {
     return option;
   }
 
-
+  const customFilter = (option, inputValue) => {
+    if (!inputValue) return true; 
+    return option.label.toLowerCase().startsWith(inputValue.toLowerCase());
+  };
   const resetStates = () => {
     setSelectedCustomer(null);
     setInvoiceNumber(generateInvoiceNumber());
@@ -709,6 +712,7 @@ const NewInvoice = ({ activeOrg, id }) => {
                   options={dynamicOptions}
                   value={selectedItemOnchangeHolder}
                   menuPortalTarget={document.body}
+                  filterOption={customFilter}
                   styles={{
                     menuPortal: (base) => ({
                       ...base,
@@ -770,6 +774,45 @@ const NewInvoice = ({ activeOrg, id }) => {
                     setShippingCharge(value);
                   }
                 }}
+                className="text-input3"
+              />
+            </div>
+            <div className="mb-4 input-container flex-wrap flex justify-between">
+              <input
+                type="text"
+                id="adjustmentDescription"
+                value={adjustmentDescription}
+                placeholder="Any Adjustment"
+                onChange={(e) => setAdjustmentDescription(e.target.value)}
+                className="text-input3"
+              />
+              <input
+                type="number"
+                id="adjustmentAmount"
+                placeholder="Adjustment Amount"
+                value={adjustmentAmount}
+                onChange={(e) => {
+                  const value = parseFloat(e?.target?.value || 0);
+                  setAdjustmentAmount(value);
+                
+                  setTotal(prevTotal => {
+                    if (adjustmentAmount > 0) {
+                      return prevTotal + value - adjustmentAmount;
+                    } else {
+                      return prevTotal + value;
+                    }
+                  });
+   
+                  setPaidAmount(prevPaid => {
+                    if (adjustmentAmount > 0) {
+                      return prevPaid + value - adjustmentAmount;
+                    } else {
+                      return prevPaid + value;
+                    }
+                  });
+   
+                }}
+                
                 className="text-input3"
               />
             </div>
@@ -853,36 +896,7 @@ const NewInvoice = ({ activeOrg, id }) => {
                 />
               </div>
             )}
-            <div className="mb-4 input-container flex-wrap flex justify-between">
-              <input
-                type="text"
-                id="adjustmentDescription"
-                value={adjustmentDescription}
-                placeholder="Any Adjustment"
-                onChange={(e) => setAdjustmentDescription(e.target.value)}
-                className="text-input3"
-              />
-              <input
-                type="number"
-                id="adjustmentAmount"
-                placeholder="Adjustment Amount"
-                value={adjustmentAmount}
-                onChange={(e) => {
-                  const value = parseFloat(e?.target?.value || 0);
-                  setAdjustmentAmount(value);
-                
-                  setTotal(prevTotal => {
-                    if (adjustmentAmount > 0) {
-                      return prevTotal + value - adjustmentAmount;
-                    } else {
-                      return prevTotal + value;
-                    }
-                  });
-                }}
-                
-                className="text-input3"
-              />
-            </div>
+        
             <hr className="border-t border-gray-400 my-4" />
             <div className="flex justify-between flex-wrap">
               <h3 className="font-bold text-xl">Total ({currency})</h3>

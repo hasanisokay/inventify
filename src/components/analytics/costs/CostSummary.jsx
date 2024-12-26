@@ -6,7 +6,7 @@ import RangeDatepicker from '@/components/datepickers/RangeDatepicker';
 const CostSummary = () => {
     const [mergedData, setMergedData] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [startDate, setStartDate] = useState(new Date(new Date().setMonth(new Date().getMonth() - 1)));
+    const [startDate, setStartDate] = useState(new Date(new Date().setMonth(new Date().getMonth() - 12)));
     const [endDate, setEndDate] = useState(new Date());
 
     const fetchData = async () => {
