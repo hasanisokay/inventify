@@ -107,14 +107,13 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
       const c = await getCustomers(1, 10000, "newest", "", true, activeOrg)
       setSavedCustomers(c);
       const defaultCustomer = c.find((c) => c.firstName === "Default" && c.lastName === "Customer");
-      console.log(defaultCustomer)
       const defaultCustomerValue = defaultCustomer?._id || "";
       const defaultCustomerLabel = `${defaultCustomer?.firstName || ""} ${defaultCustomer?.lastName || ""}`;
       setSelectedCustomer({ value: defaultCustomerValue, label: defaultCustomerLabel });
       setLoadingCustomer(false)
     })()
   }, [])
-  console.log(selectedCustomer)
+
 
   const handleTaxChange = (selectedOptions) => {
     setSelectedTaxes(selectedOptions);
@@ -477,7 +476,7 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
             <tbody>
               {itemizedExpenses.map((item, index) => (
                 <React.Fragment key={index}>
-                  <tr className="my-1" >
+                  <tr className="my-1 relative" >
                     <td>
                       <Select
                         instanceId={uniqueIds[2]}
@@ -505,25 +504,6 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
                     </td>
 
                     <td >
-
-                      {/* <input
-                        type="text"
-                        value={item.note}
-                        onChange={(e) =>
-                          handleItemizedChange(index, 'note', e.target.value)
-                        }
-                        className="text-input"
-                        placeholder="Note"
-                      /> */}
-                      {/* <textarea
-                        type="text"
-                        value={item.note}
-                        onChange={(e) =>
-                          handleItemizedChange(index, 'note', e.target.value)
-                        }
-                        className="text-input my-1 resize"
-                        placeholder="Note"
-                      /> */}
                       <AutoResizeTextarea
                         value={item.note}
                         index={0}
@@ -534,7 +514,7 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
                       />
 
                     </td>
-                    <td className="">
+                    <td>
                       <input
                         type="number"
                         value={item.amount}
@@ -548,18 +528,6 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
                       <span title="Clone this item" className="text-red-500 absolute md:-left-6 left-0 bottom-4 text-lg cursor-pointer opacity-50 hover:opacity-100" onClick={() => handleCloneItemizedRow(index)}><CopySVG width={'24px'} height={'24px'} /></span>
 
                     </td>
-                    {/* <td>
-                      <input
-                        type="number"
-                        value={item.tax}
-                        onChange={(e) =>
-                          handleItemizedChange(index, 'tax', e.target.value)
-                        }
-                        className="text-input"
-                        placeholder="Tax"
-                      />
-                    </td> */}
-
                   </tr>
                 </React.Fragment>
               ))}
