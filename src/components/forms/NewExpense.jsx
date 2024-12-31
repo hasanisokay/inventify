@@ -2,8 +2,8 @@
 import React, { useContext } from "react";
 import { useState, useEffect } from "react";
 import Select from "react-select";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+
+import DatePicker from 'react-date-picker';
 import { useRouter } from "next/navigation";
 import NewCustomerModal from "../modal/NewCustomerModal";
 import getCustomers from "@/utils/getCustomers.mjs";
@@ -12,7 +12,8 @@ import toast from "react-hot-toast";
 import calculateTax from "@/utils/calculateTax.mjs";
 import AuthContext from "@/contexts/AuthContext.mjs";
 import CopySVG from "../svg/CopySVG";
-
+import AutoResizeTextarea from "./AutoResizeTextarea";
+import 'react-date-picker/dist/DatePicker.css';
 
 const NewExpense = ({ activeOrg, id, uniqueIds }) => {
   const [loading, setLoading] = useState(false);
@@ -245,7 +246,7 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
     }
   };
 
-
+  // console.log(expenseDate)
 
   const fetchCategories = async () => {
     const res = await fetch("/api/gets/expense-categories");
@@ -287,7 +288,7 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
     });
   }
 
-// done
+  // done
   const resetForm = () => {
     setCategory(null);
     setExpenseDate(new Date());
@@ -345,13 +346,14 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
       <div className="input-container pt-4">
         <label htmlFor="expenseDate" className="form-label">Date: </label>
         <DatePicker
-          id="expenseDate"
-          selected={expenseDate}
           onChange={(date) => setExpenseDate(date)}
-          dateFormat="do MMM yyyy"
-          className="text-input2 focus:outline-none outline-none border-none"
+          value={expenseDate}
+          className="react-date-picker"
+          calendarIcon={null}
+          clearIcon={null}
         />
       </div>
+     
 
 
       <div onClick={() => setShowItemized(!showItemized)} className="input-container w-fit my-3">
@@ -464,7 +466,7 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
                 <th>Category</th>
                 <th>Amount</th>
                 <th>Note</th>
-                <th>Tax</th>
+                {/* <th>Tax</th> */}
               </tr>
             </thead>
             <tbody>
@@ -507,9 +509,9 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
                         placeholder="Amount"
                       />
                     </td>
-                    <td className="">
+                    <td >
 
-                      <input
+                      {/* <input
                         type="text"
                         value={item.note}
                         onChange={(e) =>
@@ -517,9 +519,29 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
                         }
                         className="text-input"
                         placeholder="Note"
+                      /> */}
+                      {/* <textarea
+                        type="text"
+                        value={item.note}
+                        onChange={(e) =>
+                          handleItemizedChange(index, 'note', e.target.value)
+                        }
+                        className="text-input my-1 resize"
+                        placeholder="Note"
+                      /> */}
+                      <AutoResizeTextarea
+                        value={item.note}
+                        index={0}
+                        handleChange={(e) =>
+                          handleItemizedChange(index, 'note', e.target.value)
+                        }
+
                       />
+                      <span className="text-red-500 absolute text-lg cursor-pointer bottom-4" onClick={() => handleRemoveItemizedRow(index)}>&#10006;</span>
+                      <span title="Clone this item" className="text-red-500 absolute -left-6 bottom-4 text-lg cursor-pointer opacity-50 hover:opacity-100" onClick={() => handleCloneItemizedRow(index)}><CopySVG width={'24px'} height={'24px'} /></span>
+
                     </td>
-                    <td>
+                    {/* <td>
                       <input
                         type="number"
                         value={item.tax}
@@ -529,9 +551,7 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
                         className="text-input"
                         placeholder="Tax"
                       />
-                      <span className="text-red-500 absolute text-lg cursor-pointer" onClick={() => handleRemoveItemizedRow(index)}>&#10008;</span>
-                      <span title="Clone this item" className="text-red-500 absolute -left-6 text-lg cursor-pointer opacity-50 hover:opacity-100" onClick={() => handleCloneItemizedRow(index)}><CopySVG width={'24px'} height={'24px'} /></span>
-                    </td>
+                    </td> */}
 
                   </tr>
                 </React.Fragment>

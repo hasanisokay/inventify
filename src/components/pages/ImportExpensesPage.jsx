@@ -123,12 +123,9 @@ const ImportExpensesPage = () => {
 
 
     function parseDateInput(input) {
-        // Check if the input is a number (likely an Excel serial date)
         if (typeof input === 'number') {
             return excelSerialToDate(input);
         }
-
-        // Check if the input is a valid MM/DD/YYYY string
         if (typeof input === 'string' && /^[0-1]?\d\/[0-3]?\d\/\d{4}$/.test(input)) {
             return parseDate(input);
         }
@@ -136,16 +133,18 @@ const ImportExpensesPage = () => {
         throw new Error("Invalid input format. Please provide either a valid Excel serial number or MM/DD/YYYY date string.");
     }
 
-    // Function to convert Excel serial date to JavaScript Date
-    function excelSerialToDate(serial) {
-        const startDate = new Date(1900, 0, 1); // Excel starts from January 1, 1900
-        // Excel has a leap year bug for the year 1900, so adjust the serial number if necessary
-        if (serial > 60) {
-            serial--; // Fix for Excel's incorrect leap year in 1900
-        }
-        const daysInMs = serial * 24 * 60 * 60 * 1000; // Convert days to milliseconds
-        return new Date(startDate.getTime() + daysInMs);
+    function excelSerialToDate(excelDate){
+        const SECONDS_IN_DAY = 24 * 60 * 60;
+        const MISSING_LEAP_YEAR_DAY = SECONDS_IN_DAY * 1000;
+        const MAGIC_NUMBER_OF_DAYS = (25567 + 2);    
+        const delta = excelDate - MAGIC_NUMBER_OF_DAYS;
+        const parsed = delta * MISSING_LEAP_YEAR_DAY;
+        const date = new Date(parsed)
+        return date
     }
+    
+    
+    
 
     // Function to convert MM/DD/YYYY date string to JavaScript Date
     function parseDate(dateString) {
@@ -164,43 +163,35 @@ const ImportExpensesPage = () => {
         const defaultCustomer = savedCustomers.find(c => c.name === "Default Customer");
         const customer = savedCustomers.find(customer => customer.name === row["Customer Name"]);
         const customerId = customer ? customer?._id : defaultCustomer._id;
-
         const item = {
             category: row["Expense Category"] || '',
             date: parseDateInput(row["Expense Date"]) || new Date(),
             customerId: customerId,
             reference: row["Reference#"] || row["Reference"] || "",
-            note: row["Expense Description"] || "",
+            note: row["Expense Description"] || row["Notes"] || "",
             amount: parseFloat(row["Total"]) || 0,
             total: parseFloat(row["Total"]) || 0,
             tax: parseInt(row["Expense Tax Amount"]) || 0,
             refId: row["Expense Reference ID"] || null,
-            note: row["Notes"] || "",
             orgId: activeOrg,
             ownerUsername: currentUser?.username,
             itemized: false,  // Default to false, will be updated in handleExcel logic
             itemizedExpenses: [],  // Will be populated in handleExcel
         };
-
         // If the expense is itemized, initialize itemizedExpenses with the current row's data
         if (row["Expense Reference ID"] && row["Expense Category"] && row["Total"]) {
             item.itemized = false; // By default, it's not itemized unless grouped later
             item.itemizedExpenses.push({
                 category: item.category,
                 amount: item.amount,
-                note: item.note,
+                note: row["Expense Description"] || item.note || "",
                 tax: item.tax,
             });
         }
 
         return item;
     };
-    function excelSerialToDate(serial) {
-        const startDate = new Date(1900, 0, 1); // Excel starts counting from January 1, 1900
-        const daysInMs = serial * 24 * 60 * 60 * 1000; // Convert days to milliseconds
-        const excelDate = new Date(startDate.getTime() + daysInMs);
-        return excelDate;
-    }
+
     const handleSave = async () => {
         if (!activeOrg) return toast.error("active org not found")
         if (!currentUser.username) return toast.error("No user")
