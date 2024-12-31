@@ -12,15 +12,15 @@ const MainNav = () => {
     const { theme } = useTheme();
     const [lastScrollY, setLastScrollY] = useState(0);
     const [menuOpen, setMenuOpen] = useState(false);
-    const handleScroll = () => {
-        if (window.scrollY > lastScrollY) {
-            setVisible(false);
-            setMenuOpen(false)
-        } else {
-            setVisible(true);
-        }
-        setLastScrollY(window.scrollY);
-    };
+    // const handleScroll = () => {
+    //     if (window.scrollY > lastScrollY) {
+    //         setVisible(false);
+    //         setMenuOpen(false)
+    //     } else {
+    //         setVisible(true);
+    //     }
+    //     setLastScrollY(window.scrollY);
+    // };
 
     useEffect(() => {
         window.addEventListener('scroll', handleScroll);
@@ -29,6 +29,20 @@ const MainNav = () => {
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastScrollY]);
+
+
+    const handleScroll = () => {
+        // Check if the user is scrolling down
+        if (window.scrollY > lastScrollY && window.scrollY > 100) {
+            setVisible(false); // Hide navbar
+        } else if (window.scrollY < lastScrollY) {
+            setVisible(true); // Show navbar
+        }
+        // Update last scroll position
+        setLastScrollY(window.scrollY);
+    };
+
+
 
 
     const menu = (

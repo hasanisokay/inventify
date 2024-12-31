@@ -329,9 +329,9 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
   };
 
   return (
-    <div className={` p-4 max-w-3xl mx-auto ${loading || loadingCustomer ? "form-disabled" : ""} `}>
-      <h1 className="text-2xl mb-6">{updateable ? "Edit" : "New"} Expense</h1>
-      <div className="mt-20 pb-10 border-t-2 pt-10 border-gray-500 input-container ">
+    <div className={`p-2 max-w-3xl mx-auto ${loading || loadingCustomer ? "form-disabled" : ""} `}>
+      <h1 className="text-2xl">{updateable ? "Edit" : "New"} Expense</h1>
+      <div className="mt-4 pb-10 border-t-2 pt-10 border-gray-500 input-container ">
         <label htmlFor="customer" className="form-label2">Select Customer</label>
         <Select
           className="md:w-[420px] select-react "
@@ -350,7 +350,7 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
           onChange={handleCustomerChange}
         />
       </div>
-      <div className="input-container pt-4">
+      <div className="input-container pt-4 z-[100]">
         <label htmlFor="expenseDate" className="form-label">Date: </label>
         <DatePicker
           onChange={(date) => setExpenseDate(date)}
@@ -360,8 +360,6 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
           clearIcon={null}
         />
       </div>
-     
-
 
       <div onClick={() => setShowItemized(!showItemized)} className="input-container w-fit my-3">
         <label className="form-label">Itemized:</label>
@@ -466,13 +464,13 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
 
       {/* itemized */}
       {showItemized && (
-        <div className="overflow-auto">
+        <div className="md:overflow-visible overflow-auto">
           <table className="item-table2 ">
             <thead>
               <tr>
                 <th>Category</th>
-                <th>Amount</th>
                 <th>Note</th>
+                <th>Amount</th>
                 {/* <th>Tax</th> */}
               </tr>
             </thead>
@@ -505,17 +503,7 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
                         onExitModal={setAvailableCategories}
                       />
                     </td>
-                    <td className="">
-                      <input
-                        type="number"
-                        value={item.amount}
-                        onChange={(e) =>
-                          handleItemizedChange(index, 'amount', e.target.value)
-                        }
-                        className="text-input"
-                        placeholder="Amount"
-                      />
-                    </td>
+
                     <td >
 
                       {/* <input
@@ -543,6 +531,18 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
                           handleItemizedChange(index, 'note', e.target.value)
                         }
 
+                      />
+
+                    </td>
+                    <td className="">
+                      <input
+                        type="number"
+                        value={item.amount}
+                        onChange={(e) =>
+                          handleItemizedChange(index, 'amount', e.target.value)
+                        }
+                        className="text-input"
+                        placeholder="Amount"
                       />
                       <span className="text-red-500 absolute text-lg cursor-pointer bottom-4" onClick={() => handleRemoveItemizedRow(index)}>&#10006;</span>
                       <span title="Clone this item" className="text-red-500 absolute md:-left-6 left-0 bottom-4 text-lg cursor-pointer opacity-50 hover:opacity-100" onClick={() => handleCloneItemizedRow(index)}><CopySVG width={'24px'} height={'24px'} /></span>
