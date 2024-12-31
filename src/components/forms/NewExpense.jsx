@@ -14,6 +14,7 @@ import AuthContext from "@/contexts/AuthContext.mjs";
 import CopySVG from "../svg/CopySVG";
 import AutoResizeTextarea from "./AutoResizeTextarea";
 import 'react-date-picker/dist/DatePicker.css';
+import 'react-calendar/dist/Calendar.css';
 
 const NewExpense = ({ activeOrg, id, uniqueIds }) => {
   const [loading, setLoading] = useState(false);
@@ -348,8 +349,8 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
         <DatePicker
           onChange={(date) => setExpenseDate(date)}
           value={expenseDate}
-          className="react-date-picker"
-          calendarIcon={null}
+          className="react-date-picker z-40"
+          // calendarIcon={null}
           clearIcon={null}
         />
       </div>
