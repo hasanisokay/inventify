@@ -106,9 +106,15 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
       setLoadingCustomer(true)
       const c = await getCustomers(1, 10000, "newest", "", true, activeOrg)
       setSavedCustomers(c);
+      const defaultCustomer = c.find((c) => c.firstName === "Default" && c.lastName === "Customer");
+      console.log(defaultCustomer)
+      const defaultCustomerValue = defaultCustomer?._id || "";
+      const defaultCustomerLabel = `${defaultCustomer?.firstName || ""} ${defaultCustomer?.lastName || ""}`;
+      setSelectedCustomer({ value: defaultCustomerValue, label: defaultCustomerLabel });
       setLoadingCustomer(false)
     })()
   }, [])
+  console.log(selectedCustomer)
 
   const handleTaxChange = (selectedOptions) => {
     setSelectedTaxes(selectedOptions);
@@ -328,7 +334,7 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
       <div className="mt-20 pb-10 border-t-2 pt-10 border-gray-500 input-container ">
         <label htmlFor="customer" className="form-label2">Select Customer</label>
         <Select
-          className="md:w-[420px] select-react z-20"
+          className="md:w-[420px] select-react "
           instanceId={uniqueIds[3]}
           id={uniqueIds[3]}
           theme={{ borderRadius: '10px' }}
@@ -349,7 +355,7 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
         <DatePicker
           onChange={(date) => setExpenseDate(date)}
           value={expenseDate}
-          className="react-date-picker z-40"
+          className="react-date-picker "
           // calendarIcon={null}
           clearIcon={null}
         />
@@ -460,8 +466,8 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
 
       {/* itemized */}
       {showItemized && (
-        <div>
-          <table className="item-table2">
+        <div className="overflow-auto">
+          <table className="item-table2 ">
             <thead>
               <tr>
                 <th>Category</th>
@@ -539,7 +545,7 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
 
                       />
                       <span className="text-red-500 absolute text-lg cursor-pointer bottom-4" onClick={() => handleRemoveItemizedRow(index)}>&#10006;</span>
-                      <span title="Clone this item" className="text-red-500 absolute -left-6 bottom-4 text-lg cursor-pointer opacity-50 hover:opacity-100" onClick={() => handleCloneItemizedRow(index)}><CopySVG width={'24px'} height={'24px'} /></span>
+                      <span title="Clone this item" className="text-red-500 absolute md:-left-6 left-0 bottom-4 text-lg cursor-pointer opacity-50 hover:opacity-100" onClick={() => handleCloneItemizedRow(index)}><CopySVG width={'24px'} height={'24px'} /></span>
 
                     </td>
                     {/* <td>
