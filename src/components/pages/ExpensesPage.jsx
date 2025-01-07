@@ -10,15 +10,26 @@ import EditSVG from "../svg/EditSVG";
 import NotebookSVG from "../svg/NotebookSVG";
 import * as XLSX from "xlsx";
 import formatDate from "@/utils/formatDate.mjs";
+import getExpenses from "@/utils/getExpenses.mjs";
 
 const ExpensesPage = ({ e, activeOrg }) => {
     const [openExpenseModal, setOpenExpenseModal] = useState(false);
     const [selectedExpense, setSelectedExpense] = useState(null);
     const [expenses, setExpenses] = useState(e);
     const [markedItems, setMarkedItems] = useState([]);
+    const [loading, setLoading] = useState(false);
+
     const filteredExpenses = useMemo(() => {
         return expenses;
     }, [expenses]);
+
+
+    const getAllExpenses = async () => {
+        setLoading(true);
+        const expenses = await getExpenses(1, 9999999999, 'newest', "", activeOrg);
+        exportToExcel(expenses?.expenses);
+        setLoading(false);
+    }
     const exportToExcel = (data, filename = `expense_report_${formatDate(new Date())}.xlsx`) => {
         const formattedData = data.map((item) => {
             if (item.itemized) {
@@ -134,7 +145,7 @@ const ExpensesPage = ({ e, activeOrg }) => {
             <h1 className="text-2xl font-semibold mb-4 text-center">Expenses</h1>
             <div className="overflow-x-auto">
                 <div className="text-center">
-                    <button className="bg-blue-500 px-2 py-1 rounded text-white" onClick={() => exportToExcel(e)}>Download Excel</button>
+                    <button disabled={loading} className="bg-blue-500 px-2 py-1 rounded text-white" onClick={getAllExpenses}>{loading ? "Loading..." : "Download Excel"}</button>
                 </div>
                 <SearchBar placeholder={'Search with category, reference or customer'} />
                 <div className="h-[40px]">

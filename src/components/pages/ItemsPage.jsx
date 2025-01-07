@@ -29,6 +29,15 @@ const ItemsPage = ({ i, actOrg, keyword }) => {
     const [startDate, setStartDate] = useState(new Date(new Date().setMonth(new Date().getMonth() - 1)));
     const [endDate, setEndDate] = useState(new Date());
     const { currentUser } = useContext(AuthContext);
+    const [loadingAll, setLoadingAll] = useState(false);
+
+
+    const getAllItems = async () => {
+        setLoadingAll(true);
+        const items = await getItems(1, 99999999, 'newest', "", "", actOrg);
+        exportProductsToExcel(items?.items);
+        setLoadingAll(false);
+    }
     const handleSelectItem = (id) => {
         setMarkedItems((prev) => {
             if (prev.includes(id)) {
@@ -196,7 +205,7 @@ const ItemsPage = ({ i, actOrg, keyword }) => {
         <div>
             <h1 className="text-2xl font-semibold mb-4 text-center">Items</h1>
             <div className="text-center">
-                <button className="bg-blue-500 px-2 py-1 rounded text-white" onClick={() => exportProductsToExcel(i)}>Download Excel</button>
+                <button disabled={loadingAll} className="bg-blue-500 px-2 py-1 rounded text-white" onClick={getAllItems}>{loadingAll ? "Loading..." : "Download Excel"}</button>
             </div>
             <h3 className="text-lg text-gray-600 dark:text-gray-300 text-center mb-2">Select a Date Range for Sell Data</h3>
             <RangeDatepicker endDate={endDate} startDate={startDate} fetchData={fetchData} handleEndDateChange={handleEndDateChange} handleStartDateChange={handleStartDateChange} />

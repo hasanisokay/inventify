@@ -202,7 +202,7 @@ const InvoicePage = ({ invoices: i }) => {
             {loading && <Loading loading={loading} />}
             <h1 className="text-2xl font-semibold mb-4 text-center">Invoices</h1>
             <div className="text-center">
-                <button disabled={loading} className="bg-blue-500 px-2 py-1 rounded text-white" onClick={getAllInvoices}>{loading ? "Loading" : "Download Excel"}</button>
+                <button disabled={loadingAll} className="bg-blue-500 px-2 py-1 rounded text-white" onClick={getAllInvoices}>{loadingAll ? "Loading" : "Download Excel"}</button>
             </div>
             <SearchBar placeholder={"Search with items, customer or order number"} />
             <div className="h-[40px]">
