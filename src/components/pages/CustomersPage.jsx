@@ -44,6 +44,9 @@ const CustomersPage = ({ c, page: p }) => {
             "Company Name": customer.companyName,
             status: customer.status,
             source: customer.source,
+            'Order': customer.totalOrder,
+            'Paid': customer.totalPaid,
+            "Due": customer.totalDue,
             'Created Time': customer.createdTime,
             "Last Modified": customer.lastModifiedTime,
             'Billing Address': customer.billingAddress,
@@ -61,9 +64,7 @@ const CustomersPage = ({ c, page: p }) => {
             'Facebook Id': customer.facebookId,
             // orgId: customer.orgId,
             // ownerUsername: customer.ownerUsername,
-            "Due": customer.totalDue,
-            'Paid': customer.totalPaid,
-            'Order': customer.totalOrder,
+
         }));
 
         const ws = XLSX.utils.json_to_sheet(excelData);
