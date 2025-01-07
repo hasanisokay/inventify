@@ -9,7 +9,8 @@ import DeleteSVG from "../svg/DeleteSVG";
 import SearchBar from "../SearchBar/SearchBar";
 import NotebookSVG from "../svg/NotebookSVG";
 import NameSort from "../sort/NameSort";
-
+import * as XLSX from "xlsx";
+import formatDate from "@/utils/formatDate.mjs";
 const CustomersPage = ({ c, page: p }) => {
     const [page, setPage] = useState(p);
     const router = useRouter();
@@ -18,6 +19,70 @@ const CustomersPage = ({ c, page: p }) => {
     const [selectedCustomer, setSelectedCustomer] = useState(null);
     const [customers, setCustomers] = useState(c);
     const [selectedCustomers, setSelectedCustomers] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const getAllCustomers = async () => {
+
+        setLoading(true);
+        const res = await fetch(`/api/gets/all-customers?orgId=${activeOrg}`);
+        const data = await res.json();
+        convertCustomerDataToExcel(data?.data?.customers)
+        setLoading(false);
+    }
+
+
+    const convertCustomerDataToExcel = (customerData) => {
+        const excelData = customerData?.map((customer) => ({
+            _id: customer._id,
+            'Customer Type': customer.customerType,
+            'Name': customer.name,
+            'First Name': customer.firstName,
+            'Last Name': customer.lastName,
+            salutation: customer.salutation,
+            phone: customer.phone,
+            email: customer.email,
+            note: customer.note,
+            "Company Name": customer.companyName,
+            status: customer.status,
+            source: customer.source,
+            'Created Time': customer.createdTime,
+            "Last Modified": customer.lastModifiedTime,
+            'Billing Address': customer.billingAddress,
+            'Billing Street': customer.billingStreet,
+            'Billing City': customer.billingCity,
+            'Billing State': customer.billingState,
+            'Billing Country': customer.billingCountry,
+            'Billing Code': customer.billingCode,
+            'Shipping Address': customer.shippingAddress,
+            'Shipping Street': customer.shippingStreet,
+            'Shipping City': customer.shippingCity,
+            'Shipping State': customer.shippingState,
+            'Shipping Country': customer.shippingCountry,
+            'Shipping Code': customer.shippingCode,
+            'Facebook Id': customer.facebookId,
+            // orgId: customer.orgId,
+            // ownerUsername: customer.ownerUsername,
+            "Due": customer.totalDue,
+            'Paid': customer.totalPaid,
+            'Order': customer.totalOrder,
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(excelData);
+
+        // Create a new workbook
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Customers");
+
+        // Generate the Excel file and trigger the download
+        const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+        const data = new Blob([excelBuffer], { bookType: "xlsx", type: "application/octet-stream" });
+
+        // Create an anchor element to download the file
+        const fileName = `customers_${formatDate(new Date())}.xlsx`;
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(data);
+        link.download = fileName;
+        link.click();
+    };
     useEffect(() => {
         (async () => {
             const a = await getActiveOrg();
@@ -54,7 +119,7 @@ const CustomersPage = ({ c, page: p }) => {
 
     const handleDeleteBulk = async () => {
         const confirmed = window.confirm("Sure to delete?")
-        if(!confirmed) return;
+        if (!confirmed) return;
         const res = await fetch("/api/deletes/delete-customers", {
             method: "DELETE",
             headers: {
@@ -100,6 +165,10 @@ const CustomersPage = ({ c, page: p }) => {
     return (
         <div className="w-full">
             <h1 className="text-2xl font-semibold mb-4 text-center">Customers</h1>
+            <div className="text-center">
+                <button disabled={loading} className="bg-blue-500 px-2 py-1 rounded text-white" onClick={getAllCustomers}>{loading ? "Loading..." : "Download Excel"}</button>
+            </div>
+
             <SearchBar placeholder={"Search with name, phone, address, email, fbId"} />
             <div className="h-[40px]">
                 {selectedCustomers.length > 0 && (
@@ -129,7 +198,7 @@ const CustomersPage = ({ c, page: p }) => {
                         <th className="border border-gray-300 p-2 text-left ">
                             <NameSort name={"Name"} topValue={"name_dsc"} lowValue={"name_asc"} />
                         </th>
-                  
+
                         <th className="border border-gray-300 p-2 text-left">
                             <NameSort name={"Total Order"} topValue={"high_order"} lowValue={"low_order"} />
                         </th>
@@ -156,7 +225,7 @@ const CustomersPage = ({ c, page: p }) => {
                                 />
                             </td>
                             <td className="border border-gray-300 p-2  whitespace-nowrap overflow-hidden text-ellipsis">{c.firstName + " " + c.lastName}</td>
- 
+
                             <td className="border border-gray-300 p-2 whitespace-nowrap overflow-hidden text-ellipsis">{c?.totalOrder}</td>
                             <td className="border border-gray-300 p-2 whitespace-nowrap overflow-hidden text-ellipsis">{c?.currency || "BDT "} {c?.totalDue}</td>
                             <td className="border border-gray-300 p-2 whitespace-nowrap overflow-hidden text-ellipsis">{c?.currency || "BDT "} {c?.totalPaid}</td>

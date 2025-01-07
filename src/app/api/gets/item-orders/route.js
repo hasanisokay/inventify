@@ -72,7 +72,7 @@ export const GET = async (req) => {
       return NextResponse.json(noDataFoundResponse);
     }
   } catch (er) {
-    console.log(er);
+    console.error(er);
     return NextResponse.json(serverErrorResponse);
   }
 };

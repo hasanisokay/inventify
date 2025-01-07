@@ -8,7 +8,8 @@ import NameSort from "../sort/NameSort";
 import Link from "next/link";
 import EditSVG from "../svg/EditSVG";
 import NotebookSVG from "../svg/NotebookSVG";
-
+import * as XLSX from "xlsx";
+import formatDate from "@/utils/formatDate.mjs";
 
 const ExpensesPage = ({ e, activeOrg }) => {
     const [openExpenseModal, setOpenExpenseModal] = useState(false);
@@ -16,8 +17,49 @@ const ExpensesPage = ({ e, activeOrg }) => {
     const [expenses, setExpenses] = useState(e);
     const [markedItems, setMarkedItems] = useState([]);
     const filteredExpenses = useMemo(() => {
-        return expenses; 
-      }, [expenses]);
+        return expenses;
+    }, [expenses]);
+    const exportToExcel = (data, filename = `expense_report_${formatDate(new Date())}.xlsx`) => {
+        const formattedData = data.map((item) => {
+            if (item.itemized) {
+                return item.itemizedExpenses.map((expense) => ({
+                    _id: item._id,
+                    date: item.date,
+                    reference: item.reference,
+                    total: item.total,
+                    category: expense.category,
+                    amount: expense.amount,
+                    note: expense.note,
+                    tax: expense.tax,
+                    customer: item.customer?.firstName + item.customer?.lastName || "",
+                    billingAddress: item.customer?.billingAddress || "",
+                    phone: item.customer?.phone || "",
+                }));
+            } else {
+                return {
+                    _id: item._id,
+                    date: item.date,
+                    reference: item.reference,
+                    total: item.total,
+                    category: item.category,
+                    amount: item.amount,
+                    note: item.note,
+                    tax: item.tax,
+                    customer: item.customer?.firstName + item.customer?.lastName || "",
+                    billingAddress: item.customer?.billingAddress || "",
+                    phone: item.customer?.phone || "",
+                };
+            }
+        });
+        const flattenedData = formattedData.flat();
+        const worksheet = XLSX.utils.json_to_sheet(flattenedData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Expenses");
+
+        // Write the file
+        XLSX.writeFile(workbook, filename);
+    };
+
 
     const handleRowClick = (item) => {
         setSelectedExpense(item);
@@ -37,7 +79,6 @@ const ExpensesPage = ({ e, activeOrg }) => {
             }
         });
     };
-
     const handleSelectAll = () => {
         if (markedItems.length === expenses.length) {
             setMarkedItems([]);
@@ -92,6 +133,9 @@ const ExpensesPage = ({ e, activeOrg }) => {
         <div className="py-6">
             <h1 className="text-2xl font-semibold mb-4 text-center">Expenses</h1>
             <div className="overflow-x-auto">
+                <div className="text-center">
+                    <button className="bg-blue-500 px-2 py-1 rounded text-white" onClick={() => exportToExcel(e)}>Download Excel</button>
+                </div>
                 <SearchBar placeholder={'Search with category, reference or customer'} />
                 <div className="h-[40px]">
                     {markedItems?.length > 0 && <div className="flex gap-4 mb-4">
@@ -155,7 +199,7 @@ const ExpensesPage = ({ e, activeOrg }) => {
                                         })}</p>
                                         <div className="flex gap-6 items-center">
                                             <button className="text-red-500 opacity-30 group-hover:opacity-100  " onClick={() => handleRowClick(item)}>
-                                                <NotebookSVG  height={'16px'} width={"16px"}/>
+                                                <NotebookSVG height={'16px'} width={"16px"} />
                                             </button>
                                             <Link
                                                 onClick={(e) => e.stopPropagation()}

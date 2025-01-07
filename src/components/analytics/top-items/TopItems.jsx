@@ -30,7 +30,7 @@ const TopItems = () => {
             const data = await res.json();
             setTopItems(data.data || []);
         } catch (err) {
-            console.log(err);
+            console.error(err);
 
         } finally {
             setLoading(false);

@@ -14,6 +14,8 @@ import CheckSVG from "./CheckSVG";
 import Loading from "../loader/Loading";
 import SearchBar from "../SearchBar/SearchBar";
 import NameSort from "../sort/NameSort";
+import * as XLSX from "xlsx";
+import formatDate from "@/utils/formatDate.mjs";
 
 const InvoicePage = ({ invoices: i }) => {
     const [openInvoiceModal, setOpenInvoiceModal] = useState(false);
@@ -24,6 +26,77 @@ const InvoicePage = ({ invoices: i }) => {
     const { activeOrganization } = useContext(AuthContext);
     const [markedItems, setMarkedItems] = useState([]);
     const [openInvoicePrintModal, setOpenInvoicePrintModal] = useState(false);
+    const [loadingAll, setLoadingAll] = useState(false);
+
+    const getAllInvoices = async () => {
+        setLoadingAll(true);
+        const res = await fetch(`/api/gets/all-invoices?orgId=${activeOrg}`);
+        const data = await res.json();
+        convertInvoiceDataToExcel(data?.data?.invoices)
+        setLoadingAll(false);
+    }
+
+    const convertInvoiceDataToExcel = (invoiceData) => {
+        // Prepare the data to export to Excel
+        const excelData = invoiceData?.map((invoice) => {
+            // Flatten items and append to invoice fields
+            const itemDetails = invoice?.items?.map((item) => ({
+                itemId: item?.itemId,
+                itemName: item?.name,
+                itemQuantity: item?.quantity,
+                itemUnit: item?.unit,
+                itemSellingPrice: item?.sellingPrice,
+                itemTax: item?.tax,
+            }));
+            const customer = invoice?.customer || {};
+            // Create a flattened structure with invoice and item details
+            const flattenedInvoice = itemDetails.map((item) => ({
+                _id: invoice._id,
+                'Invoice Number': invoice?.invoiceNumber,
+                'Invoice Date': invoice?.invoiceDate,
+                'Customer Name': customer?.firstName + customer?.lastName || '',
+                'Billing Address': customer.billingAddress || '',
+                'Shipping Charge': invoice?.shippingCharge,
+                subtotal: invoice?.subtotal,
+                total: invoice?.total,
+                discount: invoice?.discount,
+                'Total Tax': invoice?.totalTax,
+                'Due Amount': invoice?.dueAmount,
+                'Paid Amount': invoice?.paidAmount,
+                'Payment Method': invoice?.paymentMethod,
+                trxId: invoice?.trxId,
+                note: invoice?.note,
+                'Payment From Number': invoice?.paymentFromNumber,
+                itemId: item?.itemId,
+                'Item Name': item?.itemName,
+                'Item Quantity': item?.itemQuantity,
+                'Item Unit': item?.itemUnit,
+                'Item Selling Price': item?.itemSellingPrice,
+                'Item Tax': item?.itemTax,
+            }));
+
+            return flattenedInvoice;
+        }).flat(); // Flatten the result to get one row per item
+
+
+        const ws = XLSX.utils.json_to_sheet(excelData);
+
+        // Create a new workbook
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Invoices");
+
+        // Generate the Excel file and trigger the download
+        const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+        const data = new Blob([excelBuffer], { bookType: "xlsx", type: "application/octet-stream" });
+
+        // Create an anchor element to download the file
+        const fileName = `invoices_${formatDate(new Date())}.xlsx`;
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(data);
+        link.download = fileName;
+        link.click();
+    };
+
 
 
     const handleSelectItem = (id) => {
@@ -46,7 +119,7 @@ const InvoicePage = ({ invoices: i }) => {
 
     const handleDeleteBulk = async () => {
         const confirmed = window.confirm("Sure to delete?")
-        if(!confirmed) return;
+        if (!confirmed) return;
         const res = await fetch("/api/deletes/delete-invoices", {
             method: "DELETE",
             headers: {
@@ -128,6 +201,9 @@ const InvoicePage = ({ invoices: i }) => {
         <div className="w-full">
             {loading && <Loading loading={loading} />}
             <h1 className="text-2xl font-semibold mb-4 text-center">Invoices</h1>
+            <div className="text-center">
+                <button disabled={loading} className="bg-blue-500 px-2 py-1 rounded text-white" onClick={getAllInvoices}>{loading ? "Loading" : "Download Excel"}</button>
+            </div>
             <SearchBar placeholder={"Search with items, customer or order number"} />
             <div className="h-[40px]">
                 {markedItems?.length > 0 && <div className="flex gap-4 mb-4">
@@ -242,8 +318,8 @@ const InvoicePage = ({ invoices: i }) => {
                                 </div>
 
                             </td>
-                            <td   onClick={() => handleRowClick(i)} className="border border-gray-300 p-2 cursor-pointer">{i.invoiceNumber}</td>
-                            <td   onClick={() => handleRowClick(i)} className="border border-gray-300 p-2 cursor-pointer">{i.orderNumber}</td>
+                            <td onClick={() => handleRowClick(i)} className="border border-gray-300 p-2 cursor-pointer">{i.invoiceNumber}</td>
+                            <td onClick={() => handleRowClick(i)} className="border border-gray-300 p-2 cursor-pointer">{i.orderNumber}</td>
                             <td className="border border-gray-300 p-2 cursor-pointer">{new Date(i.invoiceDate).toLocaleString("en-US", {
                                 year: "numeric",
                                 month: "2-digit",
@@ -254,8 +330,8 @@ const InvoicePage = ({ invoices: i }) => {
                                 hour12: true,
                             })}</td>
                             {/* <td   onClick={() => handleRowClick(i)} className="border border-gray-300 p-2 cursor-pointer">{i?.totalTax}</td> */}
-                            <td   onClick={() => handleRowClick(i)} className="border border-gray-300 font-semibold dark:text-yellow-400 text-red-500 p-2 cursor-pointer">{i?.dueAmount}</td>
-                            <td   onClick={() => handleRowClick(i)}  className="border border-gray-300 p-2 cursor-pointer font-semibold">{i?.total}</td>
+                            <td onClick={() => handleRowClick(i)} className="border border-gray-300 font-semibold dark:text-yellow-400 text-red-500 p-2 cursor-pointer">{i?.dueAmount}</td>
+                            <td onClick={() => handleRowClick(i)} className="border border-gray-300 p-2 cursor-pointer font-semibold">{i?.total}</td>
                             {/* <td   onClick={() => handleRowClick(i)} className="border border-gray-300 p-2 cursor-pointer font-semibold">{i?.paidAmount}</td> */}
                         </tr>
                     ))}

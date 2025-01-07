@@ -27,7 +27,7 @@ const TopSpenders = () => {
             const data = await res.json();
             setTopCustomers(data.data || []);
         } catch (err) {
-            console.log(err);
+            console.error(err);
 
         } finally {
             setLoading(false);

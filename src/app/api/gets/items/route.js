@@ -35,20 +35,20 @@ export const GET = async (req) => {
     const matchStage = { orgId };
 
     const sortField =
-    sort === "highest" || sort === "lowest"
-      ? "totalOrder" // Sort by totalOrder for both highest and lowest
-      : sort === "name_asc" || sort === "name_dsc"
-      ? "name" // Sort by name for ascending and descending
-      : sort === "price_high" || sort === "price_low"
-      ? (report === "true" ? "sellingPrice" : "numericSellingPrice") // Conditional sorting for price
-      : "lastModifiedTime"; // Default sort field
-  
+      sort === "highest" || sort === "lowest"
+        ? "totalOrder" // Sort by totalOrder for both highest and lowest
+        : sort === "name_asc" || sort === "name_dsc"
+        ? "name" // Sort by name for ascending and descending
+        : sort === "price_high" || sort === "price_low"
+        ? report === "true"
+          ? "sellingPrice"
+          : "numericSellingPrice" // Conditional sorting for price
+        : "lastModifiedTime"; // Default sort field
 
-  let sortOrder = -1;
-  if (sort === "name_dsc" || sort === "lowest" || sort === "price_low" ) {
-    sortOrder = 1;
-  }
-
+    let sortOrder = -1;
+    if (sort === "name_dsc" || sort === "lowest" || sort === "price_low") {
+      sortOrder = 1;
+    }
 
     if (category) {
       matchStage.category = category;
@@ -100,6 +100,8 @@ export const GET = async (req) => {
               taxes: { $first: "$taxes" },
               status: { $first: "$status" },
               lastModifiedTime: { $first: "$lastModifiedTime" },
+              category: { $first: "$category" },
+              description: { $first: "$description" },
               totalOrder: {
                 $sum: {
                   $cond: [
@@ -148,6 +150,8 @@ export const GET = async (req) => {
               lastModifiedTime: 1,
               totalOrder: 1,
               totalAmount: 1,
+              description: 1,
+              category: 1,
             },
           },
           { $sort: { [sortField]: sortOrder } },
@@ -183,6 +187,8 @@ export const GET = async (req) => {
               taxes: { $first: "$taxes" },
               status: { $first: "$status" },
               lastModifiedTime: { $first: "$lastModifiedTime" },
+              category: { $first: "$category" },
+              description: { $first: "$description" },
               totalOrder: {
                 $sum: {
                   $cond: [
@@ -210,6 +216,8 @@ export const GET = async (req) => {
               status: 1,
               lastModifiedTime: 1,
               totalOrder: 1,
+              description: 1,
+              category: 1,
             },
           },
           {
@@ -218,7 +226,11 @@ export const GET = async (req) => {
                 $toDouble: {
                   $trim: {
                     input: {
-                      $substrBytes: ["$sellingPrice", 4, { $strLenBytes: "$sellingPrice" }],
+                      $substrBytes: [
+                        "$sellingPrice",
+                        4,
+                        { $strLenBytes: "$sellingPrice" },
+                      ],
                     },
                   },
                 },

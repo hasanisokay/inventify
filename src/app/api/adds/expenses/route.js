@@ -33,7 +33,7 @@ export const POST = async (req) => {
       return NextResponse.json(serverErrorResponse);
     }
   } catch (err) {
-    console.log(err);
+    console.error(err);
     return NextResponse.json(serverErrorResponse);
   }
 };

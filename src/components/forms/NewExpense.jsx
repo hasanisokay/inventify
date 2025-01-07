@@ -252,8 +252,6 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
     }
   };
 
-  // console.log(expenseDate)
-
   const fetchCategories = async () => {
     const res = await fetch("/api/gets/expense-categories");
     const data = await res.json()

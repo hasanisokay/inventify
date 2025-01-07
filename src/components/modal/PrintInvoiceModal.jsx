@@ -154,7 +154,6 @@ const PrintInvoiceModal = ({ resetStates, openModal, setOpenModal, invoiceNumber
             color: '#4a5568'
         }
         const spanStyle = { width: '120px', textAlign: 'left' }
-// console.log(total)
         return (
             <div style={{ padding: "1rem", backgroundColor: "white" }}>
 

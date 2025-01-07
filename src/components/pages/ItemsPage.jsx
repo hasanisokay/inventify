@@ -14,7 +14,8 @@ import ItemReportDownloadModal from "../modal/ItemReportDownloadModal";
 import Loading from "../loader/Loading";
 import AuthContext from "@/contexts/AuthContext.mjs";
 import NameSort from "../sort/NameSort";
-
+import * as XLSX from "xlsx";
+import formatDate from "@/utils/formatDate.mjs";
 const ItemsPage = ({ i, actOrg, keyword }) => {
     const router = useRouter();
     const [openModal, setOpenModal] = useState(false);
@@ -38,6 +39,42 @@ const ItemsPage = ({ i, actOrg, keyword }) => {
         });
     };
 
+
+    const exportProductsToExcel = (products) => {
+        // Prepare the data for Excel, including all fields
+        const formattedData = products.map(product => ({
+            "_id": product._id,
+            "Name": product.name,
+            "Selling Price": product.sellingPrice,
+            "Unit": product.unit,
+            "Category": product.category,
+            "Description": product.description,
+            "Total Order": product.totalOrder,
+            // "Numeric Selling Price": product.numericSellingPrice,
+            "Status": product.status,
+            "Last Modified Time": new Date(product.lastModifiedTime).toLocaleDateString(),
+        }));
+
+        // Create a new worksheet from the formatted data
+        const ws = XLSX.utils.json_to_sheet(formattedData);
+
+        // Create a new workbook
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Products");
+
+        // Generate the Excel file and trigger the download
+        const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+        const data = new Blob([excelBuffer], { bookType: "xlsx", type: "application/octet-stream" });
+
+        // Create an anchor element to download the file
+        const fileName = `products_${formatDate(new Date())}.xlsx`;
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(data);
+        link.download = fileName;
+        link.click();
+    };
+
+
     const handleSelectAll = () => {
         if (markedItems.length === items.length) {
             setMarkedItems([]);
@@ -48,7 +85,7 @@ const ItemsPage = ({ i, actOrg, keyword }) => {
 
     const handleDeleteBulk = async () => {
         const confirmed = window.confirm("Sure to delete?")
-        if(!confirmed) return;
+        if (!confirmed) return;
         const res = await fetch("/api/deletes/delete-items", {
             method: "DELETE",
             headers: {
@@ -99,7 +136,7 @@ const ItemsPage = ({ i, actOrg, keyword }) => {
             })();
 
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -158,6 +195,9 @@ const ItemsPage = ({ i, actOrg, keyword }) => {
     return (
         <div>
             <h1 className="text-2xl font-semibold mb-4 text-center">Items</h1>
+            <div className="text-center">
+                <button className="bg-blue-500 px-2 py-1 rounded text-white" onClick={() => exportProductsToExcel(i)}>Download Excel</button>
+            </div>
             <h3 className="text-lg text-gray-600 dark:text-gray-300 text-center mb-2">Select a Date Range for Sell Data</h3>
             <RangeDatepicker endDate={endDate} startDate={startDate} fetchData={fetchData} handleEndDateChange={handleEndDateChange} handleStartDateChange={handleStartDateChange} />
             <SearchBar placeholder={'Search with name or description'} />
@@ -202,16 +242,16 @@ const ItemsPage = ({ i, actOrg, keyword }) => {
                             />
                         </th>
                         <th className="border border-gray-300 p-2 text-left">
-                        <NameSort name={"Name"} topValue={"name_dsc"} lowValue={"name_asc"}/>
+                            <NameSort name={"Name"} topValue={"name_dsc"} lowValue={"name_asc"} />
                         </th>
                         <th className="border border-gray-300 p-2 text-left">
 
-                        <NameSort  name={'Price'} topValue={"price_high"} lowValue={"price_low"}/>
+                            <NameSort name={'Price'} topValue={"price_high"} lowValue={"price_low"} />
                         </th>
                         <th className="border border-gray-300 p-2 text-left">Unit</th>
                         <th className="border border-gray-300 p-2 text-left">
 
-                        <NameSort  name={'Total Sold'} topValue={"highest"} lowValue={"lowest"}/>
+                            <NameSort name={'Total Sold'} topValue={"highest"} lowValue={"lowest"} />
                         </th>
                         <th className="border border-gray-300 p-2 text-left">Status</th>
                         <th className="border border-gray-300 p-2 text-left">Actions</th>
