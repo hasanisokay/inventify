@@ -225,6 +225,9 @@ body {
 .form-textarea {
   @apply resize min-w-[300px] p-2 focus:outline-none rounded text-black;
 }
+.react-calendar{
+  color: black !important;
+}
 .text-input {
   width: 200px;
   padding-top: 6px;
