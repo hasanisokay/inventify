@@ -3,7 +3,6 @@ import React, { useContext } from "react";
 import { useState, useEffect } from "react";
 import Select from "react-select";
 
-import DatePicker from 'react-date-picker';
 import { useRouter } from "next/navigation";
 import NewCustomerModal from "../modal/NewCustomerModal";
 import getCustomers from "@/utils/getCustomers.mjs";
@@ -13,6 +12,7 @@ import calculateTax from "@/utils/calculateTax.mjs";
 import AuthContext from "@/contexts/AuthContext.mjs";
 import CopySVG from "../svg/CopySVG";
 import AutoResizeTextarea from "./AutoResizeTextarea";
+import DatePicker from 'react-date-picker';
 import 'react-date-picker/dist/DatePicker.css';
 import 'react-calendar/dist/Calendar.css';
 
@@ -347,7 +347,7 @@ const NewExpense = ({ activeOrg, id, uniqueIds }) => {
           onChange={handleCustomerChange}
         />
       </div>
-      <div className="input-container pt-4 z-[100]">
+      <div className="input-container z-[100] text-[14px]">
         <label htmlFor="expenseDate" className="form-label">Date: </label>
         <DatePicker
           onChange={(date) => setExpenseDate(date)}

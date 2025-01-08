@@ -2,8 +2,7 @@
 'use client'
 import React, { useState, useEffect, useContext, useMemo } from "react";
 import Select from "react-select";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import DatePicker from 'react-date-picker';
 import NewCustomerModal from "../modal/NewCustomerModal";
 import NewItemModal from "../modal/NewItemModal";
 import getCustomers from "@/utils/getCustomers.mjs";
@@ -18,6 +17,11 @@ import CrossSVG from "../svg/CrossSVG";
 import CustomerModal from "../modal/CustomerModal";
 import PrintInvoiceModal from "../modal/PrintInvoiceModal";
 import Loading from "../loader/Loading";
+
+import 'react-date-picker/dist/DatePicker.css';
+import 'react-calendar/dist/Calendar.css';
+
+
 const NewInvoice = ({ activeOrg, id }) => {
   const [openCustomerDetailsModal, setOpenCustomerDetailsModal] = useState(false);
   const [orderNumber, setOrderNumber] = useState("")
@@ -219,7 +223,7 @@ const NewInvoice = ({ activeOrg, id }) => {
     const total = selectedItems.reduce((sum, item) => sum + item.quantity * item.sellingPrice, 0);
     const tax = selectedItems.reduce((sum, item) => sum + item.tax, 0);
     setSubtotal(total + totalTax || 0);
-    setTotal(total + totalTax + ( adjustmentAmount || 0) + shippingCharge - discount || 0);
+    setTotal(total + totalTax + (adjustmentAmount || 0) + shippingCharge - discount || 0);
     if (isPaidChecked) {
       setPaidAmount(total + totalTax + shippingCharge + adjustmentAmount - discount || 0)
     }
@@ -228,9 +232,9 @@ const NewInvoice = ({ activeOrg, id }) => {
   }, [selectedItems, totalTax]);
 
   useEffect(() => {
-    setTotal(subtotal + shippingCharge - discount +  ( adjustmentAmount || 0) )
+    setTotal(subtotal + shippingCharge - discount + (adjustmentAmount || 0))
     if (isPaidChecked) {
-      setPaidAmount(subtotal + shippingCharge - discount +  ( adjustmentAmount || 0) )
+      setPaidAmount(subtotal + shippingCharge - discount + (adjustmentAmount || 0))
     }
   }, [shippingCharge, discount])
   useEffect(() => {
@@ -281,7 +285,7 @@ const NewInvoice = ({ activeOrg, id }) => {
   }
 
   const customFilter = (option, inputValue) => {
-    if (!inputValue) return true; 
+    if (!inputValue) return true;
     return option.label.toLowerCase().startsWith(inputValue.toLowerCase());
   };
   const resetStates = () => {
@@ -512,7 +516,7 @@ const NewInvoice = ({ activeOrg, id }) => {
       <div className="mb-4 input-container ">
         <label htmlFor="customer" className="form-label2">Select Customer</label>
         <Select
-          className="md:w-[420px] w-[] select-react z-50"
+          className="md:w-[420px] w-[] select-react "
           id="customer"
           theme={{ borderRadius: '10px' }}
           options={[
@@ -586,16 +590,17 @@ const NewInvoice = ({ activeOrg, id }) => {
         />
       </div>`
 
-      <div className="input-container pt-4">
+      <div className="input-container mb-10">
         <label htmlFor="invoiceDate" className="form-label2">Invoice Date: </label>
 
-        <div className="date-picker-container">
+        <div className="text-[14px]">
           <DatePicker
             id="invoiceDate"
-            selected={invoiceDate}
             onChange={(date) => setInvoiceDate(date)}
-            dateFormat="dd MMM yyyy"
-            className="text-input2 focus:outline-none outline-none border-none"
+            value={invoiceDate}
+            // className="react-date-picker "
+            className="border-none outline-none"
+            clearIcon={null}
           />
         </div>
       </div>
@@ -794,7 +799,7 @@ const NewInvoice = ({ activeOrg, id }) => {
                 onChange={(e) => {
                   const value = parseFloat(e?.target?.value || 0);
                   setAdjustmentAmount(value);
-                
+
                   setTotal(prevTotal => {
                     if (adjustmentAmount > 0) {
                       return prevTotal + value - adjustmentAmount;
@@ -802,7 +807,7 @@ const NewInvoice = ({ activeOrg, id }) => {
                       return prevTotal + value;
                     }
                   });
-   
+
                   setPaidAmount(prevPaid => {
                     if (adjustmentAmount > 0) {
                       return prevPaid + value - adjustmentAmount;
@@ -810,9 +815,9 @@ const NewInvoice = ({ activeOrg, id }) => {
                       return prevPaid + value;
                     }
                   });
-   
+
                 }}
-                
+
                 className="text-input3"
               />
             </div>
@@ -896,7 +901,7 @@ const NewInvoice = ({ activeOrg, id }) => {
                 />
               </div>
             )}
-        
+
             <hr className="border-t border-gray-400 my-4" />
             <div className="flex justify-between flex-wrap">
               <h3 className="font-bold text-xl">Total ({currency})</h3>
