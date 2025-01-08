@@ -5,7 +5,7 @@ import 'react-calendar/dist/Calendar.css';
 
 const RangeDatepicker = ({ handleStartDateChange, handleEndDateChange, startDate, endDate, fetchData }) => {
     return (
-        <div className="flex gap-8 justify-center mb-8 flex-wrap">
+        <div className="flex gap-8 justify-center items-center mb-8 flex-wrap">
             <div className="w-[250px] text-xs">
                 <label className={`text-sm mr-1 font-medium dark:text-gray-200 text-gray-700`}>From</label>
                 <DatePicker
@@ -28,7 +28,7 @@ const RangeDatepicker = ({ handleStartDateChange, handleEndDateChange, startDate
                 />
             </div>
             <button
-                className={`px-6 py-3 dark:bg-indigo-800 bg-indigo-600 text-white rounded-lg shadow-lg hover:bg-indigo-700  transition-all duration-300`}
+                className={`px-6 py-2 max-h-fit dark:bg-indigo-800 bg-indigo-600 text-white rounded-lg shadow-lg hover:bg-indigo-700  transition-all duration-300`}
                 onClick={fetchData}
             >
                 Get Data
