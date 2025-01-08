@@ -128,11 +128,9 @@ const TopSpenders = () => {
 
         const validStartDate = parseDate(previousStartDate) || new Date(new Date().setMonth(new Date().getMonth() - 12));
         const validEndDate = parseDate(previousEndDate) || new Date();
-        console.log("Final validStartDate:", parseDate(previousStartDate));
-        console.log("Final validEndDate:", validEndDate);
-
         setStartDate(validStartDate);
         setEndDate(validEndDate);
+        fetchData();
     }, []);
     return (
         <div className='container min-h-[658px] mx-auto p-6 bg-white dark:bg-gray-900 shadow-xl rounded-lg relative'>

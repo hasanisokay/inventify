@@ -37,10 +37,6 @@ const TopDebtors = () => {
     };
 
     useEffect(() => {
-        fetchData();
-    }, []);
-
-    useEffect(() => {
         setTextColor(theme === "dark" ? "#ffffff" : "#000000");
     }, [theme]);
 
@@ -134,6 +130,7 @@ const TopDebtors = () => {
     
         setStartDate(validStartDate || new Date(new Date().setMonth(new Date().getMonth() - 12)));
         setEndDate(validEndDate || new Date());
+        fetchData();
     }, []);
     return (
         <div className='container min-h-[594px] mx-auto p-6 bg-white dark:bg-gray-900 shadow-xl rounded-lg relative'>

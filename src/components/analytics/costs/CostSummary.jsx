@@ -106,11 +106,6 @@ const CostSummary = () => {
         return date;
     };
 
-    useEffect(() => {
-        fetchData();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
     const handleStartDateChange = (date) => {
         localStorage.setItem("cost_summary_start_date", JSON.stringify(date))
         setStartDate(date);
@@ -141,6 +136,8 @@ const CostSummary = () => {
     
         setStartDate(validStartDate || new Date(new Date().setMonth(new Date().getMonth() - 11)));
         setEndDate(validEndDate || new Date());
+        fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     
     

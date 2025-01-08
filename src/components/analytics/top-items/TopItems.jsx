@@ -43,10 +43,6 @@ const TopItems = () => {
         setTextColor(theme === "dark" ? "text-white" : "text-gray-800");
     }, [theme]);
 
-    useEffect(() => {
-        fetchData();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     // Chart Data
     const chartData = {
@@ -164,6 +160,8 @@ const TopItems = () => {
     
         setStartDate(validStartDate || new Date(new Date().setMonth(new Date().getMonth() - 12)));
         setEndDate(validEndDate || new Date());
+        fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (
