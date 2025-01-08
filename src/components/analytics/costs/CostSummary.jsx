@@ -126,7 +126,11 @@ const CostSummary = () => {
     
         const parseDate = (date) => {
             try {
-                return new Date(JSON.parse(date)); // Remove extra quotes and parse as a date
+                if (date) {
+                    return new Date(JSON.parse(date));
+                } else {
+                    return null
+                }
             } catch {
                 return null;
             }

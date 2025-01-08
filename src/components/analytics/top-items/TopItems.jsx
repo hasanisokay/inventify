@@ -149,7 +149,11 @@ const TopItems = () => {
 
         const parseDate = (date) => {
             try {
-                return new Date(JSON.parse(date));
+                if (date) {
+                    return new Date(JSON.parse(date));
+                } else {
+                    return null
+                }
             } catch {
                 return null;
             }

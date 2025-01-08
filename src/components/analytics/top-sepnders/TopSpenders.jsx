@@ -116,17 +116,23 @@ const TopSpenders = () => {
 
         const parseDate = (date) => {
             try {
-                return new Date(JSON.parse(date));
+                if (date) {
+                    return new Date(JSON.parse(date));
+                } else {
+                    return null
+                }
             } catch {
                 return null;
             }
         };
-    
-        const validStartDate = parseDate(previousStartDate);
-        const validEndDate = parseDate(previousEndDate);
-    
-        setStartDate(validStartDate || new Date(new Date().setMonth(new Date().getMonth() - 12)));
-        setEndDate(validEndDate || new Date());
+
+        const validStartDate = parseDate(previousStartDate) || new Date(new Date().setMonth(new Date().getMonth() - 12));
+        const validEndDate = parseDate(previousEndDate) || new Date();
+        console.log("Final validStartDate:", parseDate(previousStartDate));
+        console.log("Final validEndDate:", validEndDate);
+
+        setStartDate(validStartDate);
+        setEndDate(validEndDate);
     }, []);
     return (
         <div className='container min-h-[658px] mx-auto p-6 bg-white dark:bg-gray-900 shadow-xl rounded-lg relative'>
