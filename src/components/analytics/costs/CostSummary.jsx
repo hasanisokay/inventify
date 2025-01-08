@@ -16,7 +16,7 @@ const CostSummary = () => {
                 credentials: 'include'
             });
             const data = await res.json();
- 
+
             if (data.success) {
                 mergeData(data.invoiceData, data.expenseData);
             } else {
@@ -33,12 +33,12 @@ const CostSummary = () => {
         const merged = [];
         const invoiceMap = new Map();
         const expenseMap = new Map();
-    
+
         // Map expenses by period
         expenseData.forEach((expense) => {
             expenseMap.set(expense._id, expense.totalExpenses);
         });
-    
+
         // Map invoices by period
         invoiceData.forEach((invoice) => {
             invoiceMap.set(invoice._id, {
@@ -46,17 +46,17 @@ const CostSummary = () => {
                 totalPaid: invoice.totalPaid,
             });
         });
-    
+
         // Merge all unique periods from invoices and expenses
         const uniquePeriods = new Set([
             ...invoiceMap.keys(),
             ...expenseMap.keys(),
         ]);
-    
+
         uniquePeriods.forEach((period) => {
             const invoice = invoiceMap.get(period) || { totalDue: 0, totalPaid: 0 };
             const expense = expenseMap.get(period) || 0;
-    
+
             merged.push({
                 timePeriod: formatTimePeriod(period),
                 totalDue: invoice.totalDue,
@@ -64,13 +64,13 @@ const CostSummary = () => {
                 totalExpenses: expense,
             });
         });
-    
+
         setMergedData(merged);
     };
-    
-    
+
+
     const formatTimePeriod = (period) => {
-        if(typeof(period)==='number') return period
+        if (typeof (period) === 'number') return period
         if (period?.includes("W")) {
             const [year, week] = period.split("-W");
             return formatWeekToDateRange(year, week);
@@ -81,14 +81,14 @@ const CostSummary = () => {
             ];
             return `${monthNames[parseInt(month, 10) - 1]} ${year}`;
         }
-        return period;  
+        return period;
     };
 
     const formatWeekToDateRange = (year, week) => {
 
-        const firstDayOfWeek = getDateOfISOWeek(year, week); 
+        const firstDayOfWeek = getDateOfISOWeek(year, week);
         const lastDayOfWeek = new Date(firstDayOfWeek);
-        lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 6); 
+        lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 6);
 
         const options = { year: 'numeric', month: 'short', day: 'numeric' };
         const startDateFormatted = firstDayOfWeek.toLocaleDateString('en-US', options);
@@ -108,17 +108,39 @@ const CostSummary = () => {
 
     useEffect(() => {
         fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleStartDateChange = (date) => {
+        localStorage.setItem("cost_summary_start_date", JSON.stringify(date))
         setStartDate(date);
     };
 
     const handleEndDateChange = (date) => {
+        localStorage.setItem("cost_summary_end_date", JSON.stringify(date))
         setEndDate(date);
     };
-
+    useEffect(() => {
+        const previousStartDate = localStorage.getItem("cost_summary_start_date");
+        const previousEndDate = localStorage.getItem("cost_summary_end_date");
+    
+        const parseDate = (date) => {
+            try {
+                return new Date(JSON.parse(date)); // Remove extra quotes and parse as a date
+            } catch {
+                return null;
+            }
+        };
+    
+        const validStartDate = parseDate(previousStartDate);
+        const validEndDate = parseDate(previousEndDate);
+    
+        setStartDate(validStartDate || new Date(new Date().setMonth(new Date().getMonth() - 11)));
+        setEndDate(validEndDate || new Date());
+    }, []);
+    
+    
+    
     return (
         <div className="container min-h-[628px] mx-auto p-6 bg-white dark:bg-gray-900 shadow-xl rounded-lg relative">
             {loading ? (
@@ -135,12 +157,12 @@ const CostSummary = () => {
                         <h3 className="text-lg text-gray-600 dark:text-gray-300">Select a Date Range for Cost Summary</h3>
                     </div>
 
-                    <RangeDatepicker 
-                        endDate={endDate} 
-                        startDate={startDate} 
-                        fetchData={fetchData} 
-                        handleEndDateChange={handleEndDateChange} 
-                        handleStartDateChange={handleStartDateChange} 
+                    <RangeDatepicker
+                        endDate={endDate}
+                        startDate={startDate}
+                        fetchData={fetchData}
+                        handleEndDateChange={handleEndDateChange}
+                        handleStartDateChange={handleStartDateChange}
                     />
 
                     <div className="mt-6 overflow-x-auto">

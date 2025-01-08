@@ -134,12 +134,33 @@ const TopItems = () => {
 
 
     const handleStartDateChange = (date) => {
+        localStorage.setItem("top_items_start_date", JSON.stringify(date))
         setStartDate(date);
     };
 
     const handleEndDateChange = (date) => {
+        localStorage.setItem("top_items_end_date", JSON.stringify(date))
         setEndDate(date);
     };
+
+    useEffect(() => {
+        const previousStartDate = localStorage.getItem("top_items_start_date");
+        const previousEndDate = localStorage.getItem("top_items_end_date");
+
+        const parseDate = (date) => {
+            try {
+                return new Date(JSON.parse(date));
+            } catch {
+                return null;
+            }
+        };
+    
+        const validStartDate = parseDate(previousStartDate);
+        const validEndDate = parseDate(previousEndDate);
+    
+        setStartDate(validStartDate || new Date(new Date().setMonth(new Date().getMonth() - 12)));
+        setEndDate(validEndDate || new Date());
+    }, []);
 
     return (
         <>

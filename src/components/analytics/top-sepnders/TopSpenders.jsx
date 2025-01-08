@@ -102,13 +102,32 @@ const TopSpenders = () => {
     };
 
     const handleStartDateChange = (date) => {
+        localStorage.setItem("top_spenders_start_date", JSON.stringify(date))
         setStartDate(date);
     };
 
     const handleEndDateChange = (date) => {
+        localStorage.setItem("top_spenders_end_date", JSON.stringify(date))
         setEndDate(date);
     };
+    useEffect(() => {
+        const previousStartDate = localStorage.getItem("top_spenders_start_date");
+        const previousEndDate = localStorage.getItem("top_spenders_end_date");
 
+        const parseDate = (date) => {
+            try {
+                return new Date(JSON.parse(date));
+            } catch {
+                return null;
+            }
+        };
+    
+        const validStartDate = parseDate(previousStartDate);
+        const validEndDate = parseDate(previousEndDate);
+    
+        setStartDate(validStartDate || new Date(new Date().setMonth(new Date().getMonth() - 12)));
+        setEndDate(validEndDate || new Date());
+    }, []);
     return (
         <div className='container min-h-[658px] mx-auto p-6 bg-white dark:bg-gray-900 shadow-xl rounded-lg relative'>
             {loading ? (
